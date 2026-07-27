@@ -48,46 +48,62 @@ h1,h2{ font-family:'Fraunces', serif; }
   width:100%; max-width:380px;
   background: var(--white);
   border:1px solid var(--line);
-  border-radius:26px;
-  padding:40px 32px 32px;
+  border-radius:28px;
+  padding:44px 32px 32px;
   box-shadow:
     0 1px 0 rgba(255,255,255,.6) inset,
-    0 30px 60px -20px rgba(43,33,24,.22),
+    0 30px 70px -20px rgba(43,33,24,.25),
     0 10px 24px rgba(43,33,24,.08);
   display:flex; flex-direction:column;
+  animation: loginCardIn .45s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes loginCardIn{
+  from{ opacity:0; transform: translateY(14px) scale(.98); }
+  to{ opacity:1; transform: translateY(0) scale(1); }
 }
 
 .loginLogo{
-  width:80px; height:80px; border-radius:20px;
+  width:76px; height:76px; border-radius:22px;
   overflow:hidden;
   display:flex; align-items:center; justify-content:center;
-  margin:0 auto 22px;
+  margin:0 auto 20px;
 }
 .loginLogo img{
   width:100%; height:100%; object-fit:cover; display:block;
 }
 
 .loginCard h1{
-  font-size:24px; font-weight:700; text-align:center; letter-spacing:-.2px;
+  font-size:25px; font-weight:700; text-align:center; letter-spacing:-.3px;
 }
 .loginSub{
-  color:var(--ink-soft); font-size:13.5px; margin-top:6px; margin-bottom:26px;
+  color:var(--ink-soft); font-size:13.5px; margin-top:6px; margin-bottom:28px;
   text-align:center;
 }
 
 .loginCard label{
-  font-size:13px; font-weight:700; color:var(--ink-soft);
-  letter-spacing:.3px; text-transform:uppercase;
+  font-size:12px; font-weight:700; color:var(--ink-soft);
+  letter-spacing:.5px; text-transform:uppercase;
   margin-bottom:7px; margin-top:16px;
+  display:block;
 }
 .loginCard label:first-of-type{ margin-top:0; }
 
-.loginCard input, .loginCard textarea, .loginCard select{
-  font-family:'Inter',sans-serif; font: size 16px;
-  padding:13px 14px; border-radius:13px; border:1.5px solid var(--line);
+.inputGroup{ position:relative; display:flex; align-items:center; }
+.inputIcon{
+  position:absolute; left:14px; width:18px; height:18px;
+  color: var(--ink-soft); opacity:.55; pointer-events:none;
+  transition: color .15s ease, opacity .15s ease;
+}
+.inputGroup:focus-within .inputIcon{ color: var(--mustard-600); opacity:.9; }
+
+.loginCard input{
+  font-family:'Inter',sans-serif; font-size:16px;
+  width:100%;
+  padding:13px 14px 13px 42px; border-radius:14px; border:1.5px solid var(--line);
   background: var(--paper); color: var(--ink); outline:none;
   transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
+#loginPassword{ padding-right:42px; }
 .loginCard input::placeholder{ color: rgba(43,33,24,.32); }
 .loginCard input:focus{
   border-color: var(--mustard-500);
@@ -95,16 +111,26 @@ h1,h2{ font-family:'Fraunces', serif; }
   box-shadow: 0 0 0 4px rgba(217,160,48,.16);
 }
 
-.loginCard button{
-  margin-top:26px; padding:14px; border:none; border-radius:999px;
+.togglePassword{
+  position:absolute; right:6px;
+  width:32px; height:32px; border-radius:10px; border:none;
+  background:transparent; color: var(--ink-soft); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  opacity:.6;
+}
+.togglePassword:hover{ background: var(--paper-200); opacity:1; }
+.togglePassword svg{ width:18px; height:18px; }
+
+.loginCard button[type="submit"]{
+  margin-top:28px; padding:14px; border:none; border-radius:999px;
   background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
   color:#fff; font-weight:700; font-size:14.5px; letter-spacing:.2px; cursor:pointer;
   box-shadow: 0 10px 20px -6px rgba(198,138,31,.55);
   transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
 }
-.loginCard button:hover{ box-shadow: 0 12px 24px -6px rgba(198,138,31,.6); }
-.loginCard button:active{ transform: scale(.98); }
-.loginCard button:disabled{ opacity:.75; cursor:default; transform:none; }
+.loginCard button[type="submit"]:hover{ box-shadow: 0 12px 24px -6px rgba(198,138,31,.6); }
+.loginCard button[type="submit"]:active{ transform: scale(.98); }
+.loginCard button[type="submit"]:disabled{ opacity:.75; cursor:default; transform:none; }
 
 .loginError{
   color: var(--tomato-500); font-size:13px; margin-top:14px; min-height:16px;

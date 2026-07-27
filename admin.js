@@ -8,7 +8,15 @@ const dash = document.getElementById('dash');
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 const loginBtn = document.getElementById('loginBtn');
-const loginBtnLabel = document.getElementById('loginBtnLabel');
+const togglePasswordBtn = document.getElementById('togglePassword');
+const loginPasswordInput = document.getElementById('loginPassword');
+if (togglePasswordBtn && loginPasswordInput) {
+  togglePasswordBtn.addEventListener('click', () => {
+    const isPassword = loginPasswordInput.type === 'password';
+    loginPasswordInput.type = isPassword ? 'text' : 'password';
+    togglePasswordBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+  });
+}
 
 let products = [];
 let activeCategory = 'all';
