@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L&amp;K Sandwich — Fresh Stacked Daily</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+Khmer:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brandRow">
+      <div class="logo">
+        <img src="img/logo.png" alt="L&amp;K Sandwich logo">
+      </div>
+      <div class="brandText">
+        <h1>L&amp;K Sandwiches</h1>
+        <p>ធានាគុណភាព · អនាម័យ · តម្លៃ</p>
+      </div>
+      <div class="headIcons">
+        <a class="iconBtn" href="#" aria-label="Facebook page">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M13.5 21v-7.2h2.4l.4-2.8h-2.8v-1.8c0-.8.2-1.3 1.4-1.3h1.5V5.2C15.9 5.1 15 5 14 5c-2.2 0-3.7 1.3-3.7 3.8v2.1H7.9v2.8h2.4V21h3.2z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="searchWrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="Search by product ID (e.g. LK-S01)" />
+    </div>
+
+    <div class="chipRow" id="chipRow">
+      <div class="chip active" data-target="sec-bestseller"><span class="dot"></span>Bestseller</div>
+      <div class="chip" data-target="sec-sandwich"><span class="dot"></span>សាំងវិច</div>
+      <div class="chip" data-target="sec-rice"><span class="dot"></span>បាយ</div>
+      <div class="chip" data-target="sec-dessert"><span class="dot"></span>បង្អែម</div>
+      <div class="chip" data-target="sec-drinks"><span class="dot"></span>ភេសជ្ជៈ</div>
+      <div class="chip" data-target="sec-locations"><span class="dot"></span>ទីតាំង</div>
+    </div>
+  </header>
+
+  <div class="heroWrap">
+    <div class="heroTopText">ទទួលរៀបចំ Catering សម្រាប់គ្រប់កម្មវិធី</div>
+    <div class="hero" id="hero">
+
+      <div class="heroSlide active">
+        <img src="img/banner1.jpg" alt="Fresh baked sandwiches">
+      </div>
+
+      <div class="heroSlide">
+        <img src="img/banner2.jpg" alt="Wraps and rolls">
+      </div>
+
+      <div class="heroSlide">
+        <img src="img/Banner3.jpg" alt="Breakfast stacks">
+      </div>
+
+      <div class="heroDots" id="heroDots">
+        <button class="active" data-i="0" aria-label="Slide 1"></button>
+        <button data-i="1" aria-label="Slide 2"></button>
+        <button data-i="2" aria-label="Slide 3"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="twine" aria-hidden="true"></div>
+
+  <div class="sectionHead" id="sec-bestseller">
+    <h3>Bestseller</h3>
+    <span class="count" id="count-bestseller">Loading…</span>
+  </div>
+  <div class="grid" id="grid-bestseller"></div>
+
+  <div class="twine" aria-hidden="true"></div>
+
+  <div class="sectionHead" id="sec-sandwich">
+    <h3>សាំងវិច</h3>
+    <span class="count" id="count-sandwich">Loading…</span>
+  </div>
+  <div class="grid" id="grid-sandwich"></div>
+
+  <div class="twine" aria-hidden="true"></div>
+
+  <div class="sectionHead" id="sec-rice">
+    <h3>បាយ</h3>
+    <span class="count" id="count-rice">Loading…</span>
+  </div>
+  <div class="grid" id="grid-rice"></div>
+
+  <div class="twine" aria-hidden="true"></div>
+
+  <div class="sectionHead" id="sec-dessert">
+    <h3>បង្អែម</h3>
+    <span class="count" id="count-dessert">Loading…</span>
+  </div>
+  <div class="grid" id="grid-dessert"></div>
+
+  <div class="twine" aria-hidden="true"></div>
+
+  <div class="sectionHead" id="sec-drinks">
+    <h3>ភេសជ្ជៈ</h3>
+    <span class="count" id="count-drinks">Loading…</span>
+  </div>
+  <div class="grid" id="grid-drinks"></div>
+
+  <div class="twine" aria-hidden="true"></div>
+
+  <!-- ---------- our locations ---------- -->
+  <div class="sectionHead" id="sec-locations">
+    <h3>ទីតាំងរបស់យើង</h3>
+    <span class="count">3 branches</span>
+  </div>
+
+  <div class="locationsWrap">
+    <div class="mapCard">
+      <div class="mapBadge">
+        <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M6 0a4 4 0 0 0-4 4c0 3 4 8 4 8s4-5 4-8a4 4 0 0 0-4-4z"/></svg>
+        3 Branches
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <div class="branchList">
+      <div class="branchRow" onclick="focusLocation(0)">
+        <div class="brNum">1</div>
+        <div class="brInfo">
+          <p class="brName">First Branch</p>
+          <p class="brAddr">ABA Grand Phnom Penh Branch</p>
+        </div>
+        <a class="brGo" href="https://maps.app.goo.gl/hN2KTEVes9xH4kVk7" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          Go
+        </a>
+      </div>
+
+      <div class="branchRow" onclick="focusLocation(1)">
+        <div class="brNum">2</div>
+        <div class="brInfo">
+          <p class="brName">Second Branch</p>
+          <p class="brAddr">The Westline school, Russey Keo (598)</p>
+        </div>
+        <a class="brGo" href="https://maps.app.goo.gl/Qfq4Wr57AxrwQB8g6" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          Go
+        </a>
+      </div>
+
+      <div class="branchRow soon">
+        <div class="brNum soon">3</div>
+        <div class="brInfo">
+          <p class="brName">Coming Soon</p>
+          <p class="brAddr">New location launching soon</p>
+        </div>
+        <span class="brGo soon">Soon</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="twine" aria-hidden="true"></div>
+
+  <!-- ---------- product detail modal ---------- -->
+  <div class="modalOverlay" id="modalOverlay">
+    <div class="modalCard">
+      <div class="modalGallery" id="modalGallery">
+        <span class="modalBadge" id="modalBadge">Signature</span>
+        <button class="modalClose" id="modalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+        <img id="modalImg" src="" alt="">
+      </div>
+      <div class="modalBody">
+        <p class="mId" id="modalId">ID: LK-S01</p>
+        <p class="mName" id="modalName">Classic Club Sandwich</p>
+        <p class="mPrice" id="modalPrice"></p>
+        <p class="mDesc" id="modalDesc" style="display:none;"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sectionHead" id="sec-hours">
+    <h3>ម៉ោងលក់ខាងក្រៅ</h3>
+    <span class="count" id="openStatus">Open now</span>
+  </div>
+
+  <div class="hoursCard">
+    <div class="hoursRow" data-day="weekday">
+      <span class="hDay">Monday – Friday</span>
+      <span class="hTime">7:00 AM – 12:00 PM</span>
+    </div>
+    <div class="hoursRow" data-day="weekend">
+      <span class="hDay">Saturday – Sunday</span>
+      <span class="hTime">Closed</span>
+    </div>
+  </div>
+
+  <div class="orderBar">
+    <a href="https://t.me/YourUsername" target="_blank" rel="noopener noreferrer" class="chat-btn">
+  <button>
+    <svg viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14.9932 1.58221C15.0223 1.40736 14.9567 1.23016 14.8208 1.11645C14.6848 1.00274 14.4988 0.969519 14.3318 1.02914L0.331836 6.02914C0.143209 6.0965 0.0129867 6.26994 0.000913704 6.46987C-0.0111592 6.6698 0.0972469 6.85765 0.276398 6.94722L4.2764 8.94722C4.43688 9.02746 4.62806 9.01556 4.77735 8.91603L8.09775 6.70244L6.10957 9.18766C6.02203 9.29709 5.98442 9.43824 6.00592 9.57672C6.02742 9.7152 6.10605 9.8383 6.22265 9.91603L12.2227 13.916C12.3638 14.0101 12.5431 14.0262 12.6988 13.9588C12.8545 13.8914 12.9653 13.7496 12.9932 13.5822L14.9932 1.58221Z" fill="currentColor"/>
+    </svg>
+    Order Now 
+  </button>
+</a>
+  </div>
+
+  <footer>
+    <p>L&amp;K SANDWICH</p>
+    <p style="margin-top:4px;"><a href="admin.html" style="color:rgba(43,33,24,.35);text-decoration:underline;">Admin</a></p>
+  </footer>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="module" src="script.js"></script>
+
+</body>
+</html>

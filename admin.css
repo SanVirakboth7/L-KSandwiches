@@ -1,0 +1,307 @@
+:root{
+  --white:#ffffff;
+  --paper:#fbf7ef;
+  --paper-200:#f3ecdf;
+  --ink:#2b2118;
+  --ink-soft:#6b5f52;
+  --mustard-500:#d9a030;
+  --mustard-600:#c68a1f;
+  --olive-500:#6b7b4f;
+  --crust-500:#c97b3d;
+  --tomato-500:#c1442d;
+  --line:#e7ddcb;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+body{
+  font-family:'Inter', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height:100vh;
+}
+h1,h2{ font-family:'Fraunces', serif; }
+
+/* ---------- login ---------- */
+.loginWrap{
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  padding:20px;
+  background: radial-gradient(circle at 50% -10%, rgba(217,160,48,.18), transparent 60%), var(--paper);
+}
+.loginCard{
+  width:100%; max-width:360px;
+  background: var(--white);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:32px 28px;
+  box-shadow: 0 20px 50px rgba(43,33,24,.1);
+  display:flex; flex-direction:column;
+}
+.loginLogo{
+  width:48px; height:48px; border-radius:50%;
+  background: linear-gradient(160deg, var(--mustard-500), var(--crust-500));
+  color:#fff; font-family:'Fraunces',serif; font-weight:700; font-size:15px;
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:16px;
+}
+.loginCard h1{ font-size:22px; font-weight:700; }
+.loginSub{ color:var(--ink-soft); font-size:13px; margin-top:4px; margin-bottom:20px; }
+.loginCard label{ font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; margin-top:14px; }
+.loginCard input, .loginCard textarea, .loginCard select{
+  font-family:'Inter',sans-serif; font-size:15px;
+  padding:11px 13px; border-radius:12px; border:1px solid var(--line);
+  background: var(--paper); color: var(--ink); outline:none;
+}
+.loginCard input:focus{ border-color: var(--mustard-500); }
+.loginCard button{
+  margin-top:20px; padding:12px; border:none; border-radius:999px;
+  background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
+  color:#fff; font-weight:700; font-size:14px; cursor:pointer;
+}
+.loginCard button:active{ transform: scale(.98); }
+.loginError{ color: var(--tomato-500); font-size:13px; margin-top:12px; min-height:16px; }
+
+/* ---------- dashboard shell / header ---------- */
+.dashHeader{
+  position:sticky; top:0; z-index:20;
+  background: rgba(255,255,255,.97); backdrop-filter: blur(8px);
+  border-bottom:1px solid var(--line);
+  padding:10px 16px 8px;
+}
+.dashHeaderTop{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px; margin-bottom:8px;
+}
+.dashBrand{
+  display:flex; align-items:center; gap:8px;
+  font-family:'Fraunces',serif; font-weight:700; font-size:15px;
+  min-width:0;
+}
+.dashLogo{
+  width:26px; height:26px; border-radius:50%; flex-shrink:0;
+  background: linear-gradient(160deg, var(--mustard-500), var(--crust-500));
+  color:#fff; font-size:10px; display:flex; align-items:center; justify-content:center;
+}
+.dashHeaderRight{ display:flex; gap:6px; flex-shrink:0; }
+
+.ghostBtn{
+  font-family:'Inter',sans-serif; font-size:12px; font-weight:600;
+  padding:6px 11px; border-radius:999px; border:1px solid var(--line);
+  background: var(--paper); color:var(--ink); cursor:pointer; text-decoration:none;
+  display:inline-flex; align-items:center; white-space:nowrap;
+}
+.primaryBtn{
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:700;
+  padding:9px 16px; border-radius:999px; border:none;
+  background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
+  color:#fff; cursor:pointer;
+}
+
+.dashToolbar{ display:flex; flex-direction:column; gap:6px; }
+.toolbarRow1{ display:flex; gap:6px; align-items:center; }
+
+.searchBarWrap{ position:relative; flex:1; min-width:0; }
+#adminSearch{
+  width:100%; font-size:16px; padding:7px 32px 7px 12px;
+  border-radius:999px; border:1px solid var(--line); background: var(--paper); outline:none;
+}
+#adminSearch:focus{ border-color: var(--mustard-500); }
+.clearSearchBtn{
+  position:absolute; right:5px; top:50%; transform:translateY(-50%);
+  width:20px; height:20px; border-radius:50%; border:none;
+  background: var(--paper-200); color: var(--ink-soft);
+  font-size:14px; line-height:1; cursor:pointer;
+  display:none; align-items:center; justify-content:center;
+}
+.clearSearchBtn.show{ display:flex; }
+.clearSearchBtn:hover{ background: var(--line); }
+
+.addBtn{
+  flex-shrink:0; width:32px; height:32px; border-radius:50%; border:none;
+  background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
+  color:#fff; font-size:18px; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; line-height:1;
+}
+
+/* touch-safe horizontally scrolling filter row */
+.catFilter{
+  display:flex; gap:5px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  scrollbar-width:none; touch-action:pan-x; padding-bottom:1px;
+}
+.catFilter::-webkit-scrollbar{ display:none; }
+.catBtn{
+  flex-shrink:0; white-space:nowrap; touch-action:manipulation;
+  font-size:12.5px; font-weight:600; padding:7px 13px; border-radius:999px;
+  border:1px solid var(--line); background: var(--paper); color:var(--ink-soft); cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.catBtn.active{
+  background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
+  color:#fff; border-color:transparent;
+}
+
+.toast{
+  position:fixed; top:16px; right:16px; z-index:200;
+  background: var(--ink); color:#fff; font-size:13px; font-weight:600;
+  padding:10px 16px; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.2);
+  opacity:0; transform: translateY(-8px); pointer-events:none;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.toast.show{ opacity:1; transform: translateY(0); }
+.toast.error{ background: var(--tomato-500); }
+
+.dashMain{ max-width:1400px; margin:0 auto; padding:12px 12px 40px; }
+.loadingRow{ color:var(--ink-soft); font-size:14px; padding:20px 0; }
+
+.resultsCount{
+  font-family:'DM Mono', monospace; font-size:12px; color:var(--ink-soft);
+  margin:0 2px 12px; opacity:.85;
+}
+
+/* ---------- product card row ---------- */
+.productList{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(360px, 1fr));
+  gap:14px;
+}
+.productRow{
+  display:grid; grid-template-columns:104px 1fr; gap:16px;
+  background: var(--white); border:1px solid var(--line); border-radius:20px;
+  padding:14px;
+  box-shadow: 0 2px 10px rgba(43,33,24,.04);
+}
+.rowImg{
+  position:relative; width:104px; height:104px; border-radius:16px; overflow:hidden;
+  background: var(--paper-200); cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.rowImg img{ width:100%; height:100%; object-fit:cover; display:block; }
+.rowImg .imgOverlay{
+  position:absolute; inset:0; background: rgba(43,33,24,.5); color:#fff;
+  font-size:10.5px; font-weight:600; display:flex; align-items:center; justify-content:center;
+  text-align:center; opacity:0; transition: opacity .15s ease; padding:6px;
+}
+.rowImg:hover .imgOverlay{ opacity:1; }
+
+.rowFields{ display:flex; flex-direction:column; justify-content:space-between; gap:4px; min-width:0; }
+
+.rowTopLine{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:2px; }
+.nameInput{
+  flex:1; min-width:0;
+  font-family:'Fraunces', serif; font-weight:700; font-size:17px; color:var(--ink);
+  border:none; background:transparent; outline:none; padding:2px 0;
+  border-bottom:1px solid transparent;
+}
+.nameInput:focus{ border-bottom-color: var(--mustard-500); }
+.nameInput::placeholder{ color: rgba(43,33,24,.3); font-weight:600; }
+.rowMeta{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:2px 0; }
+.rowId{ font-family:'DM Mono', monospace; font-size:11px; color:var(--ink-soft); }
+.catTag{
+  font-size:9.5px; font-weight:700; letter-spacing:.3px; text-transform:uppercase;
+  background: var(--paper-200); color:var(--ink-soft); padding:2px 7px; border-radius:999px;
+}
+.savedTick{ font-size:11px; color:var(--olive-500); font-weight:700; opacity:0; transition:opacity .2s ease; }
+.savedTick.show{ opacity:1; }
+
+.rowBottomLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:2px; }
+
+.priceWrap{
+  display:flex; align-items:baseline; gap:2px;
+  background: var(--paper); border-radius:10px; padding:4px 10px;
+  border:1px solid var(--line);
+}
+.priceSign{ font-family:'DM Mono', monospace; font-weight:700; font-size:17px; color: var(--crust-500); }
+.priceInput{
+  width:70px; font-family:'DM Mono', monospace; font-weight:700; font-size:17px; color: var(--crust-500);
+  border:none; background:transparent; outline:none;
+}
+.priceInput::placeholder{ color: rgba(201,123,61,.4); }
+
+.rowActionsRight{ display:flex; align-items:center; gap:8px; }
+
+.bestBtn{
+  width:34px; height:34px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  background: var(--paper-200); color: var(--ink-soft);
+  border:1px solid var(--line); transition: background .15s ease, color .15s ease;
+}
+.bestBtn svg{ width:15px; height:15px; }
+.bestBtn.active{
+  background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
+  color:#fff; border-color:transparent;
+}
+
+.deleteIconBtn{
+  width:34px; height:34px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  background: rgba(193,68,45,.08); color: var(--tomato-500);
+  border:1px solid rgba(193,68,45,.25);
+}
+.deleteIconBtn svg{ width:15px; height:15px; }
+.deleteIconBtn:hover{ background: rgba(193,68,45,.16); }
+
+/* ---------- add product modal ---------- */
+.modalOverlay{
+  position:fixed; inset:0; z-index:100;
+  background: rgba(43,33,24,.45);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  opacity:0; pointer-events:none; transition: opacity .2s ease;
+}
+.modalOverlay.open{ opacity:1; pointer-events:auto; }
+.modalOverlay .modalCard{
+  width:100%; max-width:420px; max-height:88vh; overflow-y:auto;
+  background:#fff; border-radius:20px; padding:26px 24px;
+  display:flex; flex-direction:column;
+  transform: translateY(12px); transition: transform .2s ease;
+}
+.modalOverlay.open .modalCard{ transform: translateY(0); }
+.modalCard h2{ font-size:19px; margin-bottom:14px; }
+.modalCard label{ font-size:12px; font-weight:600; color:var(--ink-soft); margin-top:12px; margin-bottom:5px; }
+.modalCard input, .modalCard textarea, .modalCard select{
+  font-family:'Inter',sans-serif; font-size:14px;
+  padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+  background: var(--paper); outline:none;
+}
+.modalCard input:focus, .modalCard textarea:focus, .modalCard select:focus{ border-color: var(--mustard-500); }
+.modalActions{ display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+.checkRow{ display:flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-soft); font-weight:600; margin-top:14px; }
+
+.dangerBtn{
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:700;
+  padding:10px 16px; border-radius:999px; border:1px solid rgba(193,68,45,.3);
+  background: rgba(193,68,45,.08); color: var(--tomato-500); cursor:pointer;
+}
+
+/* ---------- photo lightbox modal ---------- */
+.photoModalCard{
+  position:relative; max-width:380px; padding:0; overflow:visible;
+  align-items:stretch;
+}
+.photoModalClose{
+  position:absolute; top:12px; right:12px; z-index:5;
+  width:32px; height:32px; border-radius:50%; border:none;
+  background: var(--mustard-500); color:#fff; font-size:18px; line-height:1; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow: 0 4px 14px rgba(0,0,0,.25);
+}
+.photoModalImgWrap{
+  position:relative; width:100%; aspect-ratio:1/1; overflow:hidden;
+  border-radius:20px 20px 0 0; background: var(--paper-200);
+}
+.photoModalImgWrap img{ width:100%; height:100%; object-fit:cover; display:block; }
+.photoModalUploading{
+  position:absolute; inset:0; background: rgba(255,255,255,.9);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; color:var(--ink); font-size:14px;
+}
+.photoModalId{
+  font-family:'DM Mono', monospace; font-size:12px; color:var(--ink-soft);
+  text-align:center; padding:14px 20px 0;
+}
+.photoModalActions{
+  display:flex; gap:10px; padding:14px 20px 22px;
+}
+.photoModalActions button{ flex:1; }
+
+@media (max-width:480px){
+  .productRow{ grid-template-columns:110px 1fr; gap:12px; padding:12px; }
+  .rowImg{ width:110px; height:110px; border-radius:14px; }
+}
