@@ -192,7 +192,7 @@
     padding:3px 8px; border-radius:999px;
   }
   .cardBody{ padding:10px 11px 12px; }
-  .cardBody .mName{font-family:'DM Mono', monospace,Noto sans khmer; font-weight:600; font-size:13px; }
+  .cardBody .name{font-family:'DM Mono', monospace,Noto sans khmer; font-weight:600; font-size:13px; }
   .cardBody .id{ font-family:'Fraunces', serif; font-weight:600; font-size:11px; color:#6b5f52 ;}
   .cardBody .price{
     font-family:'DM Mono', monospace; font-weight:600; font-size:13px; color:var(--crust-500);
