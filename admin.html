@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L&amp;K Sandwich — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+Khmer:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- ---------- LOGIN SCREEN ---------- -->
+<div class="loginWrap" id="loginWrap">
+  <form class="loginCard" id="loginForm">
+    <div class="loginLogo">L&amp;K</div>
+    <h1>Admin Login</h1>
+    <p class="loginSub">Sign in to manage menu items</p>
+
+    <label>Email</label>
+    <input type="email" id="loginEmail" autocomplete="username" required>
+
+    <label>Password</label>
+    <input type="password" id="loginPassword" autocomplete="current-password" required>
+
+    <button type="submit" id="loginBtn">Sign In</button>
+    <p class="loginError" id="loginError"></p>
+  </form>
+</div>
+
+<!-- ---------- ADMIN DASHBOARD ---------- -->
+<div class="dash" id="dash" style="display:none;">
+
+  <header class="dashHeader">
+    <div class="dashHeaderTop">
+      <div class="dashBrand">
+        <span class="dashLogo">L&amp;K</span>
+        <span>Admin Panel</span>
+      </div>
+      <div class="dashHeaderRight">
+        <a href="index.html" class="ghostBtn" target="_blank">View site ↗</a>
+        <button class="ghostBtn" id="logoutBtn">Log out</button>
+      </div>
+    </div>
+
+    <div class="dashToolbar">
+      <div class="toolbarRow1">
+        <div class="searchBarWrap">
+          <input type="text" id="adminSearch" placeholder="Search by ID or name…" inputmode="search">
+          <button type="button" id="clearSearch" class="clearSearchBtn" aria-label="Clear search">&times;</button>
+        </div>
+        <button class="addBtn" id="addProductBtn" title="Add Product" aria-label="Add Product">+</button>
+      </div>
+      <div class="catFilter" id="catFilter">
+        <button class="catBtn active" data-cat="all">All</button>
+        <button class="catBtn" data-cat="sandwich">Sandwich</button>
+        <button class="catBtn" data-cat="rice">Rice</button>
+        <button class="catBtn" data-cat="dessert">Dessert</button>
+        <button class="catBtn" data-cat="drink">Drink</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="toast" id="toast"></div>
+
+  <main class="dashMain" id="dashMain">
+    <p class="resultsCount" id="resultsCount"></p>
+    <p class="loadingRow" id="loadingRow">Loading products…</p>
+    <div class="productList" id="productList"></div>
+  </main>
+
+</div>
+
+<!-- ---------- ADD PRODUCT MODAL ---------- -->
+<div class="modalOverlay" id="addModalOverlay">
+  <form class="modalCard" id="addForm">
+    <h2>New Product</h2>
+
+    <label>Product ID</label>
+    <input type="text" id="newId" placeholder="e.g. LK-S51" required>
+
+    <label>Category</label>
+    <select id="newCategory" required>
+      <option value="sandwich">Sandwich</option>
+      <option value="rice">Rice</option>
+      <option value="dessert">Dessert</option>
+      <option value="drink">Drink</option>
+    </select>
+
+    <label>Name</label>
+    <input type="text" id="newName" placeholder="Product name" required>
+
+    <label>Price</label>
+    <input type="text" id="newPrice" placeholder="e.g. 2.50">
+
+    <label class="checkRow"><input type="checkbox" id="newBestseller"> Show in Bestseller section</label>
+
+    <div class="modalActions">
+      <button type="button" class="ghostBtn" id="cancelAdd">Cancel</button>
+      <button type="submit" class="primaryBtn">Create Product</button>
+    </div>
+  </form>
+</div>
+
+<!-- ---------- PHOTO PREVIEW / LIGHTBOX MODAL ---------- -->
+<div class="modalOverlay" id="photoModalOverlay">
+  <div class="modalCard photoModalCard">
+    <button type="button" class="photoModalClose" id="photoModalClose" aria-label="Close">&times;</button>
+    <div class="photoModalImgWrap">
+      <img id="photoModalImg" src="" alt="">
+      <div class="photoModalUploading" id="photoModalUploading" style="display:none;">Uploading…</div>
+    </div>
+    <p class="photoModalId" id="photoModalId"></p>
+    <div class="photoModalActions">
+      <button type="button" class="primaryBtn" id="photoChangeBtn">Change Photo</button>
+      <button type="button" class="dangerBtn" id="photoDeleteBtn">Delete Photo</button>
+    </div>
+    <input type="file" id="photoModalFileInput" accept="image/*" style="display:none;">
+  </div>
+</div>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>
