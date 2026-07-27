@@ -14,18 +14,24 @@
 <!-- ---------- LOGIN SCREEN ---------- -->
 <div class="loginWrap" id="loginWrap">
   <form class="loginCard" id="loginForm">
-    <div class="loginLogo">L&amp;K</div>
-    <h1>Admin Login</h1>
-    <p class="loginSub">Sign in to manage menu items</p>
+    <div class="loginLogo">
+      <img src="img/logo.png" alt="L&amp;K Sandwich logo">
+    </div>
+    <h1>Welcome back</h1>
+    <p class="loginSub">Sign in to manage your menu</p>
 
     <label>Email</label>
-    <input type="email" id="loginEmail" autocomplete="username" required>
+    <input type="email" id="loginEmail" autocomplete="username" placeholder="you@lkSandwich.com" required>
 
     <label>Password</label>
-    <input type="password" id="loginPassword" autocomplete="current-password" required>
+    <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••" required>
 
-    <button type="submit" id="loginBtn">Sign In</button>
+    <button type="submit" id="loginBtn">
+      <span class="loginBtnLabel" id="loginBtnLabel">Sign In</span>
+    </button>
     <p class="loginError" id="loginError"></p>
+
+    <p class="loginFooter">L&amp;K Sandwich — Admin Dashboard</p>
   </form>
 </div>
 
@@ -35,7 +41,7 @@
   <header class="dashHeader">
     <div class="dashHeaderTop">
       <div class="dashBrand">
-        <span class="dashLogo">L&amp;K</span>
+        <span class="dashLogo"><img src="img/logo.png" alt="L&amp;K"></span>
         <span>Admin Dashboard</span>
       </div>
       <div class="dashHeaderRight">
@@ -89,7 +95,7 @@
     </select>
 
     <label>Name</label>
-    <input type="text" id="newName" placeholder="Product name" required>
+    <input type="text" id="newName" placeholder="Product name">
 
     <label>Price</label>
     <input type="text" id="newPrice" placeholder="e.g. 2.50">

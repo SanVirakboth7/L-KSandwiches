@@ -23,41 +23,102 @@ h1,h2{ font-family:'Fraunces', serif; }
 /* ---------- login ---------- */
 .loginWrap{
   min-height:100vh; display:flex; align-items:center; justify-content:center;
-  padding:20px;
-  background: radial-gradient(circle at 50% -10%, rgba(217,160,48,.18), transparent 60%), var(--paper);
+  padding:24px;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(217,160,48,.16), transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(107,123,79,.14), transparent 45%),
+    radial-gradient(circle at 50% -10%, rgba(217,160,48,.18), transparent 60%),
+    var(--paper);
 }
+.loginWrap::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(43,33,24,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(43,33,24,.035) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(ellipse at center, black, transparent 75%);
+  pointer-events:none;
+}
+
 .loginCard{
-  width:100%; max-width:360px;
+  position:relative;
+  width:100%; max-width:380px;
   background: var(--white);
   border:1px solid var(--line);
-  border-radius:22px;
-  padding:32px 28px;
-  box-shadow: 0 20px 50px rgba(43,33,24,.1);
+  border-radius:26px;
+  padding:40px 32px 32px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.6) inset,
+    0 30px 60px -20px rgba(43,33,24,.22),
+    0 10px 24px rgba(43,33,24,.08);
   display:flex; flex-direction:column;
 }
+
 .loginLogo{
-  width:48px; height:48px; border-radius:50%;
+  width:64px; height:64px; border-radius:20px;
+  overflow:hidden;
   background: linear-gradient(160deg, var(--mustard-500), var(--crust-500));
-  color:#fff; font-family:'Fraunces',serif; font-weight:700; font-size:15px;
   display:flex; align-items:center; justify-content:center;
-  margin-bottom:16px;
+  margin:0 auto 22px;
+  box-shadow: 0 10px 22px -8px rgba(201,123,61,.55);
 }
-.loginCard h1{ font-size:22px; font-weight:700; }
-.loginSub{ color:var(--ink-soft); font-size:13px; margin-top:4px; margin-bottom:20px; }
-.loginCard label{ font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; margin-top:14px; }
+.loginLogo img{
+  width:100%; height:100%; object-fit:cover; display:block;
+}
+
+.loginCard h1{
+  font-size:24px; font-weight:700; text-align:center; letter-spacing:-.2px;
+}
+.loginSub{
+  color:var(--ink-soft); font-size:13.5px; margin-top:6px; margin-bottom:26px;
+  text-align:center;
+}
+
+.loginCard label{
+  font-size:11.5px; font-weight:700; color:var(--ink-soft);
+  letter-spacing:.3px; text-transform:uppercase;
+  margin-bottom:7px; margin-top:16px;
+}
+.loginCard label:first-of-type{ margin-top:0; }
+
 .loginCard input, .loginCard textarea, .loginCard select{
   font-family:'Inter',sans-serif; font-size:15px;
-  padding:11px 13px; border-radius:12px; border:1px solid var(--line);
+  padding:13px 14px; border-radius:13px; border:1.5px solid var(--line);
   background: var(--paper); color: var(--ink); outline:none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
-.loginCard input:focus{ border-color: var(--mustard-500); }
+.loginCard input::placeholder{ color: rgba(43,33,24,.32); }
+.loginCard input:focus{
+  border-color: var(--mustard-500);
+  background: var(--white);
+  box-shadow: 0 0 0 4px rgba(217,160,48,.16);
+}
+
 .loginCard button{
-  margin-top:20px; padding:12px; border:none; border-radius:999px;
+  margin-top:26px; padding:14px; border:none; border-radius:999px;
   background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
-  color:#fff; font-weight:700; font-size:14px; cursor:pointer;
+  color:#fff; font-weight:700; font-size:14.5px; letter-spacing:.2px; cursor:pointer;
+  box-shadow: 0 10px 20px -6px rgba(198,138,31,.55);
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
 }
+.loginCard button:hover{ box-shadow: 0 12px 24px -6px rgba(198,138,31,.6); }
 .loginCard button:active{ transform: scale(.98); }
-.loginError{ color: var(--tomato-500); font-size:13px; margin-top:12px; min-height:16px; }
+.loginCard button:disabled{ opacity:.75; cursor:default; transform:none; }
+
+.loginError{
+  color: var(--tomato-500); font-size:13px; margin-top:14px; min-height:16px;
+  text-align:center; font-weight:600;
+}
+
+.loginFooter{
+  margin-top:28px; padding-top:18px;
+  border-top:1px solid var(--line);
+  text-align:center; font-size:11.5px; color: rgba(107,95,82,.7);
+  font-weight:600; letter-spacing:.2px;
+}
 
 /* ---------- dashboard shell / header ---------- */
 .dashHeader{
@@ -76,10 +137,12 @@ h1,h2{ font-family:'Fraunces', serif; }
   min-width:0;
 }
 .dashLogo{
-  width:26px; height:26px; border-radius:50%; flex-shrink:0;
+  width:26px; height:26px; border-radius:8px; flex-shrink:0;
   background: linear-gradient(160deg, var(--mustard-500), var(--crust-500));
-  color:#fff; font-size:10px; display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
 }
+.dashLogo img{ width:100%; height:100%; object-fit:cover; display:block; }
 .dashHeaderRight{ display:flex; gap:6px; flex-shrink:0; }
 
 .ghostBtn{

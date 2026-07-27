@@ -8,6 +8,7 @@ const dash = document.getElementById('dash');
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 const loginBtn = document.getElementById('loginBtn');
+const loginBtnLabel = document.getElementById('loginBtnLabel');
 
 let products = [];
 let activeCategory = 'all';
@@ -49,7 +50,7 @@ loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   loginError.textContent = '';
   loginBtn.disabled = true;
-  loginBtn.textContent = 'Signing in…';
+  loginBtnLabel.textContent = 'Signing in…';
 
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -57,7 +58,7 @@ loginForm.addEventListener('submit', async (e) => {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   loginBtn.disabled = false;
-  loginBtn.textContent = 'Sign In';
+  loginBtnLabel.textContent = 'Sign In';
 
   if (error) {
     loginError.textContent = error.message || 'Could not sign in. Check your email and password.';
