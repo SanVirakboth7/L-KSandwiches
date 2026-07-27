@@ -58,12 +58,10 @@ h1,h2{ font-family:'Fraunces', serif; }
 }
 
 .loginLogo{
-  width:64px; height:64px; border-radius:20px;
+  width:80px; height:80px; border-radius:20px;
   overflow:hidden;
-  background: linear-gradient(160deg, var(--mustard-500), var(--crust-500));
   display:flex; align-items:center; justify-content:center;
   margin:0 auto 22px;
-  box-shadow: 0 10px 22px -8px rgba(201,123,61,.55);
 }
 .loginLogo img{
   width:100%; height:100%; object-fit:cover; display:block;
@@ -137,8 +135,7 @@ h1,h2{ font-family:'Fraunces', serif; }
   min-width:0;
 }
 .dashLogo{
-  width:26px; height:26px; border-radius:8px; flex-shrink:0;
-  background: linear-gradient(160deg, var(--mustard-500), var(--crust-500));
+  width:40px; height:40px; border-radius:8px; flex-shrink:0;
   overflow:hidden;
   display:flex; align-items:center; justify-content:center;
 }
