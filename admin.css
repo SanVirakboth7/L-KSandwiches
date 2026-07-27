@@ -186,7 +186,7 @@ h1,h2{ font-family:'Fraunces', serif; }
 .rowTopLine{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:2px; }
 .nameInput{
   flex:1; min-width:0;
-  font-family:'Fraunces', serif; font-weight:700; font-size:17px; color:var(--ink);
+  font-family:'Fraunces', serif, Noto sans khmer; font-weight:700; font-size:17px; color:var(--ink);
   border:none; background:transparent; outline:none; padding:2px 0;
   border-bottom:1px solid transparent;
 }
