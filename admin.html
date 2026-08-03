@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>L&amp;K Sandwich — Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,7 @@
 
     <label>Email</label>
     <div class="inputGroup">
-      <svg class="inputIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6l-10 7L2 6"/><path d="M2 6h20v12H2z"/></svg>
+      <svg class="inputIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6l-10 7L2 6"/><path d="M2 6h20v12H2z"/></svg>
       <input type="email" id="loginEmail" autocomplete="username" placeholder="you@example.com" required>
     </div>
 
@@ -51,21 +51,17 @@
     <div class="dashHeaderTop">
       <div class="dashBrand">
         <span class="dashLogo"><img src="img/logo.png" alt="L&amp;K"></span>
-        <span>Admin Dashboard</span>
-      </div>
-      <div class="dashHeaderRight">
-        <a href="index.html" class="ghostBtn" target="_blank">View site ↗</a>
-        <button class="ghostBtn" id="logoutBtn">Log out</button>
+        <span id="pageTitle">Dashboard</span>
       </div>
     </div>
 
-    <div class="dashToolbar">
+    <!-- Search + category chips — only shown on the Menu tab -->
+    <div class="dashToolbar" id="menuToolbar">
       <div class="toolbarRow1">
         <div class="searchBarWrap">
           <input type="text" id="adminSearch" placeholder="Search by ID or name…" inputmode="search">
           <button type="button" id="clearSearch" class="clearSearchBtn" aria-label="Clear search">&times;</button>
         </div>
-        <button class="addBtn" id="addProductBtn" title="Add Product" aria-label="Add Product">+</button>
       </div>
       <div class="catFilter" id="catFilter">
         <button class="catBtn active" data-cat="all">All</button>
@@ -80,10 +76,117 @@
   <div class="toast" id="toast"></div>
 
   <main class="dashMain" id="dashMain">
-    <p class="resultsCount" id="resultsCount"></p>
-    <p class="loadingRow" id="loadingRow">Loading products…</p>
-    <div class="productList" id="productList"></div>
+
+    <!-- ============ DASHBOARD PAGE ============ -->
+    <section class="page active" id="page-dashboard">
+      <p class="pageGreeting" id="pageGreeting">Here's how your menu is doing.</p>
+
+      <div class="statGrid">
+        <div class="statCard">
+          <div class="statIcon statIconGold">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          </div>
+          <p class="statValue" id="statTotalItems">–</p>
+          <p class="statLabel">Menu Items</p>
+        </div>
+
+        <div class="statCard">
+          <div class="statIcon statIconOlive">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4z"/><path d="M4 12h10v8H4z"/><path d="M17 12h3v8h-3z"/></svg>
+          </div>
+          <p class="statValue" id="statCategories">–</p>
+          <p class="statLabel">Categories</p>
+        </div>
+
+        <div class="statCard">
+          <div class="statIcon statIconCrust">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+          </div>
+          <p class="statValue" id="statFeatured">–</p>
+          <p class="statLabel">Featured Items</p>
+        </div>
+      </div>
+
+      <h3 class="sectionLabel">Quick Actions</h3>
+      <div class="quickActions">
+        <button class="quickActionCard" id="quickAddItem">
+          <div class="quickActionIcon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          </div>
+          <span>Add Item</span>
+        </button>
+        <button class="quickActionCard" id="quickViewSite">
+          <div class="quickActionIcon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+          </div>
+          <span>View Site</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ MENU PAGE ============ -->
+    <section class="page" id="page-menu">
+      <p class="resultsCount" id="resultsCount"></p>
+      <p class="loadingRow" id="loadingRow">Loading products…</p>
+      <div class="productList" id="productList"></div>
+    </section>
+
+    <!-- ============ SETTINGS PAGE ============ -->
+    <section class="page" id="page-settings">
+      <div class="settingsAccount">
+        <div class="settingsAvatar">L&amp;K</div>
+        <div>
+          <p class="settingsAccountName">Admin Account</p>
+          <p class="settingsAccountEmail" id="settingsEmail">—</p>
+        </div>
+      </div>
+
+      <h3 class="sectionLabel">Your Public Menu</h3>
+      <div class="qrCard">
+        <img id="qrImg" src="" alt="QR code linking to the public menu" width="180" height="180">
+        <p class="qrUrl" id="qrUrl">—</p>
+        <button type="button" class="ghostBtn" id="copyLinkBtn">Copy Link</button>
+      </div>
+
+      <div class="settingsList">
+        <button class="settingsRow" id="settingsViewSite">
+          <span class="settingsRowIcon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+          </span>
+          <span class="settingsRowLabel">View Public Menu</span>
+          <span class="settingsRowChevron">›</span>
+        </button>
+
+        <button class="settingsRow settingsRowDanger" id="settingsLogout">
+          <span class="settingsRowIcon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          </span>
+          <span class="settingsRowLabel">Log Out</span>
+          <span class="settingsRowChevron">›</span>
+        </button>
+      </div>
+    </section>
+
   </main>
+
+  <button class="fab" id="addProductBtn" aria-label="Add Product">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+
+  <nav class="bottomNav" id="bottomNav">
+    <button class="navBtn active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="navBtn" data-page="menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v7a2 2 0 0 0 2 2v11"/><path d="M6 11V2"/><path d="M8 2v7"/><path d="M18 2c-2 0-3 2.5-3 5.5S16 13 18 13"/><path d="M18 2v20"/></svg>
+      <span>Menu</span>
+    </button>
+    <button class="navBtn" data-page="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
 
 </div>
 

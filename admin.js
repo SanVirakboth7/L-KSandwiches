@@ -8,6 +8,8 @@ const dash = document.getElementById('dash');
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 const loginBtn = document.getElementById('loginBtn');
+const loginBtnLabel = document.getElementById('loginBtnLabel');
+
 const togglePasswordBtn = document.getElementById('togglePassword');
 const loginPasswordInput = document.getElementById('loginPassword');
 if (togglePasswordBtn && loginPasswordInput) {
@@ -22,6 +24,7 @@ let products = [];
 let activeCategory = 'all';
 let searchQuery = '';
 let currentPhotoProductId = null;
+let currentPage = 'dashboard';
 
 const CATEGORY_LABELS = {
   all: 'All',
@@ -52,6 +55,8 @@ function showDashboard() {
   loginWrap.style.display = 'none';
   dash.style.display = 'block';
   loadProducts();
+  setupSettingsPage();
+  switchPage('dashboard');
 }
 
 loginForm.addEventListener('submit', async (e) => {
@@ -75,9 +80,108 @@ loginForm.addEventListener('submit', async (e) => {
   showDashboard();
 });
 
-document.getElementById('logoutBtn').addEventListener('click', async () => {
+async function logout() {
   await supabase.auth.signOut();
   showLogin();
+}
+
+/* ---------- tab navigation ---------- */
+const pageTitleEl = document.getElementById('pageTitle');
+const menuToolbar = document.getElementById('menuToolbar');
+const fabBtn = document.getElementById('addProductBtn');
+const pages = {
+  dashboard: document.getElementById('page-dashboard'),
+  menu: document.getElementById('page-menu'),
+  settings: document.getElementById('page-settings')
+};
+const PAGE_TITLES = { dashboard: 'Dashboard', menu: 'Menu', settings: 'Settings' };
+
+function switchPage(name) {
+  if (!pages[name]) return;
+  currentPage = name;
+
+  Object.entries(pages).forEach(([key, el]) => {
+    if (el) el.classList.toggle('active', key === name);
+  });
+
+  document.querySelectorAll('.navBtn').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === name);
+  });
+
+  if (pageTitleEl) pageTitleEl.textContent = PAGE_TITLES[name] || '';
+  if (menuToolbar) menuToolbar.style.display = name === 'menu' ? 'flex' : 'none';
+  if (fabBtn) fabBtn.style.display = name === 'settings' ? 'none' : 'flex';
+
+  if (name === 'dashboard') updateDashboardStats();
+
+  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+}
+
+document.querySelectorAll('.navBtn').forEach(btn => {
+  btn.addEventListener('click', () => switchPage(btn.dataset.page));
+});
+
+/* ---------- dashboard page ---------- */
+function updateDashboardStats() {
+  const totalItems = products.length;
+  const categoriesUsed = new Set(products.map(p => p.category)).size;
+  const featured = products.filter(p => p.is_bestseller).length;
+
+  const elTotal = document.getElementById('statTotalItems');
+  const elCats = document.getElementById('statCategories');
+  const elFeatured = document.getElementById('statFeatured');
+  if (elTotal) elTotal.textContent = totalItems;
+  if (elCats) elCats.textContent = categoriesUsed;
+  if (elFeatured) elFeatured.textContent = featured;
+}
+
+document.getElementById('quickAddItem')?.addEventListener('click', () => {
+  addModalOverlay.classList.add('open');
+});
+document.getElementById('quickViewSite')?.addEventListener('click', () => {
+  window.open('index.html', '_blank');
+});
+
+/* ---------- settings page ---------- */
+function getPublicSiteUrl() {
+  const path = window.location.pathname.replace(/admin\.html?$/, 'index.html');
+  return window.location.origin + path;
+}
+
+async function setupSettingsPage() {
+  const emailEl = document.getElementById('settingsEmail');
+  if (emailEl) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      emailEl.textContent = user?.email || '—';
+    } catch {
+      emailEl.textContent = '—';
+    }
+  }
+
+  const publicUrl = getPublicSiteUrl();
+  const qrImg = document.getElementById('qrImg');
+  const qrUrlEl = document.getElementById('qrUrl');
+  if (qrImg) {
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(publicUrl)}`;
+  }
+  if (qrUrlEl) qrUrlEl.textContent = publicUrl;
+}
+
+document.getElementById('settingsViewSite')?.addEventListener('click', () => {
+  window.open('index.html', '_blank');
+});
+document.getElementById('settingsLogout')?.addEventListener('click', () => {
+  if (confirm('Log out of the admin panel?')) logout();
+});
+document.getElementById('copyLinkBtn')?.addEventListener('click', async () => {
+  const url = getPublicSiteUrl();
+  try {
+    await navigator.clipboard.writeText(url);
+    toast('Link copied');
+  } catch {
+    toast('Could not copy — long-press the link above to copy manually', true);
+  }
 });
 
 /* ---------- toast ---------- */
@@ -93,14 +197,16 @@ function toast(msg, isError = false) {
 
 /* ---------- load + render ---------- */
 async function loadProducts() {
-  document.getElementById('loadingRow').style.display = 'block';
+  const loadingRow = document.getElementById('loadingRow');
+  if (loadingRow) loadingRow.style.display = 'block';
+
   const { data, error } = await supabase
     .from('products')
     .select('*')
     .order('category', { ascending: true })
     .order('sort_order', { ascending: true });
 
-  document.getElementById('loadingRow').style.display = 'none';
+  if (loadingRow) loadingRow.style.display = 'none';
 
   if (error) {
     toast('Failed to load products: ' + error.message, true);
@@ -108,6 +214,7 @@ async function loadProducts() {
   }
   products = data || [];
   updateCategoryCounts();
+  updateDashboardStats();
   render();
 }
 
@@ -125,6 +232,8 @@ function updateCategoryCounts() {
 
 function render() {
   const listEl = document.getElementById('productList');
+  if (!listEl) return;
+
   const filtered = products.filter(p => {
     const matchesCat = activeCategory === 'all' || p.category === activeCategory;
     const q = searchQuery.toLowerCase();
@@ -214,8 +323,8 @@ function wireRow(id) {
     setTimeout(() => savedTick.classList.remove('show'), 1200);
   }
 
-    nameEl.addEventListener('change', () => saveField({ name: nameEl.value.trim() }));
-    priceEl.addEventListener('change', () => {
+  nameEl.addEventListener('change', () => saveField({ name: nameEl.value.trim() }));
+  priceEl.addEventListener('change', () => {
     const v = priceEl.value.trim();
     saveField({ price: v ? '$' + v.replace(/^\$/, '') : '' });
   });
@@ -223,6 +332,7 @@ function wireRow(id) {
   bestsellerEl.addEventListener('change', () => {
     bestBtnLabel.classList.toggle('active', bestsellerEl.checked);
     saveField({ is_bestseller: bestsellerEl.checked });
+    updateDashboardStats();
   });
 
   deleteBtn.addEventListener('click', async () => {
@@ -235,6 +345,7 @@ function wireRow(id) {
     products = products.filter(p => p.id !== id);
     toast(`${id} deleted`);
     updateCategoryCounts();
+    updateDashboardStats();
     render();
   });
 
@@ -259,9 +370,7 @@ const photoModalReady = !!(photoModalOverlay && photoModalImg && photoModalId &&
   photoModalUploading && photoModalFileInput && photoChangeBtn && photoDeleteBtn && photoModalClose);
 
 if (!photoModalReady) {
-  console.warn('[L&K admin] Photo lightbox elements not found in admin.html — ' +
-    'make sure admin.html includes the #photoModalOverlay block. Photo preview will be disabled, ' +
-    'but the rest of the admin panel will still work.');
+  console.warn('[L&K admin] Photo lightbox elements not found in admin.html.');
 }
 
 function openPhotoModal(id) {
@@ -292,45 +401,45 @@ if (photoModalReady) {
   });
 
   photoModalFileInput.addEventListener('change', async () => {
-  const file = photoModalFileInput.files[0];
-  const id = currentPhotoProductId;
-  if (!file || !id) return;
+    const file = photoModalFileInput.files[0];
+    const id = currentPhotoProductId;
+    if (!file || !id) return;
 
-  photoModalUploading.style.display = 'flex';
+    photoModalUploading.style.display = 'flex';
 
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  const path = `${id}-${Date.now()}.${ext}`;
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${id}-${Date.now()}.${ext}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .upload(path, file, { upsert: true, cacheControl: '3600' });
+    const { error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(path, file, { upsert: true, cacheControl: '3600' });
 
-  if (uploadError) {
+    if (uploadError) {
+      photoModalUploading.style.display = 'none';
+      toast('Upload failed: ' + uploadError.message, true);
+      return;
+    }
+
+    const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    const publicUrl = publicUrlData.publicUrl;
+
+    const { error: updateError } = await supabase.from('products').update({ image_url: publicUrl }).eq('id', id);
     photoModalUploading.style.display = 'none';
-    toast('Upload failed: ' + uploadError.message, true);
-    return;
-  }
+    photoModalFileInput.value = '';
 
-  const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-  const publicUrl = publicUrlData.publicUrl;
+    if (updateError) {
+      toast('Saved photo but failed to link it: ' + updateError.message, true);
+      return;
+    }
 
-  const { error: updateError } = await supabase.from('products').update({ image_url: publicUrl }).eq('id', id);
-  photoModalUploading.style.display = 'none';
-  photoModalFileInput.value = '';
+    photoModalImg.src = publicUrl;
+    const local = products.find(p => p.id === id);
+    if (local) local.image_url = publicUrl;
 
-  if (updateError) {
-    toast('Saved photo but failed to link it: ' + updateError.message, true);
-    return;
-  }
+    const cardImg = document.querySelector(`.productRow[data-id="${cssEscape(id)}"] .rowImg img`);
+    if (cardImg) cardImg.src = publicUrl;
 
-  photoModalImg.src = publicUrl;
-  const local = products.find(p => p.id === id);
-  if (local) local.image_url = publicUrl;
-
-  const cardImg = document.querySelector(`.productRow[data-id="${cssEscape(id)}"] .rowImg img`);
-  if (cardImg) cardImg.src = publicUrl;
-
-  toast(`${id} photo updated`);
+    toast(`${id} photo updated`);
   });
 
   photoDeleteBtn.addEventListener('click', async () => {
@@ -359,13 +468,13 @@ if (photoModalReady) {
 const adminSearchEl = document.getElementById('adminSearch');
 const clearSearchBtn = document.getElementById('clearSearch');
 
-adminSearchEl.addEventListener('input', (e) => {
+adminSearchEl?.addEventListener('input', (e) => {
   searchQuery = e.target.value;
-  clearSearchBtn.classList.toggle('show', searchQuery.length > 0);
+  clearSearchBtn?.classList.toggle('show', searchQuery.length > 0);
   render();
 });
 
-clearSearchBtn.addEventListener('click', () => {
+clearSearchBtn?.addEventListener('click', () => {
   adminSearchEl.value = '';
   searchQuery = '';
   clearSearchBtn.classList.remove('show');
@@ -373,9 +482,6 @@ clearSearchBtn.addEventListener('click', () => {
   adminSearchEl.focus();
 });
 
-// Direct listener on each category button (not delegated) — more reliable
-// on mobile, where a delegated click on a horizontally-scrollable row can
-// occasionally get swallowed by the browser's scroll/drag detection.
 document.querySelectorAll('.catBtn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.catBtn').forEach(b => b.classList.remove('active'));
