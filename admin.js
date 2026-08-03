@@ -254,6 +254,7 @@ function render() {
 
 const TRASH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
 const STAR_ICON = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
+const NO_ENTRY_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>`;
 
 function rowHTML(p) {
   const priceValue = (p.price || '').replace(/^\$/, '');
@@ -272,6 +273,7 @@ function rowHTML(p) {
         <div class="rowMeta">
           <span class="rowId">${p.id}</span>
           <span class="catTag">${p.category}</span>
+          ${p.is_out_of_stock ? '<span class="stockTag">Out of Stock</span>' : ''}
           <span class="savedTick" data-role="savedTick">Saved ✓</span>
         </div>
 
@@ -285,6 +287,10 @@ function rowHTML(p) {
             <label class="bestBtn ${p.is_bestseller ? 'active' : ''}" title="Show in Bestseller section">
               <input type="checkbox" data-role="bestseller" ${p.is_bestseller ? 'checked' : ''} hidden>
               ${STAR_ICON}
+            </label>
+            <label class="stockBtn ${p.is_out_of_stock ? 'active' : ''}" title="Mark Out of Stock">
+              <input type="checkbox" data-role="outofstock" ${p.is_out_of_stock ? 'checked' : ''} hidden>
+              ${NO_ENTRY_ICON}
             </label>
             <button class="deleteIconBtn" data-role="deleteBtn" type="button" aria-label="Delete product">${TRASH_ICON}</button>
           </div>
@@ -308,6 +314,8 @@ function wireRow(id) {
   const priceEl = row.querySelector('[data-role="price"]');
   const bestsellerEl = row.querySelector('[data-role="bestseller"]');
   const bestBtnLabel = row.querySelector('.bestBtn');
+  const stockEl = row.querySelector('[data-role="outofstock"]');
+  const stockBtnLabel = row.querySelector('.stockBtn');
   const savedTick = row.querySelector('[data-role="savedTick"]');
   const deleteBtn = row.querySelector('[data-role="deleteBtn"]');
   const imgTrigger = row.querySelector('[data-role="imgTrigger"]');
@@ -334,6 +342,12 @@ function wireRow(id) {
     bestBtnLabel.classList.toggle('active', bestsellerEl.checked);
     saveField({ is_bestseller: bestsellerEl.checked });
     updateDashboardStats();
+  });
+
+  stockEl.addEventListener('change', () => {
+    stockBtnLabel.classList.toggle('active', stockEl.checked);
+    saveField({ is_out_of_stock: stockEl.checked });
+    render();
   });
 
   deleteBtn.addEventListener('click', async () => {

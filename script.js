@@ -17,10 +17,13 @@ let allProducts = [];
 function cardHTML(p) {
   const badge = p.badge ? `<span class="badge">${escapeHTML(p.badge)}</span>` : "";
   const price = p.price ? `<p class="price">${escapeHTML(p.price)}</p>` : "";
+  const outOfStock = p.is_out_of_stock;
+  const stockRibbon = outOfStock ? `<span class="outOfStockBadge">Out of Stock</span>` : "";
   return `
-    <div class="card" data-id="${p.id}">
+    <div class="card ${outOfStock ? 'outOfStock' : ''}" data-id="${p.id}">
       <div class="cardArt">
         ${badge}
+        ${stockRibbon}
         <img src="${escapeAttr(p.image_url)}" alt="${escapeAttr(p.name)}">
       </div>
       <div class="cardBody">

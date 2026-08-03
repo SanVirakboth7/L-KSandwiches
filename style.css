@@ -186,6 +186,14 @@
     width:100%; height:100%; object-fit:cover; display:block;
   }
   .badge{
+    .outOfStockBadge{
+    position:absolute; top:8px; left:8px; z-index:2;
+    background: rgba(43,33,24,.85);
+    color:#fff; font-size:9.5px; font-weight:700; letter-spacing:.5px;
+    padding:3px 8px; border-radius:999px;
+  }
+  .card.outOfStock .cardArt img{ filter: grayscale(65%); opacity:.6; }
+  .card.outOfStock .name{ color: var(--ink-soft); }
     position:absolute; top:8px; left:8px;
     background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
     color:#fff; font-size:9.5px; font-weight:700; letter-spacing:.5px;
