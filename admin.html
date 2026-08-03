@@ -77,9 +77,14 @@
 
   <main class="dashMain" id="dashMain">
 
-    <!-- ============ DASHBOARD PAGE ============ -->
+<!-- ============ DASHBOARD PAGE ============ -->
     <section class="page active" id="page-dashboard">
-      <p class="pageGreeting" id="pageGreeting">Welcome Back!</p>
+      <div class="dashGreetingRow">
+        <div class="greetingCol">
+          <h2 class="greetingTitle" id="greetingTitle">hello</h2>
+        </div>
+        <p class="greetingDate" id="greetingDate"></p>
+      </div>
 
       <div class="statGrid">
         <div class="statCard">
@@ -121,13 +126,21 @@
           <div class="quickActionIcon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
           </div>
-          <span>Add Item</span>
+          <div class="quickActionText">
+            <span class="quickActionTitle">Add Item</span>
+            <span class="quickActionSub">Create a new product</span>
+          </div>
+          <span class="quickActionChevron">›</span>
         </button>
         <button class="quickActionCard" id="quickViewSite">
-          <div class="quickActionIcon">
+          <div class="quickActionIcon quickActionIconAlt">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
           </div>
-          <span>View Site</span>
+          <div class="quickActionText">
+            <span class="quickActionTitle">View Site</span>
+            <span class="quickActionSub">Open your live menu</span>
+          </div>
+          <span class="quickActionChevron">›</span>
         </button>
       </div>
     </section>

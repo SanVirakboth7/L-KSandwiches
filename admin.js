@@ -54,6 +54,7 @@ function showLogin() {
 function showDashboard() {
   loginWrap.style.display = 'none';
   dash.style.display = 'block';
+  setGreeting();
   loadProducts();
   setupSettingsPage();
   switchPage('dashboard');
@@ -222,6 +223,7 @@ async function loadProducts() {
   render();
 }
 
+
 function updateCategoryCounts() {
   const counts = { all: products.length, sandwich: 0, rice: 0, dessert: 0, drink: 0 };
   products.forEach(p => {
@@ -233,6 +235,24 @@ function updateCategoryCounts() {
     btn.textContent = `${label} (${counts[cat] ?? 0})`;
   });
 }
+
+function setGreeting() {
+  const titleEl = document.getElementById('greetingTitle');
+  const dateEl = document.getElementById('greetingDate');
+  if (!titleEl && !dateEl) return;
+
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  if (titleEl) titleEl.textContent = greeting;
+
+  if (dateEl) {
+    dateEl.textContent = now.toLocaleDateString(undefined, {
+      weekday: 'short', month: 'short', day: 'numeric'
+    });
+  }
+}
+
 
 function render() {
   const listEl = document.getElementById('productList');
@@ -287,15 +307,13 @@ function rowHTML(p) {
           </div>
 
           <div class="rowActionsRight">
-            <label class="bestBtn ${p.is_bestseller ? 'active' : ''}" title="Show in Bestseller section">
-              <input type="checkbox" data-role="bestseller" ${p.is_bestseller ? 'checked' : ''} hidden>
-              ${STAR_ICON}
-            </label>
-            <label class="stockBtn ${p.is_out_of_stock ? 'active' : ''}" title="Mark Out of Stock">
-              <input type="checkbox" data-role="outofstock" ${p.is_out_of_stock ? 'checked' : ''} hidden>
-              ${NO_ENTRY_ICON}
-            </label>
-            <button class="deleteIconBtn" data-role="deleteBtn" type="button" aria-label="Delete product">${TRASH_ICON}</button>
+            <button type="button" class="bestBtn ${p.is_bestseller ? 'active' : ''}"
+                    data-role="bestseller" data-active="${p.is_bestseller ? '1' : '0'}"
+                    title="Show in Bestseller section">${STAR_ICON}</button>
+            <button type="button" class="stockBtn ${p.is_out_of_stock ? 'active' : ''}"
+                    data-role="outofstock" data-active="${p.is_out_of_stock ? '1' : '0'}"
+                    title="Mark Out of Stock">${NO_ENTRY_ICON}</button>
+            <button type="button" class="deleteIconBtn" data-role="deleteBtn" aria-label="Delete product">${TRASH_ICON}</button>
           </div>
         </div>
       </div>
@@ -315,10 +333,8 @@ function wireRow(id) {
 
   const nameEl = row.querySelector('[data-role="name"]');
   const priceEl = row.querySelector('[data-role="price"]');
-  const bestsellerEl = row.querySelector('[data-role="bestseller"]');
-  const bestBtnLabel = row.querySelector('.bestBtn');
-  const stockEl = row.querySelector('[data-role="outofstock"]');
-  const stockBtnLabel = row.querySelector('.stockBtn');
+  const bestBtn = row.querySelector('[data-role="bestseller"]');
+  const stockBtn = row.querySelector('[data-role="outofstock"]');
   const savedTick = row.querySelector('[data-role="savedTick"]');
   const deleteBtn = row.querySelector('[data-role="deleteBtn"]');
   const imgTrigger = row.querySelector('[data-role="imgTrigger"]');
@@ -341,16 +357,20 @@ function wireRow(id) {
     saveField({ price: v ? '$' + v.replace(/^\$/, '') : '' });
   });
 
-  bestsellerEl.addEventListener('change', () => {
-    bestBtnLabel.classList.toggle('active', bestsellerEl.checked);
-    saveField({ is_bestseller: bestsellerEl.checked });
+  bestBtn.addEventListener('click', () => {
+    const next = bestBtn.dataset.active !== '1';
+    bestBtn.dataset.active = next ? '1' : '0';
+    bestBtn.classList.toggle('active', next);
+    saveField({ is_bestseller: next });
     updateDashboardStats();
   });
 
-  stockEl.addEventListener('change', () => {
-    stockBtnLabel.classList.toggle('active', stockEl.checked);
-    saveField({ is_out_of_stock: stockEl.checked });
-    render();
+  stockBtn.addEventListener('click', () => {
+    const next = stockBtn.dataset.active !== '1';
+    stockBtn.dataset.active = next ? '1' : '0';
+    stockBtn.classList.toggle('active', next);
+    saveField({ is_out_of_stock: next });
+    updateStockTagInPlace(row, next);
   });
 
   deleteBtn.addEventListener('click', async () => {
@@ -368,6 +388,20 @@ function wireRow(id) {
   });
 
   imgTrigger.addEventListener('click', () => openPhotoModal(id));
+}
+
+function updateStockTagInPlace(row, isOut) {
+  const rowMeta = row.querySelector('.rowMeta');
+  let tag = rowMeta.querySelector('.stockTag');
+  if (isOut && !tag) {
+    tag = document.createElement('span');
+    tag.className = 'stockTag';
+    tag.textContent = 'Out of Stock';
+    const savedTick = rowMeta.querySelector('[data-role="savedTick"]');
+    rowMeta.insertBefore(tag, savedTick);
+  } else if (!isOut && tag) {
+    tag.remove();
+  }
 }
 
 function cssEscape(str) {
