@@ -144,8 +144,9 @@ document.getElementById('quickViewSite')?.addEventListener('click', () => {
 
 /* ---------- settings page ---------- */
 function getPublicSiteUrl() {
-  const path = window.location.pathname.replace(/admin\.html?$/, 'index.html');
-  return window.location.origin + path;
+  const path = window.location.pathname;
+  const dir = path.substring(0, path.lastIndexOf('/') + 1);
+  return window.location.origin + dir + 'index.html';
 }
 
 async function setupSettingsPage() {
