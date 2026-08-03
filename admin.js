@@ -126,13 +126,16 @@ function updateDashboardStats() {
   const totalItems = products.length;
   const categoriesUsed = new Set(products.map(p => p.category)).size;
   const featured = products.filter(p => p.is_bestseller).length;
+  const outOfStock = products.filter(p => p.is_out_of_stock).length;
 
   const elTotal = document.getElementById('statTotalItems');
   const elCats = document.getElementById('statCategories');
   const elFeatured = document.getElementById('statFeatured');
+  const elOutOfStock = document.getElementById('statOutOfStock');
   if (elTotal) elTotal.textContent = totalItems;
   if (elCats) elCats.textContent = categoriesUsed;
   if (elFeatured) elFeatured.textContent = featured;
+  if (elOutOfStock) elOutOfStock.textContent = outOfStock;
 }
 
 document.getElementById('quickAddItem')?.addEventListener('click', () => {
