@@ -48,13 +48,15 @@
 <div class="dash" id="dash" style="display:none;">
 
   <header class="dashHeader">
-    <div class="dashHeaderTop">
-      <div class="dashBrand">
-        <span class="dashLogo"><img src="img/logo.png" alt="L&amp;K"></span>
-        <span id="pageTitle">Dashboard</span>
-      </div>
-    </div>
-
+  <div class="dashHeaderTop">
+  <div class="dashBrand">
+    <span class="dashLogo"><img src="img/logo.png" alt="L&amp;K"></span>
+    <span id="pageTitle">Dashboard</span>
+  </div>
+  <button class="hamburgerBtn" id="hamburgerBtn" aria-label="Open menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+</div>
     <!-- Search + category chips — only shown on the Menu tab -->
     <div class="dashToolbar" id="menuToolbar">
       <div class="toolbarRow1">
@@ -72,6 +74,46 @@
       </div>
     </div>
   </header>
+
+  <div class="sideDrawerOverlay" id="sideDrawerOverlay"></div>
+
+<aside class="sideDrawer" id="sideDrawer">
+  <div class="sideDrawerHead">
+    <span class="dashLogo"><img src="img/logo.png" alt="L&amp;K"></span>
+    <div class="sideDrawerHeadText">
+      <p class="sideDrawerTitle">L&amp;K Sandwich</p>
+      <p class="sideDrawerSub">Admin Panel</p>
+    </div>
+    <button class="sideDrawerClose" id="sideDrawerClose" aria-label="Close menu">&times;</button>
+  </div>
+
+  <p class="sideDrawerLabel">Filter Menu Items</p>
+  <div class="filterList">
+    <button type="button" class="filterRow" id="filterBestseller" data-active="0">
+      <span class="filterRowIcon filterIconGold">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+      </span>
+      <span class="filterRowText">
+        <span class="filterRowTitle">Bestseller</span>
+        <span class="filterRowSub">Only show Bestseller items</span>
+      </span>
+      <span class="filterToggle"><span class="filterToggleKnob"></span></span>
+    </button>
+
+    <button type="button" class="filterRow" id="filterOutOfStock" data-active="0">
+      <span class="filterRowIcon filterIconTomato">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </span>
+      <span class="filterRowText">
+        <span class="filterRowTitle">Out of Stock</span>
+        <span class="filterRowSub">Only show Out of Stock items</span>
+      </span>
+      <span class="filterToggle"><span class="filterToggleKnob"></span></span>
+    </button>
+  </div>
+
+  <button type="button" class="clearFiltersBtn" id="clearFiltersBtn">Clear Filters</button>
+</aside>
 
   <div class="toast" id="toast"></div>
 
