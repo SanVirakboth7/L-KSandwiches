@@ -18,7 +18,7 @@ function cardHTML(p) {
   const badge = p.badge ? `<span class="badge">${escapeHTML(p.badge)}</span>` : "";
   const price = p.price ? `<p class="price">${escapeHTML(p.price)}</p>` : "";
   const outOfStock = p.is_out_of_stock;
-  const stockRibbon = outOfStock ? `<span class="outOfStockBadge">Out of Stock</span>` : "";
+  const stockRibbon = outOfStock ? `<span class="outOfStockBadge"><span>Out of stock</span></span>` : "";
   return `
     <div class="card ${outOfStock ? 'outOfStock' : ''}" data-id="${p.id}">
       <div class="cardArt">
