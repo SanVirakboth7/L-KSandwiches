@@ -31,7 +31,6 @@
   background-repeat: repeat;
   background-size: 220px 220px;
   position:relative;
-  padding-top: var(--tg-content-safe-area-inset-top, env(safe-area-inset-top, 0px));
   padding-bottom:80px;
 }
   .app::before{
@@ -43,12 +42,13 @@
   }
 
   header{
-    position:sticky; top:0; z-index:30;
-    background: rgba(255,255,255,.92);
-    backdrop-filter: blur(8px);
-    padding:14px 16px 10px;
-    border-bottom:1px solid var(--line);
-  }
+  position:sticky; top:0; z-index:30;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(8px);
+  padding-top: max(14px, env(safe-area-inset-top));
+  padding-left:16px; padding-right:16px; padding-bottom:10px;
+  border-bottom:1px solid var(--line);
+}
   .brandRow{ display:flex; align-items:center; gap:10px; }
   .logo{
     width:42px; height:42px; border-radius:50%;
