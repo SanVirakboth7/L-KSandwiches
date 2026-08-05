@@ -106,7 +106,7 @@
   .chipRow::-webkit-scrollbar{ display:none; }
   .chip{
     flex-shrink:0; display:flex; align-items:center; gap:6px;
-    padding:7px 14px; border-radius:999px; font-size:16px; font-weight:600;font-family: Noto sans khmer;
+    padding:6px 12px; border-radius:999px; font-size:14px; font-weight:600;font-family: Noto sans khmer;
     white-space:nowrap; border:1px solid var(--line);
     background: var(--paper); color: var(--ink-soft);
   }
@@ -114,7 +114,7 @@
   .chip.active{
     background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
     border-color: transparent; color:#fff;
-    box-shadow: 0 3px 10px rgba(217,160,48,.35);
+    box-shadow: 0 3px 10px rgba(217, 161, 48, 0.158);
   }
   .chip.active .dot{ background:#fff; }
 
