@@ -3,6 +3,19 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET } from "./supabase-conf
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/* ---------- lock zoom (iOS Safari ignores user-scalable=no, so block gestures directly) ---------- */
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+document.addEventListener('gesturechange', (e) => e.preventDefault());
+document.addEventListener('touchmove', (e) => {
+  if (e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+let lastTouchEnd = 0;
+document.addEventListener('touchend', (e) => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+
 const loginWrap = document.getElementById('loginWrap');
 const dash = document.getElementById('dash');
 const loginForm = document.getElementById('loginForm');
@@ -56,9 +69,10 @@ function showLogin() {
 function showDashboard() {
   loginWrap.style.display = 'none';
   dash.style.display = 'block';
-  setGreeting();
   loadProducts();
   setupSettingsPage();
+  loadHeroSettings();
+  setGreeting();
   switchPage('dashboard');
 }
 
@@ -148,6 +162,38 @@ document.getElementById('quickViewSite')?.addEventListener('click', () => {
   window.open('index.html', '_blank');
 });
 
+/* ---------- greeting ---------- */
+function setGreeting() {
+  const titleEl = document.getElementById('greetingTitle');
+  const dateEl = document.getElementById('greetingDate');
+  if (!titleEl && !dateEl) return;
+
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  if (titleEl) titleEl.textContent = greeting;
+
+  if (dateEl) {
+    dateEl.textContent = now.toLocaleDateString(undefined, {
+      weekday: 'short', month: 'short', day: 'numeric'
+    });
+  }
+}
+
+/* ---------- hero slideshow settings ---------- */
+async function loadHeroSettings() {
+  const { data, error } = await supabase.from('site_settings').select('*').in('key', ['hero_1', 'hero_2', 'hero_3']);
+  if (error) {
+    console.warn('[L&K admin] Could not load hero settings:', error.message);
+    return;
+  }
+  data.forEach(row => {
+    const idNum = row.key.split('_')[1];
+    const img = document.getElementById(`heroPreview${idNum}`);
+    if (img && row.value) img.src = row.value;
+  });
+}
+
 /* ---------- settings page ---------- */
 function getPublicSiteUrl() {
   const path = window.location.pathname;
@@ -166,11 +212,59 @@ async function setupSettingsPage() {
     }
   }
 
+  document.querySelectorAll('[data-hero-input]').forEach(input => {
+    input.addEventListener('change', async () => {
+      const file = input.files[0];
+      const key = input.dataset.heroInput;
+      if (!file) return;
+
+      const slot = input.closest('.heroSlot');
+      const uploading = document.createElement('div');
+      uploading.className = 'heroSlotUploading';
+      uploading.textContent = 'Uploading…';
+      slot.appendChild(uploading);
+
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `site/${key}-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(path, file, { upsert: true, cacheControl: '3600' });
+
+      if (uploadError) {
+        uploading.remove();
+        toast('Upload failed: ' + uploadError.message, true);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+      const publicUrl = publicUrlData.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from('site_settings')
+        .upsert({ key, value: publicUrl }, { onConflict: 'key' });
+
+      uploading.remove();
+      input.value = '';
+
+      if (updateError) {
+        toast('Saved photo but failed to save it: ' + updateError.message, true);
+        return;
+      }
+
+      const idNum = key.split('_')[1];
+      const previewImg = document.getElementById(`heroPreview${idNum}`);
+      if (previewImg) previewImg.src = publicUrl;
+
+      toast(`Slide ${idNum} updated`);
+    });
+  });
+
   const publicUrl = getPublicSiteUrl();
   const qrImg = document.getElementById('qrImg');
   const qrUrlEl = document.getElementById('qrUrl');
   if (qrImg) {
-    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(publicUrl)}`;
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=8&data=${encodeURIComponent(publicUrl)}`;
   }
   if (qrUrlEl) qrUrlEl.textContent = publicUrl;
 }
@@ -237,24 +331,6 @@ function updateCategoryCounts() {
     btn.textContent = `${label} (${counts[cat] ?? 0})`;
   });
 }
-
-function setGreeting() {
-  const titleEl = document.getElementById('greetingTitle');
-  const dateEl = document.getElementById('greetingDate');
-  if (!titleEl && !dateEl) return;
-
-  const now = new Date();
-  const hour = now.getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  if (titleEl) titleEl.textContent = greeting;
-
-  if (dateEl) {
-    dateEl.textContent = now.toLocaleDateString(undefined, {
-      weekday: 'short', month: 'short', day: 'numeric'
-    });
-  }
-}
-
 
 function render() {
   const listEl = document.getElementById('productList');
@@ -421,6 +497,18 @@ const photoModalFileInput = document.getElementById('photoModalFileInput');
 const photoChangeBtn = document.getElementById('photoChangeBtn');
 const photoDeleteBtn = document.getElementById('photoDeleteBtn');
 const photoModalClose = document.getElementById('photoModalClose');
+const slideshowModalOverlay = document.getElementById('slideshowModalOverlay');
+const slideshowModalClose = document.getElementById('slideshowModalClose');
+
+document.getElementById('settingsEditSlideshow')?.addEventListener('click', () => {
+  slideshowModalOverlay?.classList.add('open');
+});
+slideshowModalClose?.addEventListener('click', () => {
+  slideshowModalOverlay?.classList.remove('open');
+});
+slideshowModalOverlay?.addEventListener('click', (e) => {
+  if (e.target === slideshowModalOverlay) slideshowModalOverlay.classList.remove('open');
+});
 
 const photoModalReady = !!(photoModalOverlay && photoModalImg && photoModalId &&
   photoModalUploading && photoModalFileInput && photoChangeBtn && photoDeleteBtn && photoModalClose);

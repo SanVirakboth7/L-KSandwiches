@@ -440,11 +440,11 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   display:flex; flex-direction:column; align-items:center; gap:12px;
 }
 .qrCard img{
-  width:180px; height:180px; border-radius:14px; border:1px solid var(--line); padding:10px; background:#fff;
+  width:260px; height:260px; max-width:100%; border-radius:14px; border:1px solid var(--line); padding:10px; background:#fff;
 }
 .qrUrl{
   font-family:'DM Mono', monospace; font-size:11.5px; color:var(--ink-soft);
-  word-break:break-all; max-width:280px;
+  word-break:break-all; max-width:320px;
 }
 
 .settingsList{
@@ -677,9 +677,29 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   .sideDrawer{ width:320px; }
 }
 
-
-
-
+.heroSettingsGrid{ display:flex; flex-direction:column; gap:10px; }
+.heroSlot{
+  position:relative; width:100%; aspect-ratio:16/8; border-radius:16px; overflow:hidden;
+  background: var(--paper-200); cursor:pointer; border:1px solid var(--line);
+}
+.heroSlot img{ width:100%; height:100%; object-fit:cover; display:block; }
+.heroSlotOverlay{
+  position:absolute; inset:0; background: rgba(43,33,24,.5); color:#fff;
+  font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center;
+  opacity:0; transition: opacity .15s ease;
+}
+.heroSlot:hover .heroSlotOverlay{ opacity:1; }
+.heroSlot input[type=file]{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+.heroSlotUploading{
+  position:absolute; inset:0; background: rgba(255,255,255,.9);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; color:var(--ink); font-size:13px;
+}
+.slideshowModalCard{ max-width:420px; padding:24px; }
+.slideshowModalHeader{ display:flex; align-items:center; justify-content:space-between; }
+.slideshowModalHeader h2{ font-size:18px; }
+.slideshowModalHeader .photoModalClose{ position:static; box-shadow:none; background: var(--paper-200); color: var(--ink-soft); }
+.slideshowModalSub{ font-size:12.5px; color: var(--ink-soft); margin:6px 0 16px; }
 
 @media (max-width:360px){
   .rowBottomLine{ align-items:flex-start; }

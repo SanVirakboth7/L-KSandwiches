@@ -277,8 +277,19 @@ window.focusLocation = focusLocation;
   if (statusEl) statusEl.textContent = isOpen ? "Open now" : "Closed now";
 })();
 
+async function loadHeroImages() {
+  const { data, error } = await supabase.from('site_settings').select('*').in('key', ['hero_1', 'hero_2', 'hero_3']);
+  if (error) return;
+  data.forEach(row => {
+    const idNum = row.key.split('_')[1];
+    const img = document.getElementById(`heroImg${idNum}`);
+    if (img && row.value) img.src = row.value;
+  });
+}
+
 /* ---------- go ---------- */
 loadProducts();
+loadHeroImages();
 
 // Live updates: if the admin edits a product while someone has the site
 // open, refresh the grids automatically.
