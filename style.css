@@ -31,6 +31,7 @@
   background-repeat: repeat;
   background-size: 220px 220px;
   position:relative;
+  padding-top: var(--tg-content-safe-area-inset-top, env(safe-area-inset-top, 0px));
   padding-bottom:80px;
 }
   .app::before{
