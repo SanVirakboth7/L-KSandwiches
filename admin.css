@@ -14,11 +14,13 @@
   --brand-brown-dark:#6f4630;
 }
 *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
+html{ touch-action: manipulation; }
 body{
   font-family:'Inter', sans-serif;
   background: var(--paper);
   color: var(--ink);
   min-height:100vh;
+  touch-action: manipulation;
 }
 h1,h2,h3{ font-family:'Fraunces', serif; }
 button{ -webkit-tap-highlight-color: transparent; }

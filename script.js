@@ -222,14 +222,32 @@ if (mapEl && window.L) {
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
+  // Logo-based marker: a circular badge showing the shop logo, with a small
+  // numbered chip in the corner so branches stay distinguishable.
   function makeIcon(n) {
-    const svg = `<svg width="30" height="38" viewBox="0 0 34 42" xmlns="http://www.w3.org/2000/svg">
-      <filter id="lkds${n}"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(43,33,24,0.3)"/></filter>
-      <path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 25 17 25S34 29.7 34 17C34 7.6 26.4 0 17 0z" fill="#2b2118" filter="url(#lkds${n})"/>
-      <circle cx="17" cy="16" r="9" fill="#d9a030"/>
-      <text x="17" y="21" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">${n}</text>
-    </svg>`;
-    return L.divIcon({ html: svg, className: '', iconSize: [30, 38], iconAnchor: [15, 38], popupAnchor: [0, -40] });
+    const html = `
+      <div style="position:relative;width:46px;height:46px;">
+        <div style="
+          width:46px;height:46px;border-radius:50%;overflow:hidden;
+          background:#fff;border:3px solid #fff;
+          box-shadow:0 3px 10px rgba(43,33,24,.35), 0 0 0 1px rgba(43,33,24,.08);
+        ">
+          <img src="img/logo.png" alt="L&K logo" style="width:100%;height:100%;object-fit:cover;display:block;">
+        </div>
+        <div style="
+          position:absolute;bottom:-4px;right:-4px;width:18px;height:18px;border-radius:50%;
+          background:#2b2118;color:#fff;font:700 10px 'Inter',sans-serif;
+          display:flex;align-items:center;justify-content:center;
+          border:2px solid #fff;
+        ">${n}</div>
+      </div>`;
+    return L.divIcon({
+      html,
+      className: '',
+      iconSize: [46, 46],
+      iconAnchor: [23, 23],
+      popupAnchor: [0, -26]
+    });
   }
 
   markers = locations.map((loc, i) => {
@@ -239,7 +257,7 @@ if (mapEl && window.L) {
         <div style="font-weight:700;font-size:13px;color:#2b2118;margin-bottom:3px;">${loc.name}</div>
         <div style="font-size:11px;color:#6b5f52;margin-bottom:10px;line-height:1.4;">${loc.address}</div>
         <a href="${loc.url}" target="_blank" rel="noopener"
-           style="display:inline-flex;align-items:center;gap:6px;background:#2b2118;color:#fff;
+           style="display:inline-flex;align-items:center;gap:6px;background:#723c10;color:#fff;
                   font-size:11px;font-weight:600;padding:7px 13px;border-radius:8px;text-decoration:none;">
           Get Directions
         </a>

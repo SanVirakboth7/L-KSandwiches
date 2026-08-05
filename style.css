@@ -4,10 +4,10 @@
     --paper-200:#f3ecdf;
     --ink:#2b2118;
     --ink-soft:#6b5f52;
-    --mustard-500:#d9a030;
-    --mustard-600:#c68a1f;
+    --mustard-500:#723c10;
+    --mustard-600:#723c10;
     --olive-500:#6b7b4f;
-    --crust-500:#c97b3d;
+    --crust-500:#723c10;
     --tomato-500:#c1442d;
     --line:#e7ddcb;
   }
@@ -106,7 +106,7 @@
   .chipRow::-webkit-scrollbar{ display:none; }
   .chip{
     flex-shrink:0; display:flex; align-items:center; gap:6px;
-    padding:7px 14px; border-radius:999px; font-size:13px; font-weight:600;font-family: Noto sans khmer;
+    padding:7px 14px; border-radius:999px; font-size:16px; font-weight:600;font-family: Noto sans khmer;
     white-space:nowrap; border:1px solid var(--line);
     background: var(--paper); color: var(--ink-soft);
   }
@@ -177,7 +177,7 @@
     display:flex; flex-direction:column;
   }
   .cardArt{
-    position:relative; height:180px;
+    position:relative; height:160px;
     background: linear-gradient(160deg, var(--paper-200), var(--white));
     display:flex; align-items:center; justify-content:center;
     overflow:hidden;
@@ -377,6 +377,11 @@
     display:flex;
     transform:translateZ(0);
     will-change:transform;
+  }
+  .orderBar a{
+    display:flex;
+    text-decoration:none;
+    color:inherit;
   }
   .orderBar button{
     display:flex; align-items:center; gap:6px;
