@@ -10,6 +10,7 @@
     --crust-500:#723c10;
     --tomato-500:#c1442d;
     --line:#e7ddcb;
+    --header-h: 172px; /* fallback; script.js overwrites this with the real measured height */
   }
   *{box-sizing:border-box; margin:0; padding:0;}
 
@@ -17,6 +18,7 @@
     -webkit-tap-highlight-color:transparent;
     overflow-x:hidden;
     width:100%;
+    overscroll-behavior-y: none; /* stop iOS rubber-band bounce that reveals content above the fixed header */
   }
   body{
   background: var(--white);
@@ -24,6 +26,7 @@
   color: var(--ink);
   display:flex; justify-content:center;
   width:100%;
+  overscroll-behavior-y: none;
   }
   .app{
   width:100%; max-width:460px; min-height:100vh;
@@ -41,18 +44,25 @@
     pointer-events:none; z-index:0;
   }
 
+  /* Fixed (not sticky) header: sticky can desync from Telegram's floating
+     toolbar during scroll on iOS WKWebView, causing it to visually detach.
+     Fixed is anchored straight to the viewport so it can't drift. Content
+     below is pushed down by the header's real measured height (see
+     script.js: setHeaderHeight -> --header-h). No backdrop-filter here on
+     purpose: blur + fixed + fast scroll is a known WKWebView glitch trigger
+     that drops frames and lets scrolled-past content flash above the header. */
   header{
-  position:fixed;
-  top:0; left:50%;
-  transform:translateX(-50%);
-  width:100%; max-width:460px;
-  z-index:30;
-  background: rgba(255,255,255,.92);
-  backdrop-filter: blur(8px);
-  padding:14px 16px 10px;
-  border-bottom:1px solid var(--line);
-}
-
+    position:fixed;
+    top:0; left:50%;
+    transform:translate3d(-50%, 0, 0);
+    width:100%; max-width:460px;
+    z-index:30;
+    background: var(--white);
+    padding:14px 16px 10px;
+    border-bottom:1px solid var(--line);
+    will-change: transform;
+    isolation: isolate;
+  }
   .brandRow{ display:flex; align-items:center; gap:10px; }
   .logo{
     width:42px; height:42px; border-radius:50%;
@@ -72,6 +82,7 @@
   .brandText h1{
     font-family:'Fraunces', serif; font-size:19px; font-weight:700;
     color:var(--ink); letter-spacing:.1px; line-height:1.15;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .brandText p{
     font-family:'Noto Sans Khmer', monospace; font-size:12px;
@@ -123,7 +134,8 @@
   }
   .chip.active .dot{ background:#fff; }
 
-  .heroWrap{ padding:calc(var(--header-h, 172px) + 14px) 16px 4px; position:relative; z-index:1; }
+  /* Pushed down by the fixed header's real measured height, plus 14px breathing room. */
+  .heroWrap{ padding:calc(var(--header-h) + 14px) 16px 4px; position:relative; z-index:1; }
   .hero{
     position:relative; border-radius:22px; overflow:hidden;
     border:1px solid var(--line);
@@ -168,7 +180,7 @@
   .twine::before{ left:calc(50% - 60px); }
   .twine::after{ left:calc(50% + 50px); }
 
-  .sectionHead{ padding:0 16px; display:flex; align-items:baseline; justify-content:space-between; scroll-margin-top:150px; }
+  .sectionHead{ padding:0 16px; display:flex; align-items:baseline; justify-content:space-between; scroll-margin-top: calc(var(--header-h) + 10px); }
   .sectionHead h3{
     font-family:'Fraunces', serif,Noto sans khmer; font-size:23px; font-weight:700; color:var(--ink);
   }

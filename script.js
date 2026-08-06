@@ -11,7 +11,14 @@ const CATEGORY_MAP = {
   dessert:    { gridId: "grid-dessert",    countId: "count-dessert" },
   drink:      { gridId: "grid-drinks",     countId: "count-drinks" }
 };
-/* ---------- keep content clear of the fixed header ---------- */
+
+let allProducts = [];
+
+/* ---------- keep content clear of the fixed header ----------
+   header is `position:fixed` (see style.css), so it's out of document
+   flow. We measure its real rendered height (fonts/wrap can shift it a
+   few px per device) and publish it as --header-h, which .heroWrap and
+   .sectionHead read to know how much space to reserve/scroll-offset. */
 function setHeaderHeight() {
   const header = document.querySelector('header');
   if (header) {
@@ -20,22 +27,13 @@ function setHeaderHeight() {
 }
 setHeaderHeight();
 window.addEventListener('resize', setHeaderHeight);
-
-let allProducts = [];
-
-function setHeaderOffset() {
-  const offset = window.visualViewport
-    ? Math.max(0, window.visualViewport.offsetTop)
-    : 0;
-  document.documentElement.style.setProperty('--tg-inset-top', offset + 'px');
-}
-setHeaderOffset();
-window.visualViewport?.addEventListener('resize', setHeaderOffset);
-window.visualViewport?.addEventListener('scroll', setHeaderOffset);
+// Re-measure after fonts finish loading, since custom fonts can change
+// header height slightly after first paint.
+document.fonts?.ready?.then(setHeaderHeight);
 
 function cardHTML(p) {
   const badge = p.badge ? `<span class="badge">${escapeHTML(p.badge)}</span>` : "";
-  const price = p.price ? `<p class="price">${escapeHTML(p.price)}</p>` : "";
+  const price = p.price ? `<p class="price">${escapeHTML(String(p.price))}</p>` : "";
   const outOfStock = p.is_out_of_stock;
   const stockRibbon = outOfStock ? `<span class="outOfStockBadge"><span>Out of stock</span></span>` : "";
   return `
@@ -112,13 +110,22 @@ chips.forEach(chip => {
   });
 });
 
+// rootMargin's top offset should track the fixed header's real height so
+// a section only counts as "current" once it clears the header, not a
+// hardcoded guess.
+function currentHeaderPx() {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--header-h').trim();
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : 172;
+}
+
 const sectionObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
       chips.forEach(c => c.classList.toggle('active', c.dataset.target === entry.target.id));
     }
   });
-}, { rootMargin: '-140px 0px -70% 0px', threshold: 0 });
+}, { rootMargin: `-${currentHeaderPx() + 20}px 0px -70% 0px`, threshold: 0 });
 sections.forEach(sec => sectionObserver.observe(sec));
 
 /* ---------- hero slider ---------- */
@@ -198,7 +205,12 @@ function openModal(product) {
   document.getElementById('modalBadge').style.display = product.badge ? '' : 'none';
   document.getElementById('modalId').textContent = 'ID: ' + product.id;
   document.getElementById('modalName').textContent = product.name || 'N/A';
-  document.getElementById('modalPrice').textContent = product.price ? ('$' + product.price.replace(/^\$/, '')) : '';
+  // Coerce to string first: Supabase numeric columns come back as JS
+  // numbers, and numbers don't have .replace(), which used to throw here
+  // and silently abort the rest of openModal (image never set, modal
+  // never opened).
+  const rawPrice = product.price != null ? String(product.price) : '';
+  document.getElementById('modalPrice').textContent = rawPrice ? ('$' + rawPrice.replace(/^\$/, '')) : '';
   modalImg.src = product.image_url;
   modalImg.alt = product.name || 'N/A';
   overlay.classList.add('open');
