@@ -10,7 +10,6 @@
     --crust-500:#723c10;
     --tomato-500:#c1442d;
     --line:#e7ddcb;
-    --tg-inset-top: 0px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
 
@@ -50,13 +49,6 @@
     padding-top: max(14px, env(safe-area-inset-top));
     padding-left:16px; padding-right:16px; padding-bottom:10px;
     border-bottom:1px solid var(--line);
-  }
-  /* Telegram's in-app browser floats a URL pill and doesn't report
-     env(safe-area-inset-top) reliably, so script.js measures the real
-     offset with the Visual Viewport API and sets --tg-inset-top.
-     Once that's known, it wins over the static padding above. */
-  html.tg-webview header{
-    padding-top: max(54px, var(--tg-inset-top));
   }
   .brandRow{ display:flex; align-items:center; gap:10px; }
   .logo{
