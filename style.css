@@ -42,14 +42,17 @@
   }
 
   header{
-    position:sticky; top:0; z-index:30;
-    background: rgba(255,255,255,.92);
-    backdrop-filter: blur(8px);
-    /* Base padding for normal browsers (Safari/Chrome respect env() here). */
-    padding-top: max(14px, env(safe-area-inset-top));
-    padding-left:16px; padding-right:16px; padding-bottom:10px;
-    border-bottom:1px solid var(--line);
-  }
+  position:fixed;
+  top:0; left:50%;
+  transform:translateX(-50%);
+  width:100%; max-width:460px;
+  z-index:30;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(8px);
+  padding:14px 16px 10px;
+  border-bottom:1px solid var(--line);
+}
+
   .brandRow{ display:flex; align-items:center; gap:10px; }
   .logo{
     width:42px; height:42px; border-radius:50%;
@@ -120,7 +123,7 @@
   }
   .chip.active .dot{ background:#fff; }
 
-  .heroWrap{ padding:14px 16px 4px; position:relative; z-index:1; }
+  .heroWrap{ padding:calc(var(--header-h, 172px) + 14px) 16px 4px; position:relative; z-index:1; }
   .hero{
     position:relative; border-radius:22px; overflow:hidden;
     border:1px solid var(--line);

@@ -11,22 +11,17 @@ const CATEGORY_MAP = {
   dessert:    { gridId: "grid-dessert",    countId: "count-dessert" },
   drink:      { gridId: "grid-drinks",     countId: "count-drinks" }
 };
+/* ---------- keep content clear of the fixed header ---------- */
+function setHeaderHeight() {
+  const header = document.querySelector('header');
+  if (header) {
+    document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+  }
+}
+setHeaderHeight();
+window.addEventListener('resize', setHeaderHeight);
 
 let allProducts = [];
-
-/* ---------- Telegram in-app browser header offset ---------- */
-// Telegram's WebView floats its own URL pill over the page and doesn't
-// reliably report env(safe-area-inset-top), so we detect it directly and
-// measure the real offset with the Visual Viewport API, writing it to a
-// CSS variable the header reads (see style.css: html.tg-webview header).
-const isTelegramWebview =
-  /Telegram/i.test(navigator.userAgent) ||
-  window.TelegramWebviewProxy !== undefined ||
-  window.Telegram?.WebApp !== undefined;
-
-if (isTelegramWebview) {
-  document.documentElement.classList.add('tg-webview');
-}
 
 function setHeaderOffset() {
   const offset = window.visualViewport
