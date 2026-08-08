@@ -579,8 +579,8 @@ window.focusLocation = focusLocation;
   const row = document.querySelector(`.hoursRow[data-day="${isWeekend ? "weekend" : "weekday"}"]`);
   if (row) row.classList.add("today");
 
-  const openHour = 7;
-  const closeHour = 17;
+  const openHour = 4;
+  const closeHour = 20;
   const hour = now.getHours();
   const isOpen = !isWeekend && hour >= openHour && hour < closeHour;
 
