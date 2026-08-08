@@ -12,23 +12,54 @@ const CATEGORY_MAP = {
   drink:      { gridId: "grid-drinks",     countId: "count-drinks" }
 };
 
-/* Telegram handle used for the "Send Order" quote link. */
-const TELEGRAM_HANDLE = "LKsandwiches";
+/* Supabase Edge Function that relays a completed order straight into the
+   Telegram group. Replaces the old tg://resolve deep-link approach so the
+   customer never has to leave the site or tap "send" themselves. */
+const TELEGRAM_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/clever-processor`;
 
 let allProducts = [];
 
 /* ---------- basket state ----------
    Cart is a simple { productId: qty } map persisted to localStorage so a
-   customer's basket survives a page refresh. */
+   customer's basket survives a page refresh. If localStorage is blocked
+   (private browsing, embedded webview, browser settings, etc.) we fall
+   back to an in-memory object so the basket still works for the current
+   session — it just won't survive a page refresh in that case. */
+let storageAvailable = true;
+try {
+  const testKey = "__lk_storage_test__";
+  localStorage.setItem(testKey, "1");
+  localStorage.removeItem(testKey);
+} catch (e) {
+  storageAvailable = false;
+  console.warn("[L&K] localStorage is unavailable — cart will not persist across refreshes.", e);
+}
+
+let memoryCart = {};
 let cart = loadCart();
 
 function loadCart() {
-  try { return JSON.parse(localStorage.getItem("lk_cart") || "{}"); }
-  catch { return {}; }
+  if (!storageAvailable) return memoryCart;
+  try {
+    const raw = JSON.parse(localStorage.getItem("lk_cart") || "{}");
+    return raw;
+  } catch (e) {
+    console.warn("[L&K] Failed to read cart from localStorage:", e);
+    return {};
+  }
 }
 function saveCart() {
-  try { localStorage.setItem("lk_cart", JSON.stringify(cart)); }
-  catch { /* storage unavailable, cart just won't persist */ }
+  if (!storageAvailable) {
+    memoryCart = cart;
+    return;
+  }
+  try {
+    localStorage.setItem("lk_cart", JSON.stringify(cart));
+  } catch (e) {
+    console.warn("[L&K] Failed to save cart to localStorage, falling back to memory:", e);
+    storageAvailable = false;
+    memoryCart = cart;
+  }
 }
 function priceNum(p) {
   if (!p || p.price == null) return 0;
@@ -112,6 +143,7 @@ function refreshCardControl(id) {
 function addToCart(id) {
   cart[id] = (cart[id] || 0) + 1;
   saveCart();
+  console.log('[L&K] addToCart:', id, '-> cart is now', JSON.stringify(cart));
   refreshCardControl(id);
   updateCartBar();
   if (document.getElementById('cartOverlay')?.classList.contains('open')) renderCartModal();
@@ -203,31 +235,77 @@ function renderCartModal() {
   const totalEl = document.getElementById('cartModalTotal');
   if (totalEl) totalEl.textContent = '$' + cartTotal().toFixed(2);
 
-  refreshSendLink();
+  updateSendButtonState();
 }
 
-function refreshSendLink() {
-  const sendLink = document.getElementById('sendOrderLink');
-  if (!sendLink) return;
+/* ---------- send order directly via Supabase Edge Function ----------
+   Replaces the old tg://resolve / t.me deep-link flow. The Edge Function
+   holds the bot token as a server-side secret and posts the order text
+   straight into the Telegram group, so the customer never has to open
+   Telegram themselves. */
+function updateSendButtonState() {
+  const sendBtn = document.getElementById('sendOrderBtn');
+  if (!sendBtn) return;
   const { name, phone, date } = getCustomerFields();
-  const complete = cartEntries().length > 0 && name && phone && date;
-  if (!complete) {
-    sendLink.removeAttribute('href');
-    sendLink.classList.add('disabled');
-    sendLink.onclick = null;
-  } else {
-    sendLink.classList.remove('disabled'); 
-    const text = encodeURIComponent(buildQuoteText());
-    const deepLink = `tg://resolve?domain=${TELEGRAM_HANDLE}&text=${text}`;
-    const webLink = `https://t.me/${TELEGRAM_HANDLE}?text=${text}`;
+  const items = cartEntries();
+  const complete = items.length > 0 && name && phone && date;
+  console.log('[L&K] updateSendButtonState:', { items: items.length, name, phone, date, complete });
+  sendBtn.disabled = !complete;
+}
 
-    sendLink.href = deepLink;
-    sendLink.onclick = (e) => {
-      e.preventDefault();
-      const fallback = setTimeout(() => { window.location.href = webLink; }, 600);
-      window.addEventListener('blur', () => clearTimeout(fallback), { once: true });
-      window.location.href = deepLink;
-    };
+/* Opens the confirmation modal instead of sending right away, so the
+   customer gets one last look at their order before it goes out. */
+function openConfirmModal() {
+  const sendBtn = document.getElementById('sendOrderBtn');
+  if (!sendBtn || sendBtn.disabled) return;
+
+  const summaryEl = document.getElementById('confirmSummary');
+  if (summaryEl) summaryEl.textContent = buildQuoteText();
+
+  document.getElementById('confirmOverlay')?.classList.add('open');
+}
+function closeConfirmModal() {
+  document.getElementById('confirmOverlay')?.classList.remove('open');
+}
+
+async function sendOrderToTelegram() {
+  const sendBtn = document.getElementById('sendOrderBtn');
+  const confirmSendBtn = document.getElementById('confirmSendBtn');
+  if (!sendBtn || sendBtn.disabled) return;
+
+  const originalLabel = sendBtn.textContent;
+  const originalConfirmLabel = confirmSendBtn?.textContent;
+  sendBtn.disabled = true;
+  sendBtn.textContent = 'Sending…';
+  if (confirmSendBtn) { confirmSendBtn.disabled = true; confirmSendBtn.textContent = 'Sending…'; }
+
+  try {
+    const res = await fetch(TELEGRAM_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({ text: buildQuoteText() })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Failed to send order');
+
+    closeConfirmModal();
+    sendBtn.textContent = 'Order Sent ✓';
+    setTimeout(() => {
+      clearCart();
+      cartOverlay?.classList.remove('open');
+      sendBtn.textContent = originalLabel;
+      sendBtn.disabled = false;
+      if (confirmSendBtn) { confirmSendBtn.textContent = originalConfirmLabel; confirmSendBtn.disabled = false; }
+    }, 1200);
+  } catch (err) {
+    console.error('[L&K] Failed to send order:', err);
+    alert('Could not send your order. Please check your connection and try again.');
+    sendBtn.textContent = originalLabel;
+    sendBtn.disabled = false;
+    if (confirmSendBtn) { confirmSendBtn.textContent = originalConfirmLabel; confirmSendBtn.disabled = false; }
   }
 }
 
@@ -462,6 +540,7 @@ const cartOverlay = document.getElementById('cartOverlay');
 const cartBarBtn = document.getElementById('cartBarBtn');
 const cartClose = document.getElementById('cartClose');
 const clearCartBtn = document.getElementById('clearCartBtn');
+const sendOrderBtn = document.getElementById('sendOrderBtn');
 
 const custNameInput = document.getElementById('custName');
 const custPhoneInput = document.getElementById('custPhone');
@@ -481,7 +560,7 @@ function prefillCustomerFields() {
   if (!input) return;
   input.addEventListener('input', () => {
     saveCustomer(getCustomerFields());
-    refreshSendLink();
+    updateSendButtonState();
   });
 });
 
@@ -495,6 +574,16 @@ if (cartBarBtn) {
 if (cartClose) cartClose.addEventListener('click', () => cartOverlay.classList.remove('open'));
 if (cartOverlay) cartOverlay.addEventListener('click', (e) => { if (e.target === cartOverlay) cartOverlay.classList.remove('open'); });
 if (clearCartBtn) clearCartBtn.addEventListener('click', clearCart);
+if (sendOrderBtn) sendOrderBtn.addEventListener('click', openConfirmModal);
+
+/* ---------- confirm order modal ---------- */
+const confirmOverlay = document.getElementById('confirmOverlay');
+const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+const confirmSendBtn = document.getElementById('confirmSendBtn');
+
+if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', closeConfirmModal);
+if (confirmSendBtn) confirmSendBtn.addEventListener('click', sendOrderToTelegram);
+if (confirmOverlay) confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirmModal(); });
 
 /* ---------- our locations map ---------- */
 const locations = [
@@ -602,6 +691,7 @@ async function loadHeroImages() {
 loadProducts();
 loadHeroImages();
 updateCartBar();
+updateSendButtonState();
 
 // Live updates: if the admin edits a product while someone has the site
 // open, refresh the grids automatically.

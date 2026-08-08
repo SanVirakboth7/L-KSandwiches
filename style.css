@@ -492,12 +492,13 @@
   background: var(--paper);
   color:var(--ink-soft);
 }
-#sendOrderLink{
+#sendOrderBtn{
   flex:1;
-  display:block;
-  text-decoration:none;
 }
-#sendOrderLink.disabled{ pointer-events:none; opacity:.5; }
+#sendOrderBtn:disabled{
+  pointer-events:none;
+  opacity:.5;
+}
 .sendOrderBtn{
   border:none;
   background: linear-gradient(135deg, var(--tomato-500), #9c341f);
@@ -565,6 +566,23 @@
   #cartBarTotal{ font-family:'DM Mono', monospace; font-size:14px; font-weight:700; }
   footer{ text-align:center; padding:6px 16px 26px; }
   footer p{ font-family:'DM Mono',monospace; font-size:9.5px; color:rgba(43,33,24,.35); letter-spacing:1px; }
+
+  .confirmModalCard{ max-width:360px; }
+.confirmBody{ padding:26px 22px; text-align:center; }
+.confirmBody h3{
+  font-family:'Fraunces', serif; font-size:19px; font-weight:700; color:var(--ink);
+}
+.confirmText{
+  font-size:13px; color:var(--ink-soft); margin-top:8px; line-height:1.5;
+}
+.confirmSummary{
+  margin-top:16px; padding:14px; border-radius:14px;
+  background:var(--paper); border:1px solid var(--line);
+  text-align:left; font-family:'DM Mono', monospace; font-size:12px;
+  color:var(--ink); line-height:1.6; white-space:pre-wrap;
+}
+.confirmActions{ display:flex; gap:10px; margin-top:20px; }
+.confirmActions .clearBtn, .confirmActions .sendOrderBtn{ flex:1; }
 
   @media (prefers-reduced-motion:no-preference){
     .card{ transition: transform .15s ease; }

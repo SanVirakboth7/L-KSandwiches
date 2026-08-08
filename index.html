@@ -212,13 +212,26 @@
         <div class="cartTotalRow"><span>Total</span><span id="cartModalTotal">$0.00</span></div>
         <div class="cartActionsRow">
           <button class="clearBtn" id="clearCartBtn">Clear basket</button>
-          <a id="sendOrderLink" target="_blank" rel="noopener noreferrer">
-            <button class="sendOrderBtn">Send Order</button>
-          </a>
+          <button id="sendOrderBtn" class="sendOrderBtn" disabled>Send Order</button>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- ---------- confirm order modal ---------- -->
+<div class="modalOverlay" id="confirmOverlay">
+  <div class="modalCard confirmModalCard">
+    <div class="confirmBody">
+      <h3>Confirm Your Order?</h3>
+      <p class="confirmText">Please double check your details before we send this to L&amp;K Sandwiches.</p>
+      <div class="confirmSummary" id="confirmSummary"></div>
+      <div class="confirmActions">
+        <button class="clearBtn" id="confirmCancelBtn">Cancel</button>
+        <button class="sendOrderBtn" id="confirmSendBtn">Yes, Send It</button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <div class="sectionHead" id="sec-hours">
     <h3>ម៉ោងលក់ខាងក្រៅ</h3>
