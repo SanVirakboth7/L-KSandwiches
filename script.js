@@ -214,9 +214,20 @@ function refreshSendLink() {
   if (!complete) {
     sendLink.removeAttribute('href');
     sendLink.classList.add('disabled');
+    sendLink.onclick = null;
   } else {
     sendLink.classList.remove('disabled');
-    sendLink.href = `https://t.me/${TELEGRAM_HANDLE}?text=${encodeURIComponent(buildQuoteText())}`;
+    const text = encodeURIComponent(buildQuoteText());
+    const deepLink = `tg://resolve?domain=${TELEGRAM_HANDLE}&text=${text}`;
+    const webLink = `https://t.me/${TELEGRAM_HANDLE}?text=${text}`;
+
+    sendLink.href = deepLink;
+    sendLink.onclick = (e) => {
+      e.preventDefault();
+      const fallback = setTimeout(() => { window.location.href = webLink; }, 600);
+      window.addEventListener('blur', () => clearTimeout(fallback), { once: true });
+      window.location.href = deepLink;
+    };
   }
 }
 
