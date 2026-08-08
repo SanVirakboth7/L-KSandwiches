@@ -216,7 +216,7 @@ function refreshSendLink() {
     sendLink.classList.add('disabled');
     sendLink.onclick = null;
   } else {
-    sendLink.classList.remove('disabled');git 
+    sendLink.classList.remove('disabled'); 
     const text = encodeURIComponent(buildQuoteText());
     const deepLink = `tg://resolve?domain=${TELEGRAM_HANDLE}&text=${text}`;
     const webLink = `https://t.me/${TELEGRAM_HANDLE}?text=${text}`;
