@@ -157,29 +157,17 @@ function updateCartBar() {
 function buildQuoteText() {
   const entries = cartEntries();
   const { name, phone, date } = getCustomerFields();
-  const divider = "———————————————";
-
-  let text = "L&K SANDWICHES\n";
-  text += "Order Receipt\n";
-  text += "\n";
-  text += divider + "\n";
-  text += `👤 Name:  ${name || '—'}\n`;
-  text += `📞 Phone: ${phone || '—'}\n`;
-  text += `📅 Date:  ${date ? formatDate(date) : '—'}\n`;
-  text += divider + "\n\n";
-
+  let text = "🧾 L&K Sandwich Order\n\n";
+  text += `Name: ${name || '—'}\n`;
+  text += `Phone: ${phone || '—'}\n`;
+  text += `Pickup/Delivery date: ${date ? formatDate(date) : '—'}\n\n`;
   entries.forEach(([id, qty], i) => {
     const p = allProducts.find(pp => pp.id === id);
     if (!p) return;
-    const lineTotal = priceNum(p) * qty;
-    text += `${i + 1}.  ${qty}x  ${p.name}\n\n`;
-    text += `      $${priceNum(p).toFixed(2)} each  =  $${lineTotal.toFixed(2)}\n\n`;
+    const line = priceNum(p) * qty;
+    text += `${i + 1}. ${p.name} (${p.id}) x${qty} — $${line.toFixed(2)}\n`;
   });
-
-  text += divider + "\n";
-  text += `TOTAL:  $${cartTotal().toFixed(2)}\n`;
-  text += divider;
-
+  text += `\nTotal: $${cartTotal().toFixed(2)}`;
   return text;
 }
 
@@ -228,7 +216,7 @@ function refreshSendLink() {
     sendLink.classList.add('disabled');
     sendLink.onclick = null;
   } else {
-    sendLink.classList.remove('disabled'); 
+    sendLink.classList.remove('disabled');git 
     const text = encodeURIComponent(buildQuoteText());
     const deepLink = `tg://resolve?domain=${TELEGRAM_HANDLE}&text=${text}`;
     const webLink = `https://t.me/${TELEGRAM_HANDLE}?text=${text}`;
