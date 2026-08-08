@@ -12,7 +12,54 @@ const CATEGORY_MAP = {
   drink:      { gridId: "grid-drinks",     countId: "count-drinks" }
 };
 
+/* Telegram handle used for the "Send Order" quote link. */
+const TELEGRAM_HANDLE = "LKsandwiches";
+
 let allProducts = [];
+
+/* ---------- basket state ----------
+   Cart is a simple { productId: qty } map persisted to localStorage so a
+   customer's basket survives a page refresh. */
+let cart = loadCart();
+
+function loadCart() {
+  try { return JSON.parse(localStorage.getItem("lk_cart") || "{}"); }
+  catch { return {}; }
+}
+function saveCart() {
+  try { localStorage.setItem("lk_cart", JSON.stringify(cart)); }
+  catch { /* storage unavailable, cart just won't persist */ }
+}
+function priceNum(p) {
+  if (!p || p.price == null) return 0;
+  const n = parseFloat(String(p.price).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) ? n : 0;
+}
+
+/* ---------- customer details (name / phone / pickup date) ----------
+   Kept alongside the cart so a returning customer doesn't have to
+   retype their details every time they place an order. */
+function loadCustomer() {
+  try { return JSON.parse(localStorage.getItem("lk_customer") || "{}"); }
+  catch { return {}; }
+}
+function saveCustomer(info) {
+  try { localStorage.setItem("lk_customer", JSON.stringify(info)); }
+  catch { /* storage unavailable */ }
+}
+function getCustomerFields() {
+  return {
+    name: document.getElementById('custName')?.value.trim() || '',
+    phone: document.getElementById('custPhone')?.value.trim() || '',
+    date: document.getElementById('custDate')?.value || ''
+  };
+}
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+}
 
 /* ---------- keep content clear of the fixed header ----------
    header is `position:fixed` (see style.css), so it's out of document
@@ -31,6 +78,169 @@ window.addEventListener('resize', setHeaderHeight);
 // header height slightly after first paint.
 document.fonts?.ready?.then(setHeaderHeight);
 
+/* ---------- add-to-basket control ----------
+   Renders either a "+" button (nothing in the basket yet) or a
+   −/qty/+ stepper (already in the basket) for a given product. Shared
+   between grid cards and the product detail modal so both stay in sync. */
+function addControlHTML(p) {
+  if (p.is_out_of_stock) {
+    return `<p class="outOfStockText">Unavailable</p>`;
+  }
+  const qty = cart[p.id] || 0;
+  if (qty > 0) {
+    return `
+      <div class="stepper" data-id="${p.id}">
+        <button class="stepBtn minus" data-action="dec" aria-label="Remove one">−</button>
+        <span class="stepQty">${qty}</span>
+        <button class="stepBtn plus" data-action="inc" aria-label="Add one">+</button>
+      </div>`;
+  }
+  return `
+    <button class="addBtn" data-id="${p.id}" aria-label="Add to basket">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>`;
+}
+
+function refreshCardControl(id) {
+  const product = allProducts.find(p => p.id === id);
+  if (!product) return;
+  document.querySelectorAll(`.addWrap[data-add-id="${id}"]`).forEach(wrap => {
+    wrap.innerHTML = addControlHTML(product);
+  });
+}
+
+function addToCart(id) {
+  cart[id] = (cart[id] || 0) + 1;
+  saveCart();
+  refreshCardControl(id);
+  updateCartBar();
+  if (document.getElementById('cartOverlay')?.classList.contains('open')) renderCartModal();
+}
+function decFromCart(id) {
+  if (!cart[id]) return;
+  cart[id] -= 1;
+  if (cart[id] <= 0) delete cart[id];
+  saveCart();
+  refreshCardControl(id);
+  updateCartBar();
+  if (document.getElementById('cartOverlay')?.classList.contains('open')) renderCartModal();
+}
+function clearCart() {
+  cart = {};
+  saveCart();
+  allProducts.forEach(p => refreshCardControl(p.id));
+  updateCartBar();
+  renderCartModal();
+}
+
+function cartEntries() {
+  return Object.entries(cart);
+}
+function cartTotal() {
+  return cartEntries().reduce((sum, [id, qty]) => {
+    const p = allProducts.find(pp => pp.id === id);
+    return sum + priceNum(p) * qty;
+  }, 0);
+}
+
+function updateCartBar() {
+  const bar = document.getElementById('cartBar');
+  if (!bar) return;
+  const count = cartEntries().reduce((s, [, q]) => s + q, 0);
+  bar.style.display = count > 0 ? 'flex' : 'none';
+  const countEl = document.getElementById('cartCount');
+  const totalEl = document.getElementById('cartBarTotal');
+  if (countEl) countEl.textContent = String(count);
+  if (totalEl) totalEl.textContent = '$' + cartTotal().toFixed(2);
+}
+
+function buildQuoteText() {
+  const entries = cartEntries();
+  const { name, phone, date } = getCustomerFields();
+  let text = "🧾 L&K Sandwich Order\n\n";
+  text += `Name: ${name || '—'}\n`;
+  text += `Phone: ${phone || '—'}\n`;
+  text += `Pickup/Delivery date: ${date ? formatDate(date) : '—'}\n\n`;
+  entries.forEach(([id, qty], i) => {
+    const p = allProducts.find(pp => pp.id === id);
+    if (!p) return;
+    const line = priceNum(p) * qty;
+    text += `${i + 1}. ${p.name} (${p.id}) x${qty} — $${line.toFixed(2)}\n`;
+  });
+  text += `\nTotal: $${cartTotal().toFixed(2)}`;
+  return text;
+}
+
+function renderCartModal() {
+  const container = document.getElementById('cartItems');
+  if (!container) return;
+  const entries = cartEntries();
+
+  if (entries.length === 0) {
+    container.innerHTML = `<p class="cartEmpty">Your basket is empty.</p>`;
+  } else {
+    container.innerHTML = entries.map(([id, qty]) => {
+      const p = allProducts.find(pp => pp.id === id);
+      if (!p) return '';
+      const lineTotal = (priceNum(p) * qty).toFixed(2);
+      return `
+        <div class="cartItemRow">
+          <img src="${escapeAttr(p.image_url)}" alt="${escapeAttr(p.name)}">
+          <div class="cartItemInfo">
+            <p class="cartItemName">${escapeHTML(p.name)}</p>
+            <p class="cartItemId">ID: ${p.id}</p>
+          </div>
+          <div class="stepper" data-id="${id}">
+            <button class="stepBtn minus" data-action="dec" aria-label="Remove one">−</button>
+            <span class="stepQty">${qty}</span>
+            <button class="stepBtn plus" data-action="inc" aria-label="Add one">+</button>
+          </div>
+          <p class="cartItemLineTotal">$${lineTotal}</p>
+        </div>`;
+    }).join('');
+  }
+
+  const totalEl = document.getElementById('cartModalTotal');
+  if (totalEl) totalEl.textContent = '$' + cartTotal().toFixed(2);
+
+  refreshSendLink();
+}
+
+function refreshSendLink() {
+  const sendLink = document.getElementById('sendOrderLink');
+  if (!sendLink) return;
+  const { name, phone, date } = getCustomerFields();
+  const complete = cartEntries().length > 0 && name && phone && date;
+  if (!complete) {
+    sendLink.removeAttribute('href');
+    sendLink.classList.add('disabled');
+  } else {
+    sendLink.classList.remove('disabled');
+    sendLink.href = `https://t.me/${TELEGRAM_HANDLE}?text=${encodeURIComponent(buildQuoteText())}`;
+  }
+}
+
+/* Single delegated listener handles every "+" button and every stepper
+   button, whether it's inside a product card, the detail modal, or the
+   basket modal — all three re-use the same .addBtn / .stepBtn markup. */
+document.addEventListener('click', (e) => {
+  const addBtn = e.target.closest('.addBtn');
+  if (addBtn) {
+    e.stopPropagation();
+    addToCart(addBtn.dataset.id);
+    return;
+  }
+  const stepBtn = e.target.closest('.stepBtn');
+  if (stepBtn) {
+    e.stopPropagation();
+    const wrap = stepBtn.closest('.stepper');
+    const id = wrap?.dataset.id;
+    if (!id) return;
+    if (stepBtn.dataset.action === 'inc') addToCart(id);
+    else decFromCart(id);
+  }
+});
+
 function cardHTML(p) {
   const badge = p.badge ? `<span class="badge">${escapeHTML(p.badge)}</span>` : "";
   const price = p.price ? `<p class="price">${escapeHTML(String(p.price))}</p>` : "";
@@ -44,9 +254,12 @@ function cardHTML(p) {
         <img src="${escapeAttr(p.image_url)}" alt="${escapeAttr(p.name)}">
       </div>
       <div class="cardBody">
-        <p class="id">ID: ${p.id}</p>
-        <p class="name">${escapeHTML(p.name)}</p>
-        ${price}
+        <div class="cardBodyMain">
+          <p class="id">ID: ${p.id}</p>
+          <p class="name">${escapeHTML(p.name)}</p>
+          ${price}
+        </div>
+        <div class="addWrap cardAddWrap" data-add-id="${p.id}">${addControlHTML(p)}</div>
       </div>
     </div>`;
 }
@@ -72,6 +285,8 @@ async function loadProducts() {
   allProducts = data || [];
   renderAll(allProducts);
   initCardClicks();
+  updateCartBar();
+  if (document.getElementById('cartOverlay')?.classList.contains('open')) renderCartModal();
 }
 
 function renderAll(products) {
@@ -186,16 +401,6 @@ if (searchInput) {
   });
 }
 
-/* ---------- chat button click feedback ---------- */
-const chatBtn = document.querySelector('.orderBar button');
-if (chatBtn) {
-  chatBtn.addEventListener('click', () => {
-    chatBtn.classList.remove('pop');
-    void chatBtn.offsetWidth;
-    chatBtn.classList.add('pop');
-  });
-}
-
 /* ---------- product detail modal ---------- */
 const overlay = document.getElementById('modalOverlay');
 const modalImg = document.getElementById('modalImg');
@@ -213,6 +418,13 @@ function openModal(product) {
   document.getElementById('modalPrice').textContent = rawPrice ? ('$' + rawPrice.replace(/^\$/, '')) : '';
   modalImg.src = product.image_url;
   modalImg.alt = product.name || 'N/A';
+
+  const addRow = document.getElementById('modalAddRow');
+  if (addRow) {
+    addRow.dataset.addId = product.id;
+    addRow.innerHTML = addControlHTML(product);
+  }
+
   overlay.classList.add('open');
 }
 function closeModal() { overlay.classList.remove('open'); }
@@ -233,6 +445,45 @@ function initCardClicks() {
 
 document.getElementById('modalClose').addEventListener('click', closeModal);
 overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+/* ---------- basket bar + basket modal ---------- */
+const cartOverlay = document.getElementById('cartOverlay');
+const cartBarBtn = document.getElementById('cartBarBtn');
+const cartClose = document.getElementById('cartClose');
+const clearCartBtn = document.getElementById('clearCartBtn');
+
+const custNameInput = document.getElementById('custName');
+const custPhoneInput = document.getElementById('custPhone');
+const custDateInput = document.getElementById('custDate');
+
+// Don't let a customer pick a date in the past.
+if (custDateInput) custDateInput.min = new Date().toISOString().split('T')[0];
+
+function prefillCustomerFields() {
+  const saved = loadCustomer();
+  if (custNameInput) custNameInput.value = saved.name || '';
+  if (custPhoneInput) custPhoneInput.value = saved.phone || '';
+  if (custDateInput) custDateInput.value = saved.date || '';
+}
+
+[custNameInput, custPhoneInput, custDateInput].forEach(input => {
+  if (!input) return;
+  input.addEventListener('input', () => {
+    saveCustomer(getCustomerFields());
+    refreshSendLink();
+  });
+});
+
+if (cartBarBtn) {
+  cartBarBtn.addEventListener('click', () => {
+    prefillCustomerFields();
+    renderCartModal();
+    cartOverlay.classList.add('open');
+  });
+}
+if (cartClose) cartClose.addEventListener('click', () => cartOverlay.classList.remove('open'));
+if (cartOverlay) cartOverlay.addEventListener('click', (e) => { if (e.target === cartOverlay) cartOverlay.classList.remove('open'); });
+if (clearCartBtn) clearCartBtn.addEventListener('click', clearCart);
 
 /* ---------- our locations map ---------- */
 const locations = [
@@ -339,6 +590,7 @@ async function loadHeroImages() {
 /* ---------- go ---------- */
 loadProducts();
 loadHeroImages();
+updateCartBar();
 
 // Live updates: if the admin edits a product while someone has the site
 // open, refresh the grids automatically.

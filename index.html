@@ -178,6 +178,41 @@
         <p class="mName" id="modalName">Classic Club Sandwich</p>
         <p class="mPrice" id="modalPrice"></p>
         <p class="mDesc" id="modalDesc" style="display:none;"></p>
+        <div class="addWrap modalAddWrap" id="modalAddRow"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- basket modal ---------- -->
+  <div class="modalOverlay" id="cartOverlay">
+    <div class="modalCard cartModalCard">
+      <div class="cartModalHead">
+        <h3>Your Basket</h3>
+        <button class="modalClose" id="cartClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="cartItems" id="cartItems"></div>
+      <div class="cartCustomer">
+        <div class="custField">
+          <label class="custLabel" for="custName">Your Name</label>
+          <input type="text" id="custName" class="custInput" placeholder="e.g. Sokha">
+        </div>
+        <div class="custField">
+          <label class="custLabel" for="custPhone">Phone Number</label>
+          <input type="tel" id="custPhone" class="custInput" placeholder="e.g. 012 345 678">
+        </div>
+        <div class="custField">
+          <label class="custLabel" for="custDate">Pickup / Delivery Date</label>
+          <input type="date" id="custDate" class="custInput">
+        </div>
+      </div>
+      <div class="cartFooter">
+        <div class="cartTotalRow"><span>Total</span><span id="cartModalTotal">$0.00</span></div>
+        <button class="clearBtn" id="clearCartBtn">Clear basket</button>
+        <a id="sendOrderLink" target="_blank" rel="noopener noreferrer">
+          <button class="sendOrderBtn">Send Order via Telegram</button>
+        </a>
       </div>
     </div>
   </div>
@@ -196,6 +231,15 @@
       <span class="hDay">Saturday – Sunday</span>
       <span class="hTime">Closed</span>
     </div>
+  </div>
+
+  <!-- ---------- floating basket button ---------- -->
+  <div class="cartBar" id="cartBar" style="display:none;">
+    <button id="cartBarBtn" aria-label="View basket">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <span id="cartCount">0</span>
+      <span id="cartBarTotal">$0.00</span>
+    </button>
   </div>
 
   <div class="orderBar">
