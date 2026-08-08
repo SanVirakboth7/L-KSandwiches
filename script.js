@@ -49,9 +49,9 @@ function saveCustomer(info) {
 }
 function getCustomerFields() {
   return {
-    name: document.getElementById('custName')?.value.trim() || '',
-    phone: document.getElementById('custPhone')?.value.trim() || '',
-    date: document.getElementById('custDate')?.value || ''
+    name  : document.getElementById('custName')?.value.trim() || '',
+    phone : document.getElementById('custPhone')?.value.trim() || '',
+    date  : document.getElementById('custDate')?.value || ''
   };
 }
 function formatDate(iso) {
