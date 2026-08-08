@@ -576,13 +576,74 @@
   font-size:13px; color:var(--ink-soft); margin-top:8px; line-height:1.5;
 }
 .confirmSummary{
-  margin-top:16px; padding:14px; border-radius:14px;
+  margin-top:16px; padding:14px 16px; border-radius:14px;
   background:var(--paper); border:1px solid var(--line);
-  text-align:left; font-family:'DM Mono', monospace; font-size:12px;
-  color:var(--ink); line-height:1.6; white-space:pre-wrap;
+  text-align:left;
 }
+.confirmDetailRow{
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+  padding:5px 0;
+}
+.confirmDetailRow span:first-child{ color:var(--ink-soft); font-weight:600; }
+.confirmDetailRow span:last-child{ font-weight:600; text-align:right; }
+.confirmDivider{ height:1px; background:var(--line); margin:8px 0; }
+.confirmItemRow{
+  display:flex; align-items:center; gap:8px;
+  font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+  padding:6px 0;
+}
+.confirmItemQty{
+  font-family:'DM Mono', monospace; color:var(--crust-500);
+  flex-shrink:0; min-width:26px;
+}
+.confirmItemName{ flex:1; min-width:0; }
+.confirmItemPrice{
+  font-family:'sans-serif'; color:var(--ink);
+  flex-shrink:0;
+}
+.confirmTotalRow{
+  font-family:'Fraunces', serif; font-size:17px; font-weight:700;
+  padding-top:8px;
+}
+.confirmTotalRow span:first-child{ color:var(--ink); }
+.confirmTotalRow span:last-child{ color:var(--crust-500); }
 .confirmActions{ display:flex; gap:10px; margin-top:20px; }
 .confirmActions .clearBtn, .confirmActions .sendOrderBtn{ flex:1; }
+
+.confirmSummary{
+  margin-top:16px; padding:14px 16px; border-radius:14px;
+  background:var(--paper); border:1px solid var(--line);
+  text-align:left;
+}
+.confirmDetailRow{
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+  padding:5px 0;
+}
+.confirmDetailRow span:first-child{ color:var(--ink-soft); font-weight:600; }
+.confirmDetailRow span:last-child{ font-weight:600; text-align:right; }
+.confirmDivider{ height:1px; background:var(--line); margin:8px 0; }
+.confirmItemRow{
+  display:flex; align-items:center; gap:8px;
+  font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+  padding:6px 0;
+}
+.confirmItemQty{
+  font-family:'DM Mono', monospace; font-weight:700; color:var(--crust-500);
+  flex-shrink:0; min-width:26px;
+}
+.confirmItemName{ flex:1; min-width:0; }
+.confirmItemPrice{
+  font-family:'DM Mono', monospace; font-weight:600; color:var(--ink);
+  flex-shrink:0;
+}
+.confirmTotalRow{
+  font-family:'Fraunces', serif; font-size:17px; font-weight:700;
+  padding-top:8px;
+}
+.confirmTotalRow span:first-child{ color:var(--ink); }
+.confirmTotalRow span:last-child{ color:var(--crust-500); }
 
   @media (prefers-reduced-motion:no-preference){
     .card{ transition: transform .15s ease; }

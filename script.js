@@ -253,6 +253,36 @@ function updateSendButtonState() {
   sendBtn.disabled = !complete;
 }
 
+/* Builds a readable receipt-style HTML summary for the confirm modal,
+   as an alternative to the plain-text quote used for the Telegram
+   message itself (buildQuoteText handles that one). */
+function buildConfirmSummaryHTML() {
+  const entries = cartEntries();
+  const { name, phone, date } = getCustomerFields();
+
+  const itemsHTML = entries.map(([id, qty]) => {
+    const p = allProducts.find(pp => pp.id === id);
+    if (!p) return '';
+    const lineTotal = (priceNum(p) * qty).toFixed(2);
+    return `
+      <div class="confirmItemRow">
+        <span class="confirmItemQty">${qty}×</span>
+        <span class="confirmItemName">${escapeHTML(p.name)}</span>
+        <span class="confirmItemPrice">$${lineTotal}</span>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="confirmDetailRow"><span>Name</span><span>${escapeHTML(name || '—')}</span></div>
+    <div class="confirmDetailRow"><span>Phone</span><span>${escapeHTML(phone || '—')}</span></div>
+    <div class="confirmDetailRow"><span>Date</span><span>${date ? escapeHTML(formatDate(date)) : '—'}</span></div>
+    <div class="confirmDivider"></div>
+    ${itemsHTML}
+    <div class="confirmDivider"></div>
+    <div class="confirmDetailRow confirmTotalRow"><span>Total</span><span>$${cartTotal().toFixed(2)}</span></div>
+  `;
+}
+
 /* Opens the confirmation modal instead of sending right away, so the
    customer gets one last look at their order before it goes out. */
 function openConfirmModal() {
@@ -260,7 +290,7 @@ function openConfirmModal() {
   if (!sendBtn || sendBtn.disabled) return;
 
   const summaryEl = document.getElementById('confirmSummary');
-  if (summaryEl) summaryEl.textContent = buildQuoteText();
+  if (summaryEl) summaryEl.innerHTML = buildConfirmSummaryHTML();
 
   document.getElementById('confirmOverlay')?.classList.add('open');
 }
