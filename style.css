@@ -19,6 +19,7 @@
     overflow-x:hidden;
     width:100%;
     overscroll-behavior-y: none; /* stop iOS rubber-band bounce that reveals content above the fixed header */
+    touch-action: manipulation; /* stop iOS double-tap-to-zoom on fast repeated taps */
   }
   body{
   background: var(--white);
@@ -253,7 +254,7 @@
     font-family:'DM Mono', monospace; font-weight:600; font-size:13px; color:var(--crust-500);
     margin-top:5px;
   }
-  .card{ cursor:pointer; }
+  .card{ cursor:pointer; touch-action: manipulation; }
 
   /* ---------- add-to-basket control (grid cards + detail modal) ---------- */
   .addWrap{ display:flex; align-items:center; flex-shrink:0; }
@@ -265,6 +266,7 @@
     display:flex; align-items:center; justify-content:center;
     box-shadow: 0 3px 8px rgba(114,60,16,.4);
     transition: transform .15s ease;
+    touch-action: manipulation;
   }
   .addBtn svg{ width:15px; height:15px; }
   .addBtn:active{ transform:scale(.88); }
@@ -281,6 +283,7 @@
     font-weight:700; font-size:14px; line-height:1;
     display:flex; align-items:center; justify-content:center;
     transition: transform .12s ease;
+    touch-action: manipulation;
   }
   .stepBtn:active{ transform:scale(.85); }
   .stepBtn.plus{ background: var(--mustard-500); color:#fff; }
@@ -459,7 +462,7 @@
   .custInput{
     width:100%; padding:10px 13px; border-radius:12px;
     border:1px solid var(--line); background:var(--paper);
-    font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+    font-family:'Inter',sans-serif; font-size:16px; color:var(--ink);
     outline:none;
   }
   .custInput:focus{ border-color:#8a4a1c; background:#fff; }
@@ -514,22 +517,33 @@
     will-change:transform;
   }
   .cartBar button{
-    display:flex; align-items:center; gap:8px;
+    display:flex; align-items:center; gap:12px;
     background:#4a2609;
     color:#fff; border:none; border-radius:999px; cursor:pointer;
-    padding:12px 22px 12px 18px; font-weight:700; font-size:13px; font-family:'Inter',sans-serif;
+    padding:9px 20px 9px 9px; font-family:'Inter',sans-serif;
     box-shadow: 0 6px 18px rgba(74,38,9,.4);
     transition: transform .15s ease;
+    touch-action: manipulation;
   }
   .cartBar button:active{ transform:scale(.94); }
-  .cartBar button svg{ width:17px; height:17px; flex-shrink:0; }
-  #cartCount{
-    background:#fff; color:#4a2609;
-    border-radius:999px; min-width:17px; height:17px; padding:0 5px;
-    font-size:10.5px; font-weight:800;
-    display:flex; align-items:center; justify-content:center;
+  .cartIconWrap{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:50%;
+    background: rgba(255,255,255,.14);
+    flex-shrink:0;
   }
-  #cartBarTotal{ font-family:'DM Mono', monospace; font-size:12px; opacity:.95; }
+  .cartIconWrap svg{ width:17px; height:17px; }
+  #cartCount{
+    position:absolute; top:-5px; right:-5px;
+    background:#fff; color:#4a2609;
+    border-radius:999px; min-width:17px; height:17px; padding:0 4px;
+    font-size:10px; font-weight:800; font-family:'DM Mono', monospace;
+    display:flex; align-items:center; justify-content:center;
+    border:2px solid #4a2609;
+  }
+  .cartBarInfo{ display:flex; flex-direction:column; align-items:flex-start; line-height:1.25; }
+  .cartBarLabel{ font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; opacity:.75; }
+  #cartBarTotal{ font-family:'DM Mono', monospace; font-size:14px; font-weight:700; }
   footer{ text-align:center; padding:6px 16px 26px; }
   footer p{ font-family:'DM Mono',monospace; font-size:9.5px; color:rgba(43,33,24,.35); letter-spacing:1px; }
 
