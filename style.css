@@ -23,7 +23,7 @@
   }
   body{
   background: var(--white);
-  font-family:'Inter', sans-serif;
+  font-family:'Fraunces', serif;
   color: var(--ink);
   display:flex; justify-content:center;
   width:100%;
@@ -431,8 +431,8 @@
   }
   .modalClose svg{ width:14px; height:14px; }
   .modalBody{ padding:22px 22px 26px; }
-  .modalBody .mId{ font-family:'Fraunces', serif; font-size:16px; font-weight:700; color:var(--ink-soft); }
-  .modalBody .mName{ font-family:'Inter', serif,Noto sans khmer; font-size:24px; font-weight:700; color:var(--ink); margin-top:3px; }
+  .modalBody .mId{ font-family:'Fraunces'; font-size:14px; font-weight:700; color:var(--ink-soft); }
+  .modalBody .mName{ font-family:'Inter', serif,Noto sans khmer; font-size:22px; font-weight:700; color:var(--ink); margin-top:3px; }
   .modalBody .mPrice{
     font-family:'Inter', monospace; font-weight:700; font-size:19px;
     color:var(--crust-500); margin-top:10px;
@@ -628,6 +628,7 @@
   font-family:'Fraunces', serif; font-size:19px; font-weight:700; color:var(--ink);
 }
 .confirmText{
+  font-family: 'Inter';
   font-size:13px; color:var(--ink-soft); margin-top:8px; line-height:1.5;
 }
 .confirmSummary{
