@@ -144,10 +144,9 @@ function refreshCardControl(id) {
 function addToCart(id) {
   cart[id] = (cart[id] || 0) + 1;
   saveCart();
-  console.log('[L&K] addToCart:', id, '-> cart is now', JSON.stringify(cart));
   refreshCardControl(id);
   updateCartBar();
-  if (document.getElementById('cartOverlay')?.classList.contains('open')) renderCartModal();
+  if (document.getElementById('cartPage')?.classList.contains('open')) renderCartModal();
 }
 function decFromCart(id) {
   if (!cart[id]) return;
@@ -156,7 +155,7 @@ function decFromCart(id) {
   saveCart();
   refreshCardControl(id);
   updateCartBar();
-  if (document.getElementById('cartOverlay')?.classList.contains('open')) renderCartModal();
+  if (document.getElementById('cartPage')?.classList.contains('open')) renderCartModal();
 }
 function clearCart() {
   cart = {};
@@ -239,23 +238,28 @@ function renderCartModal() {
       const lineTotal = (priceNum(p) * qty).toFixed(2);
       return `
         <div class="cartItemRow">
-          <img src="${escapeAttr(p.image_url)}" alt="${escapeAttr(p.name)}">
-          <div class="cartItemInfo">
-            <p class="cartItemName">${escapeHTML(p.name)}</p>
-            <p class="cartItemId">ID: ${p.id}</p>
+          <div class="cartItemTop">
+            <img src="${escapeAttr(p.image_url)}" alt="${escapeAttr(p.name)}">
+            <div class="cartItemInfo">
+              <p class="cartItemName">${escapeHTML(p.name)}</p>
+              <p class="cartItemId">ID: ${p.id}</p>
+              <p class="cartItemLineTotal">$${lineTotal}</p>
+            </div>
+            <div class="stepper" data-id="${id}">
+              <button class="stepBtn minus" data-action="dec" aria-label="Remove one">−</button>
+              <span class="stepQty">${qty}</span>
+              <button class="stepBtn plus" data-action="inc" aria-label="Add one">+</button>
+            </div>
           </div>
-          <div class="stepper" data-id="${id}">
-            <button class="stepBtn minus" data-action="dec" aria-label="Remove one">−</button>
-            <span class="stepQty">${qty}</span>
-            <button class="stepBtn plus" data-action="inc" aria-label="Add one">+</button>
-          </div>
-          <p class="cartItemLineTotal">$${lineTotal}</p>
         </div>`;
     }).join('');
   }
 
+  const subtotal = cartTotal();
+  const subtotalEl = document.getElementById('cpSubtotal');
   const totalEl = document.getElementById('cartModalTotal');
-  if (totalEl) totalEl.textContent = '$' + cartTotal().toFixed(2);
+  if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
+  if (totalEl) totalEl.textContent = '$' + subtotal.toFixed(2);
 
   updateSendButtonState();
 }
@@ -267,7 +271,6 @@ function updateSendButtonState() {
   const { name, phone, address, date } = getCustomerFields();
   const items = cartEntries();
   const complete = items.length > 0 && name && phone && address && date;
-  console.log('[L&K] updateSendButtonState:', { items: items.length, name, phone, address, date, complete });
   sendBtn.disabled = !complete;
 }
 
@@ -344,7 +347,7 @@ async function sendOrderToTelegram() {
     sendBtn.textContent = 'Order Sent ✓';
     setTimeout(() => {
       clearCart();
-      cartOverlay?.classList.remove('open');
+      closeCartPage();
       sendBtn.textContent = originalLabel;
       sendBtn.disabled = false;
       if (confirmSendBtn) { confirmSendBtn.textContent = originalConfirmLabel; confirmSendBtn.disabled = false; }
@@ -358,14 +361,31 @@ async function sendOrderToTelegram() {
   }
 }
 
-/* Single delegated listener handles every "+" button and every stepper
-   button, whether it's inside a product card, the detail modal, or the
-   basket modal — all three re-use the same .addBtn / .stepBtn markup. */
+/* Single delegated listener handles every "+" button, every "Remove"
+   button, and every stepper button, whether it's inside a product card,
+   the detail modal, or the basket page — they all re-use the same
+   .addBtn / .cartItemRemove / .stepBtn markup.
+   (Previously this listener was accidentally nested inside itself,
+   which registered a brand-new duplicate listener on every single
+   click — fixed by flattening it into one handler.) */
 document.addEventListener('click', (e) => {
   const addBtn = e.target.closest('.addBtn');
   if (addBtn) {
     e.stopPropagation();
     addToCart(addBtn.dataset.id);
+    return;
+  }
+  const removeBtn = e.target.closest('.cartItemRemove');
+  if (removeBtn) {
+    e.stopPropagation();
+    const id = removeBtn.dataset.removeId;
+    if (id) {
+      delete cart[id];
+      saveCart();
+      refreshCardControl(id);
+      updateCartBar();
+      renderCartModal();
+    }
     return;
   }
   const stepBtn = e.target.closest('.stepBtn');
@@ -424,7 +444,7 @@ async function loadProducts() {
   renderAll(allProducts);
   initCardClicks();
   updateCartBar();
-  if (document.getElementById('cartOverlay')?.classList.contains('open')) renderCartModal();
+  if (document.getElementById('cartPage')?.classList.contains('open')) renderCartModal();
 }
 
 function renderAll(products) {
@@ -610,11 +630,12 @@ function initCardClicks() {
 document.getElementById('modalClose').addEventListener('click', closeModal);
 overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
 
-/* ---------- basket bar + basket modal ---------- */
-const cartOverlay = document.getElementById('cartOverlay');
+/* ---------- basket bar + cart page ---------- */
+const cartPage = document.getElementById('cartPage');
 const cartBarBtn = document.getElementById('cartBarBtn');
-const cartClose = document.getElementById('cartClose');
-const clearCartBtn = document.getElementById('clearCartBtn');
+const cartPageBack = document.getElementById('cartPageBack');
+const cartPageClear = document.getElementById('cartPageClear');
+const addMoreBtn = document.getElementById('addMoreBtn');
 const sendOrderBtn = document.getElementById('sendOrderBtn');
 const custNameInput = document.getElementById('custName');
 const custPhoneInput = document.getElementById('custPhone');
@@ -640,17 +661,29 @@ function prefillCustomerFields() {
   });
 });
 
-if (cartBarBtn) {
-  cartBarBtn.addEventListener('click', () => {
-    prefillCustomerFields();
-    renderCartModal();
-    cartOverlay.classList.add('open');
-  });
+function openCartPage() {
+  prefillCustomerFields();
+  renderCartModal();
+  cartPage?.classList.add('open');
 }
-if (cartClose) cartClose.addEventListener('click', () => cartOverlay.classList.remove('open'));
-if (cartOverlay) cartOverlay.addEventListener('click', (e) => { if (e.target === cartOverlay) cartOverlay.classList.remove('open'); });
-if (clearCartBtn) clearCartBtn.addEventListener('click', clearCart);
+function closeCartPage() {
+  cartPage?.classList.remove('open');
+}
+
+if (cartBarBtn) cartBarBtn.addEventListener('click', openCartPage);
+if (cartPageBack) cartPageBack.addEventListener('click', closeCartPage);
+if (addMoreBtn) addMoreBtn.addEventListener('click', closeCartPage);
+if (cartPageClear) cartPageClear.addEventListener('click', clearCart);
 if (sendOrderBtn) sendOrderBtn.addEventListener('click', openConfirmModal);
+
+/* NOTE: the block that used to live here referenced `cartOverlay`,
+   `cartClose`, and `clearCartBtn` — elements from an older popup-style
+   cart modal that no longer exist in the HTML (replaced by #cartPage /
+   #cartPageBack / #cartPageClear above). Those three variables were
+   never declared, so `if (cartClose)` threw a ReferenceError at load
+   time and silently killed every line of script after it — including
+   loadProducts(), loadHeroImages(), the map, focusLocation, the hours
+   check, and the realtime subscription. Removed. */
 
 /* ---------- confirm order modal ---------- */
 const confirmOverlay = document.getElementById('confirmOverlay');

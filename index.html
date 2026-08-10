@@ -196,16 +196,26 @@
     </div>
   </div>
 
-  <!-- ---------- basket modal ---------- -->
-  <div class="modalOverlay" id="cartOverlay">
-    <div class="modalCard cartModalCard">
-      <div class="cartModalHead">
-        <h3>Your Basket</h3>
-        <button class="modalClose" id="cartClose" aria-label="Close">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        </button>
-      </div>
+  <!-- ---------- basket page (real page, not a popup) ---------- -->
+  <div class="cartPage" id="cartPage">
+    <div class="cartPageHeader">
+      <button class="cpBackBtn" id="cartPageBack" aria-label="Back to menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <h2>My Cart</h2>
+      <button class="cpClearBtn" id="cartPageClear" aria-label="Clear basket">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16z"/></svg>
+      </button>
+    </div>
+
+    <div class="cartPageBody">
       <div class="cartItems" id="cartItems"></div>
+
+      <button class="addMoreBtn" id="addMoreBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Add more items
+      </button>
+
       <div class="cartCustomer">
         <div class="custField">
           <label class="custLabel" for="custName">Name</label>
@@ -224,13 +234,17 @@
           <input type="date" id="custDate" class="custInput">
         </div>
       </div>
-      <div class="cartFooter">
-        <div class="cartTotalRow"><span>Total</span><span id="cartModalTotal">$0.00</span></div>
-        <div class="cartActionsRow">
-          <button class="clearBtn" id="clearCartBtn">Clear basket</button>
-          <button id="sendOrderBtn" class="sendOrderBtn" disabled>Send Order</button>
-        </div>
+
+      <div class="cartPageTotals">
+        <div class="totalsRow"><span>Sub total</span><span id="cpSubtotal">$0.00</span></div>
+        <div class="totalsRow" style="display:none;"><span>Delivery Fee</span><span id="cpDelivery">Free</span></div>
+        <div class="totalsDivider"></div>
+        <div class="totalsRow totalsGrand"><span>Total</span><span id="cartModalTotal">$0.00</span></div>
       </div>
+    </div>
+
+    <div class="cartPageFooter">
+      <button id="sendOrderBtn" class="sendOrderBtn" disabled>Send Order</button>
     </div>
   </div>
 

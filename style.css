@@ -391,7 +391,7 @@
   .brGo.soon{ color:var(--ink-soft); }
 
   .modalOverlay{
-    position:fixed; inset:0; z-index:100;
+    position:fixed; inset:0; z-index:300;
     background: rgba(43,33,24,.45);
     backdrop-filter: blur(2px);
     display:flex; align-items:center; justify-content:center;
@@ -439,6 +439,7 @@
   }
   .modalBody .mDesc{ font-size:14px; color:var(--ink-soft); line-height:1.6; margin-top:12px; }
   .modalDivider{ height:1px; background:var(--line); margin:16px 0; }
+
   .modalContact{ display:flex; align-items:center; gap:10px; }
   .modalContact a{
     display:flex; align-items:center; justify-content:center;
@@ -455,39 +456,111 @@
   }
   .modalContact .phone svg{ width:18px; height:18px; color:var(--olive-500); }
 
-  /* ---------- basket modal ---------- */
-  .cartModalCard{ display:flex; flex-direction:column; }
-  .cartModalHead{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:20px 22px 10px; position:relative;
-  }
-  .cartModalHead h3{ font-family:'Fraunces', serif; font-size:20px; font-weight:700; color:var(--ink); }
-  .cartModalHead .modalClose{ position:static; }
-  .cartItems{ padding:4px 22px; overflow-y:auto; max-height:50vh; }
-  .cartEmpty{ padding:34px 0; text-align:center; color:var(--ink-soft); font-size:13px; }
-  .cartItemRow{
-    display:flex; align-items:center; gap:10px;
-    padding:11px 0; border-bottom:1px solid var(--line);
-  }
-  .cartItemRow:last-child{ border-bottom:none; }
-  .cartItemRow img{
-    width:46px; height:46px; border-radius:12px; object-fit:cover; flex-shrink:0;
-  }
-  .cartItemInfo{ flex:1; min-width:0; }
-  .cartItemName{
-    font-family:'Arial', Noto sans khmer,monospace; font-size:13px; color:var(--ink);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-  .cartItemId{ font-family:'Fraunces', serif; font-size:10px; color:var(--ink-soft); margin-top:1px; }
-  .cartItemLineTotal{
-    font-family:'Inter', monospace; font-weight:700; font-size:12.5px;
-    color:var(--crust-500); min-width:46px; text-align:right; flex-shrink:0;
-  }
-  .cartCustomer{
-    padding:12px 22px 6px; display:flex; flex-direction:column; gap:10px;
-    border-top:1px solid var(--line); margin-top:4px;
-    min-width:0;
-  }
+  /* ---------- cart page (full page, not a popup) ---------- */
+.cartPage{
+  position:fixed; top:0; left:50%; transform:translate3d(-50%,0,0);
+  width:100%; max-width:460px; height:100%;
+  z-index:200;
+  background: var(--white);
+  display:flex; flex-direction:column;
+  opacity:0; pointer-events:none;
+  transition: opacity .2s ease;
+}
+.cartPage.open{ opacity:1; pointer-events:auto; }
+
+.cartPageHeader{
+  flex-shrink:0;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px; border-bottom:1px solid var(--line);
+}
+.cartPageHeader h2{
+  font-family:'Fraunces', serif; font-size:20px; font-weight:700; color:var(--ink);
+}
+.cpBackBtn, .cpClearBtn{
+  width:38px; height:38px; border-radius:50%; border:none; cursor:pointer;
+  background: var(--paper); color:var(--ink);
+  display:flex; align-items:center; justify-content:center;
+  touch-action:manipulation;
+}
+.cpBackBtn svg, .cpClearBtn svg{ width:18px; height:18px; }
+.cpBackBtn:active, .cpClearBtn:active{ transform:scale(.92); }
+
+.cartPageBody{
+  flex:1; overflow-y:auto;
+  padding:16px; display:flex; flex-direction:column; gap:14px;
+}
+
+.cartEmpty{ padding:40px 0; text-align:center; color:var(--ink-soft); font-size:13px; }
+
+.cartItemRow{
+  display:flex; flex-direction:column; gap:10px;
+  padding:14px; border-radius:16px;
+  background: var(--paper); border:1px solid var(--line);
+  margin-bottom:12px; /* space between rows */
+}
+.cartItemTop{ display:flex; align-items:center; gap:12px; }
+.cartItemRow img{
+  width:90px; height:90px; border-radius:14px; object-fit:cover; flex-shrink:0; /* was 70x70 */
+}
+.cartItemInfo{ flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
+.cartItemTop .stepper{ flex-shrink:0; } /* keep it from getting squished */
+.cartItemBottom{ display:flex; align-items:center; justify-content:flex-end; } /* was space-between */
+.cartItemId{ font-family:'Inter',sans-serif; font-size:11px; color:var(--ink-soft); }
+.cartItemName{font-family: 'Noto sans khmer';}
+.cartItemLineTotal{
+  font-family:'Inter',sans-serif; font-weight:700; font-size:15px; color:var(--ink); margin-top:14px;
+}
+.cartItemBottom{ display:flex; align-items:center; justify-content:space-between; }
+
+.addMoreBtn{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; padding:12px; border-radius:14px;
+  border:1.5px dashed var(--crust-500); background:none; color:var(--crust-500);
+  font-family:'Inter',sans-serif; font-weight:700; font-size:14px; cursor:pointer;
+  touch-action:manipulation;
+}
+.addMoreBtn svg{ width:16px; height:16px; }
+
+.cartCustomer{
+  padding:12px 0 0; display:flex; flex-direction:column; gap:10px;
+  border-top:1px solid var(--line);
+  min-width:0;
+}
+.custField{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+.custLabel{
+  font-family:'Inter',sans-serif; font-size:11px; font-weight:700;
+  color:var(--ink-soft); text-transform:uppercase; letter-spacing:.3px;
+}
+.custInput{
+  width:100%; min-width:0; max-width:100%; box-sizing:border-box;
+  padding:10px 13px; border-radius:12px;
+  border:1px solid var(--line); background:var(--white);
+  font-family:'Inter',sans-serif; font-size:16px; color:var(--ink);
+  outline:none;
+  -webkit-appearance:none; appearance:none;
+}
+.custInput:focus{ border-color:#8a4a1c; }
+
+.cartPageTotals{
+  padding:14px 16px; border-radius:16px; background:var(--paper); border:1px solid var(--line);
+}
+.totalsRow{
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:'Inter',sans-serif; font-size:14px; color:var(--ink-soft);
+  padding:6px 0;
+}
+.totalsRow span:last-child{ font-weight:600; color:var(--ink); }
+.totalsDivider{ border-top:1px dashed var(--line); margin:6px 0; }
+.totalsGrand{ font-family:'Fraunces', serif; font-weight:700; }
+.totalsGrand span{ font-size:17px; color:var(--ink) !important; }
+
+.cartPageFooter{
+  flex-shrink:0; padding:14px 16px 22px; border-top:1px solid var(--line);
+  background: var(--white);
+}
+.cartPageFooter .sendOrderBtn{ width:100%; padding:15px; border-radius:14px; font-size:15px; }
+
+ 
   .custField{ display:flex; flex-direction:column; gap:5px; min-width:0; }
   .custLabel{
     font-family:'Inter',sans-serif; font-size:11px; font-weight:700;
