@@ -99,7 +99,7 @@
     overflow:hidden;
     flex-shrink:0;
   }
-  .iconBtn svg{ width:16px; height:16px; display:block; }
+  .iconBtn svg{ width:24px; height:24px; display:block; }
 
   /* ---------- combined search + chip row ----------
      Collapsed state (default): small round search icon button + the
@@ -119,7 +119,7 @@
     display:flex; align-items:center; justify-content:center;
     cursor:pointer; touch-action:manipulation;
   }
-  .searchIconBtn svg{ width:15px; height:15px; }
+  .searchIconBtn svg{ width:20px; height:20px; }
   .searchIconBtn:active{ transform:scale(.92); }
 
   .chipRow{
@@ -149,7 +149,7 @@
     border:1px solid var(--line);
     border-radius:999px; padding:7px 8px 7px 14px;
   }
-  .searchExpandWrap svg:first-child{ width:16px; height:16px; color:var(--ink-soft); flex-shrink:0; }
+  .searchExpandWrap svg:first-child{ width:20px; height:20px; color:var(--ink-soft); flex-shrink:0; }
   .searchExpandWrap input{
     background:none; border:none; outline:none; color:var(--ink);
     font-family:'Inter',sans-serif;
