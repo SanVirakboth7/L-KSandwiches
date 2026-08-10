@@ -101,23 +101,30 @@
   }
   .iconBtn svg{ width:16px; height:16px; display:block; }
 
-  .searchWrap{
+  /* ---------- combined search + chip row ----------
+     Collapsed state (default): small round search icon button + the
+     scrollable chip row share one line. Expanded state (.searchOpen):
+     the icon button and chips hide, and .searchExpandWrap grows to fill
+     the row so the input has room to type in. This replaces the old
+     always-visible full-width search bar to save vertical header space. */
+  .toolRow{
     margin-top:12px; display:flex; align-items:center; gap:8px;
-    background: var(--paper);
-    border:1px solid var(--line);
-    border-radius:999px; padding:9px 14px;
+    padding:0 16px;
+    position:relative;
   }
-  .searchWrap svg{ width:16px; height:16px; color:var(--ink-soft); flex-shrink:0; }
-  .searchWrap input{
-    background:none; border:none; outline:none; color:var(--ink);
-    font-family:'Inter',sans-serif;
-    font-size:16px;
-    width:100%;
+  .searchIconBtn{
+    flex-shrink:0; width:34px; height:34px; border-radius:50%;
+    background: var(--paper); border:1px solid var(--line);
+    color: var(--ink-soft);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; touch-action:manipulation;
   }
-  .searchWrap input::placeholder{ color:rgba(43,33,24,.4); }
+  .searchIconBtn svg{ width:15px; height:15px; }
+  .searchIconBtn:active{ transform:scale(.92); }
 
   .chipRow{
-    display:flex; gap:8px; overflow-x:auto; padding:12px 16px 4px;
+    flex:1; min-width:0;
+    display:flex; gap:8px; overflow-x:auto; padding:4px 0;
     scrollbar-width:none;
   }
   .chipRow::-webkit-scrollbar{ display:none; }
@@ -134,6 +141,33 @@
     box-shadow: 0 3px 10px rgba(217, 161, 48, 0.158);
   }
   .chip.active .dot{ background:#fff; }
+
+  .searchExpandWrap{
+    display:none;
+    flex:1; align-items:center; gap:8px;
+    background: var(--paper);
+    border:1px solid var(--line);
+    border-radius:999px; padding:7px 8px 7px 14px;
+  }
+  .searchExpandWrap svg:first-child{ width:16px; height:16px; color:var(--ink-soft); flex-shrink:0; }
+  .searchExpandWrap input{
+    background:none; border:none; outline:none; color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+    width:100%;
+  }
+  .searchExpandWrap input::placeholder{ color:rgba(43,33,24,.4); }
+  .searchCloseBtn{
+    flex-shrink:0; width:26px; height:26px; border-radius:50%; border:none;
+    background: var(--paper-200); color:var(--ink-soft);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; touch-action:manipulation;
+  }
+  .searchCloseBtn svg{ width:12px; height:12px; }
+
+  .toolRow.searchOpen .searchIconBtn,
+  .toolRow.searchOpen .chipRow{ display:none; }
+  .toolRow.searchOpen .searchExpandWrap{ display:flex; }
 
   /* Pushed down by the fixed header's real measured height, plus 14px breathing room. */
   .heroWrap{ padding:calc(var(--header-h) + 14px) 16px 4px; position:relative; z-index:1; }
@@ -453,17 +487,20 @@
   .cartCustomer{
     padding:12px 22px 6px; display:flex; flex-direction:column; gap:10px;
     border-top:1px solid var(--line); margin-top:4px;
+    min-width:0;
   }
-  .custField{ display:flex; flex-direction:column; gap:5px; }
+  .custField{ display:flex; flex-direction:column; gap:5px; min-width:0; }
   .custLabel{
     font-family:'Inter',sans-serif; font-size:11px; font-weight:700;
     color:var(--ink-soft); text-transform:uppercase; letter-spacing:.3px;
   }
   .custInput{
-    width:100%; padding:10px 13px; border-radius:12px;
+    width:100%; min-width:0; max-width:100%; box-sizing:border-box;
+    padding:10px 13px; border-radius:12px;
     border:1px solid var(--line); background:var(--paper);
     font-family:'Inter',sans-serif; font-size:16px; color:var(--ink);
     outline:none;
+    -webkit-appearance:none; appearance:none;
   }
   .custInput:focus{ border-color:#8a4a1c; background:#fff; }
   .cartFooter{ padding:14px 22px 22px; border-top:1px solid var(--line); }
@@ -528,24 +565,28 @@
   }
   .hTime{ font-family:'DM Mono', monospace; font-size:12.5px; font-weight:500; color:var(--crust-500); }
 
-  /* ---------- floating basket bar (now the only floating action) ---------- */
+/* ---------- floating basket bar (Telegram-style green pill) ---------- */
   .cartBar{
     position:fixed; bottom:20px;
     left:50%; transform:translate3d(-50%, 0, 0);
     z-index:20;
     display:flex;
+    justify-content:center;
+    width:calc(100% - 32px);
+    max-width:428px;
     will-change:transform;
   }
   .cartBar button{
-    display:flex; align-items:center; gap:12px;
-    background:#4a2609;
-    color:#fff; border:none; border-radius:999px; cursor:pointer;
-    padding:9px 20px 9px 9px; font-family:'Inter',sans-serif;
-    box-shadow: 0 6px 18px rgba(74,38,9,.4);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:fit-content;
+    background: linear-gradient(135deg, #5a3111, #4a2609);
+    color:#fff; border:none; border-radius:26px; cursor:pointer;
+    padding:6px 16px 6px 5px; font-family:'Inter',sans-serif;
+    box-shadow: 0 8px 22px rgba(74,38,9,.4);
     transition: transform .15s ease;
     touch-action: manipulation;
   }
-  .cartBar button:active{ transform:scale(.94); }
+  .cartBar button:active{ transform:scale(.96); }
   .cartIconWrap{
     position:relative; display:flex; align-items:center; justify-content:center;
     width:34px; height:34px; border-radius:50%;
@@ -561,13 +602,28 @@
     display:flex; align-items:center; justify-content:center;
     border:2px solid #4a2609;
   }
-  .cartBarInfo{ display:flex; flex-direction:column; align-items:flex-start; line-height:1.25; }
-  .cartBarLabel{ font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; opacity:.75; }
-  #cartBarTotal{ font-family:'DM Mono', monospace; font-size:14px; font-weight:700; }
-  footer{ text-align:center; padding:6px 16px 26px; }
-  footer p{ font-family:'DM Mono',monospace; font-size:9.5px; color:rgba(43,33,24,.35); letter-spacing:1px; }
+  .cartIconWrap svg{ width:17px; height:17px; }
+  .cartBarDivider{
+    width:1px; align-self:stretch; margin:4px 0;
+    background: rgba(255,255,255,.22);
+    flex-shrink:0;
+  }
+  .cartBarText{
+    display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+    justify-content:center; line-height:1.3;
+  }
+  .cartBarLabel{
+    font-family:'Inter',sans-serif; font-weight:700; font-size:16px; color:#fff;
+  }
+  .cartBarPrice{ display:flex; align-items:baseline; gap:6px; }
+  #cartBarRiel{
+    font-family:'Inter',sans-serif; font-weight:700; font-size:16px; color:#fff;
+  }
+  .cartBarUsd{
+    font-family:'Inter',sans-serif; font-weight:500; font-size:13px; color:rgba(255,255,255,.85);
+  }
 
-  .confirmModalCard{ max-width:360px; }
+.confirmModalCard{ max-width:360px; }
 .confirmBody{ padding:26px 22px; text-align:center; }
 .confirmBody h3{
   font-family:'Fraunces', serif; font-size:19px; font-weight:700; color:var(--ink);

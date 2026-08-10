@@ -80,9 +80,10 @@ function saveCustomer(info) {
 }
 function getCustomerFields() {
   return {
-    name  : document.getElementById('custName')?.value.trim() || '',
-    phone : document.getElementById('custPhone')?.value.trim() || '',
-    date  : document.getElementById('custDate')?.value || ''
+    name    : document.getElementById('custName')?.value.trim() || '',
+    phone   : document.getElementById('custPhone')?.value.trim() || '',
+    address : document.getElementById('custAddress')?.value.trim() || '',
+    date    : document.getElementById('custDate')?.value || ''
   };
 }
 function formatDate(iso) {
@@ -175,31 +176,52 @@ function cartTotal() {
   }, 0);
 }
 
+const KHR_PER_USD = 4000; // approximate exchange rate; adjust as needed
+
+function formatRiel(usdAmount) {
+  const riel = Math.round(usdAmount * KHR_PER_USD);
+  return riel.toLocaleString('en-US') + ' ៛';
+}
+
 function updateCartBar() {
   const bar = document.getElementById('cartBar');
   if (!bar) return;
-  const count = cartEntries().reduce((s, [, q]) => s + q, 0);
+  const entries = cartEntries();
+  const count = entries.reduce((s, [, q]) => s + q, 0);
   bar.style.display = count > 0 ? 'flex' : 'none';
+
   const countEl = document.getElementById('cartCount');
   const totalEl = document.getElementById('cartBarTotal');
+  const rielEl = document.getElementById('cartBarRiel');
+
+  const total = cartTotal();
   if (countEl) countEl.textContent = String(count);
-  if (totalEl) totalEl.textContent = '$' + cartTotal().toFixed(2);
+  if (totalEl) totalEl.textContent = total.toFixed(2);
+  if (rielEl) rielEl.textContent = formatRiel(total);
 }
 
 function buildQuoteText() {
   const entries = cartEntries();
-  const { name, phone, date } = getCustomerFields();
-  let text = "🧾 L&K Sandwich Order\n\n";
+  const { name, phone, address, date } = getCustomerFields();
+  const total = cartTotal();
+
+  const divider = "────────────────";
+  let text = "🧾News Order\n\n";
   text += `Name: ${name || '—'}\n`;
-  text += `Phone: ${phone || '—'}\n`;
-  text += `Pickup/Delivery date: ${date ? formatDate(date) : '—'}\n\n`;
+  text += `Phone Number: ${phone || '—'}\n`;
+  text += `Address: ${address || '—'}\n`;
+  text += `Date: ${date ? formatDate(date) : '—'}\n`;
+  text += `${divider}\n`;
+  text += `Items\n\n`;
   entries.forEach(([id, qty], i) => {
     const p = allProducts.find(pp => pp.id === id);
     if (!p) return;
     const line = priceNum(p) * qty;
-    text += `${i + 1}. ${p.name} (${p.id}) x${qty} — $${line.toFixed(2)}\n`;
+    text += `${i + 1}. ${p.name} x${qty} — $${line.toFixed(2)}\n`;
   });
-  text += `\nTotal: $${cartTotal().toFixed(2)}`;
+  text += `${divider}\n`;
+  text += `Total : $${total.toFixed(2)}`;
+
   return text;
 }
 
@@ -238,18 +260,14 @@ function renderCartModal() {
   updateSendButtonState();
 }
 
-/* ---------- send order directly via Supabase Edge Function ----------
-   Replaces the old tg://resolve / t.me deep-link flow. The Edge Function
-   holds the bot token as a server-side secret and posts the order text
-   straight into the Telegram group, so the customer never has to open
-   Telegram themselves. */
+/* ---------- send order directly via Supabase Edge Function ----------*/
 function updateSendButtonState() {
   const sendBtn = document.getElementById('sendOrderBtn');
   if (!sendBtn) return;
-  const { name, phone, date } = getCustomerFields();
+  const { name, phone, address, date } = getCustomerFields();
   const items = cartEntries();
-  const complete = items.length > 0 && name && phone && date;
-  console.log('[L&K] updateSendButtonState:', { items: items.length, name, phone, date, complete });
+  const complete = items.length > 0 && name && phone && address && date;
+  console.log('[L&K] updateSendButtonState:', { items: items.length, name, phone, address, date, complete });
   sendBtn.disabled = !complete;
 }
 
@@ -258,7 +276,7 @@ function updateSendButtonState() {
    message itself (buildQuoteText handles that one). */
 function buildConfirmSummaryHTML() {
   const entries = cartEntries();
-  const { name, phone, date } = getCustomerFields();
+  const { name, phone, address, date } = getCustomerFields();
 
   const itemsHTML = entries.map(([id, qty]) => {
     const p = allProducts.find(pp => pp.id === id);
@@ -275,6 +293,7 @@ function buildConfirmSummaryHTML() {
   return `
     <div class="confirmDetailRow"><span>Name</span><span>${escapeHTML(name || '—')}</span></div>
     <div class="confirmDetailRow"><span>Phone</span><span>${escapeHTML(phone || '—')}</span></div>
+    <div class="confirmDetailRow"><span>Address</span><span>${escapeHTML(address || '—')}</span></div>
     <div class="confirmDetailRow"><span>Date</span><span>${date ? escapeHTML(formatDate(date)) : '—'}</span></div>
     <div class="confirmDivider"></div>
     ${itemsHTML}
@@ -486,7 +505,7 @@ heroDotBtns.forEach(btn => {
 });
 startHeroAutoplay();
 
-/* ---------- search by product ID ---------- */
+/* ---------- search by product ID or name ---------- */
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
   searchInput.addEventListener('input', () => {
@@ -494,8 +513,11 @@ if (searchInput) {
     const cards = document.querySelectorAll('.grid .card');
 
     cards.forEach(card => {
-      const id = (card.dataset.id || '').toLowerCase();
-      const matches = query === '' || id.includes(query);
+      const id = card.dataset.id || '';
+      const product = allProducts.find(p => p.id === id);
+      const idMatch = id.toLowerCase().includes(query);
+      const nameMatch = product?.name ? product.name.toLowerCase().includes(query) : false;
+      const matches = query === '' || idMatch || nameMatch;
       card.style.display = matches ? '' : 'none';
     });
 
@@ -517,6 +539,29 @@ if (searchInput) {
         twine.style.display = next.style.display === 'none' ? 'none' : '';
       }
     });
+  });
+}
+
+/* ---------- collapse/expand search into the chip row ---------- */
+const toolRow = document.getElementById('toolRow');
+const searchIconBtn = document.getElementById('searchIconBtn');
+const searchCloseBtn = document.getElementById('searchCloseBtn');
+
+if (searchIconBtn && toolRow) {
+  searchIconBtn.addEventListener('click', () => {
+    toolRow.classList.add('searchOpen');
+    searchInput?.focus();
+    setHeaderHeight(); // row height may change slightly, keep content offset accurate
+  });
+}
+if (searchCloseBtn && toolRow) {
+  searchCloseBtn.addEventListener('click', () => {
+    toolRow.classList.remove('searchOpen');
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input')); // reset filtered grid back to "show all"
+    }
+    setHeaderHeight();
   });
 }
 
@@ -571,9 +616,9 @@ const cartBarBtn = document.getElementById('cartBarBtn');
 const cartClose = document.getElementById('cartClose');
 const clearCartBtn = document.getElementById('clearCartBtn');
 const sendOrderBtn = document.getElementById('sendOrderBtn');
-
 const custNameInput = document.getElementById('custName');
 const custPhoneInput = document.getElementById('custPhone');
+const custAddressInput = document.getElementById('custAddress');
 const custDateInput = document.getElementById('custDate');
 
 // Don't let a customer pick a date in the past.
@@ -583,10 +628,11 @@ function prefillCustomerFields() {
   const saved = loadCustomer();
   if (custNameInput) custNameInput.value = saved.name || '';
   if (custPhoneInput) custPhoneInput.value = saved.phone || '';
+  if (custAddressInput) custAddressInput.value = saved.address || '';
   if (custDateInput) custDateInput.value = saved.date || '';
 }
 
-[custNameInput, custPhoneInput, custDateInput].forEach(input => {
+[custNameInput, custPhoneInput, custAddressInput, custDateInput].forEach(input => {
   if (!input) return;
   input.addEventListener('input', () => {
     saveCustomer(getCustomerFields());
