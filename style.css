@@ -109,7 +109,6 @@
      always-visible full-width search bar to save vertical header space. */
   .toolRow{
     margin-top:12px; display:flex; align-items:center; gap:8px;
-    padding:0 16px;
     position:relative;
   }
   .searchIconBtn{
