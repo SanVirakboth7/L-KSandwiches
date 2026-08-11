@@ -19,12 +19,6 @@ const TELEGRAM_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/clever-processor`;
 
 let allProducts = [];
 
-/* ---------- basket state ----------
-   Cart is a simple { productId: qty } map persisted to localStorage so a
-   customer's basket survives a page refresh. If localStorage is blocked
-   (private browsing, embedded webview, browser settings, etc.) we fall
-   back to an in-memory object so the basket still works for the current
-   session — it just won't survive a page refresh in that case. */
 let storageAvailable = true;
 try {
   const testKey = "__lk_storage_test__";
@@ -37,6 +31,7 @@ try {
 
 let memoryCart = {};
 let cart = loadCart();
+let pendingReceiptImage = null;
 
 function loadCart() {
   if (!storageAvailable) return memoryCart;
@@ -80,10 +75,12 @@ function saveCustomer(info) {
 }
 function getCustomerFields() {
   return {
-    name    : document.getElementById('custName')?.value.trim() || '',
-    phone   : document.getElementById('custPhone')?.value.trim() || '',
-    address : document.getElementById('custAddress')?.value.trim() || '',
-    date    : document.getElementById('custDate')?.value || ''
+    orderType : document.getElementById('orderTypeToggle')?.dataset.selected || '',
+    name      : document.getElementById('custName')?.value.trim() || '',
+    phone     : document.getElementById('custPhone')?.value.trim() || '',
+    address   : document.getElementById('custAddress')?.value.trim() || '',
+    date      : document.getElementById('custDate')?.value || '',
+    time      : document.getElementById('custTime')?.value || ''
   };
 }
 function formatDate(iso) {
@@ -92,7 +89,13 @@ function formatDate(iso) {
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
 }
-
+function formatTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
 /* ---------- keep content clear of the fixed header ----------
    header is `position:fixed` (see style.css), so it's out of document
    flow. We measure its real rendered height (fonts/wrap can shift it a
@@ -201,15 +204,19 @@ function updateCartBar() {
 
 function buildQuoteText() {
   const entries = cartEntries();
-  const { name, phone, address, date } = getCustomerFields();
+  const { orderType, name, phone, address, date, time } = getCustomerFields();
   const total = cartTotal();
 
   const divider = "────────────────";
   let text = "🧾News Order\n\n";
+  text += `Order Type: ${orderType ? (orderType === 'delivery' ? 'Delivery' : 'Pickup') : '—'}\n`;
   text += `Name: ${name || '—'}\n`;
   text += `Phone Number: ${phone || '—'}\n`;
-  text += `Address: ${address || '—'}\n`;
+  if (orderType === 'delivery') {
+    text += `Address: ${address || '—'}\n`;
+  }
   text += `Date: ${date ? formatDate(date) : '—'}\n`;
+  text += `Time: ${time ? formatTime(time) : '—'}\n`;
   text += `${divider}\n`;
   text += `Items\n\n`;
   entries.forEach(([id, qty], i) => {
@@ -268,9 +275,10 @@ function renderCartModal() {
 function updateSendButtonState() {
   const sendBtn = document.getElementById('sendOrderBtn');
   if (!sendBtn) return;
-  const { name, phone, address, date } = getCustomerFields();
+  const { orderType, name, phone, address, date, time } = getCustomerFields();
   const items = cartEntries();
-  const complete = items.length > 0 && name && phone && address && date;
+  const addressOk = orderType === 'delivery' ? !!address : true;
+  const complete = items.length > 0 && orderType && name && phone && addressOk && date && time;
   sendBtn.disabled = !complete;
 }
 
@@ -279,7 +287,7 @@ function updateSendButtonState() {
    message itself (buildQuoteText handles that one). */
 function buildConfirmSummaryHTML() {
   const entries = cartEntries();
-  const { name, phone, address, date } = getCustomerFields();
+  const { orderType, name, phone, address, date, time } = getCustomerFields();
 
   const itemsHTML = entries.map(([id, qty]) => {
     const p = allProducts.find(pp => pp.id === id);
@@ -293,16 +301,82 @@ function buildConfirmSummaryHTML() {
       </div>`;
   }).join('');
 
+  const addressRow = orderType === 'delivery'
+    ? `<div class="confirmDetailRow"><span>Address</span><span>${escapeHTML(address || '—')}</span></div>`
+    : '';
+
   return `
+    <div class="confirmDetailRow"><span>Order Type</span><span>${orderType ? (orderType === 'delivery' ? 'Delivery' : 'Pickup') : '—'}</span></div>
     <div class="confirmDetailRow"><span>Name</span><span>${escapeHTML(name || '—')}</span></div>
     <div class="confirmDetailRow"><span>Phone</span><span>${escapeHTML(phone || '—')}</span></div>
-    <div class="confirmDetailRow"><span>Address</span><span>${escapeHTML(address || '—')}</span></div>
+    ${addressRow}
     <div class="confirmDetailRow"><span>Date</span><span>${date ? escapeHTML(formatDate(date)) : '—'}</span></div>
+    <div class="confirmDetailRow"><span>Time</span><span>${time ? escapeHTML(formatTime(time)) : '—'}</span></div>
     <div class="confirmDivider"></div>
     ${itemsHTML}
     <div class="confirmDivider"></div>
     <div class="confirmDetailRow confirmTotalRow"><span>Total</span><span>$${cartTotal().toFixed(2)}</span></div>
   `;
+}
+
+function buildReceiptHTML() {
+  const entries = cartEntries();
+  const { orderType, name, phone, address, date, time } = getCustomerFields();
+  const total = cartTotal();
+
+  const itemsHTML = entries.map(([id, qty]) => {
+    const p = allProducts.find(pp => pp.id === id);
+    if (!p) return '';
+    const lineTotal = (priceNum(p) * qty).toFixed(2);
+    return `
+      <div class="receiptItemRow">
+        <span class="riQty">${qty}×</span>
+        <span class="riName">${escapeHTML(p.name)}</span>
+        <span class="riPrice">$${lineTotal}</span>
+      </div>`;
+  }).join('');
+
+  const addressRow = orderType === 'delivery'
+    ? `<div class="receiptRow"><span>Address</span><span>${escapeHTML(address || '—')}</span></div>`
+    : '';
+
+  return `
+    <div class="receiptHead">
+      <div class="rShopName">L&K Sandwiches</div>
+      <div class="rTagline">ធានាគុណភាព · អនាម័យ · តម្លៃ</div>
+    </div>
+    <div class="receiptBody">
+      <div class="receiptRow"><span>Order Type</span><span>${orderType ? (orderType === 'delivery' ? 'Delivery' : 'Pickup') : '—'}</span></div>
+      <div class="receiptRow"><span>Name</span><span>${escapeHTML(name || '—')}</span></div>
+      <div class="receiptRow"><span>Phone</span><span>${escapeHTML(phone || '—')}</span></div>
+      ${addressRow}
+      <div class="receiptRow"><span>Date</span><span>${date ? escapeHTML(formatDate(date)) : '—'}</span></div>
+      <div class="receiptRow"><span>Time</span><span>${time ? escapeHTML(formatTime(time)) : '—'}</span></div>
+      <div class="receiptDivider"></div>
+      <div class="receiptItemsTitle">Order Items</div>
+      ${itemsHTML}
+      <div class="receiptDivider"></div>
+      <div class="receiptTotalRow"><span>Total</span><span class="rTotalUsd">$${total.toFixed(2)}</span></div>
+      <div class="receiptSubTotal">≈ ${formatRiel(total)}</div>
+    </div>
+    <div class="receiptFooter">Thank you for your order! </div>
+  `;
+}
+
+async function generateReceiptImageBase64() {
+  const template = document.getElementById('receiptTemplate');
+  if (!template || typeof html2canvas === 'undefined') return null;
+
+  template.innerHTML = buildReceiptHTML();
+
+  const canvas = await html2canvas(template, {
+    backgroundColor: null,
+    scale: 2 // sharper image for Telegram
+  });
+
+  // Strip the "data:image/png;base64," prefix — the edge function decodes
+  // the raw base64 itself when building the multipart request to Telegram.
+  return canvas.toDataURL('image/png').split(',')[1];
 }
 
 /* Opens the confirmation modal instead of sending right away, so the
@@ -315,9 +389,26 @@ function openConfirmModal() {
   if (summaryEl) summaryEl.innerHTML = buildConfirmSummaryHTML();
 
   document.getElementById('confirmOverlay')?.classList.add('open');
+
+
+  pendingReceiptImage = null;
+  const { name } = getCustomerFields();
+  const total = cartTotal();
+  const caption = `🧾 New Order`;
+
+  generateReceiptImageBase64()
+    .then(base64 => {
+      pendingReceiptImage = base64 ? { base64, caption } : null;
+    })
+    .catch(err => {
+      console.warn('[L&K] Background receipt generation failed:', err);
+      pendingReceiptImage = null;
+    });
 }
+
 function closeConfirmModal() {
   document.getElementById('confirmOverlay')?.classList.remove('open');
+  pendingReceiptImage = null;
 }
 
 async function sendOrderToTelegram() {
@@ -332,13 +423,34 @@ async function sendOrderToTelegram() {
   if (confirmSendBtn) { confirmSendBtn.disabled = true; confirmSendBtn.textContent = 'Sending…'; }
 
   try {
+    let payload;
+
+    if (pendingReceiptImage) {
+      // Already generated while the confirm modal was open — no wait.
+      payload = { image: pendingReceiptImage.base64, caption: pendingReceiptImage.caption };
+    } else {
+      // Background generation hadn't finished (or failed) — generate now
+      // as a fallback, same as before.
+      const { name } = getCustomerFields();
+      const total = cartTotal();
+      const caption = `🧾 New Order — ${name || 'Customer'} — $${total.toFixed(2)} (${formatRiel(total)})`;
+      try {
+        const imageBase64 = await generateReceiptImageBase64();
+        if (!imageBase64) throw new Error('html2canvas unavailable or produced no image');
+        payload = { image: imageBase64, caption };
+      } catch (imgErr) {
+        console.warn('[L&K] Receipt image generation failed, falling back to text:', imgErr);
+        payload = { text: buildQuoteText() };
+      }
+    }
+
     const res = await fetch(TELEGRAM_FUNCTION_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       },
-      body: JSON.stringify({ text: buildQuoteText() })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Failed to send order');
@@ -348,6 +460,7 @@ async function sendOrderToTelegram() {
     setTimeout(() => {
       clearCart();
       closeCartPage();
+      pendingReceiptImage = null;
       sendBtn.textContent = originalLabel;
       sendBtn.disabled = false;
       if (confirmSendBtn) { confirmSendBtn.textContent = originalConfirmLabel; confirmSendBtn.disabled = false; }
@@ -640,20 +753,45 @@ const sendOrderBtn = document.getElementById('sendOrderBtn');
 const custNameInput = document.getElementById('custName');
 const custPhoneInput = document.getElementById('custPhone');
 const custAddressInput = document.getElementById('custAddress');
+const custAddressField = document.getElementById('custAddressField');
 const custDateInput = document.getElementById('custDate');
+const custTimeInput = document.getElementById('custTime');
+const orderTypeToggle = document.getElementById('orderTypeToggle');
 
 // Don't let a customer pick a date in the past.
 if (custDateInput) custDateInput.min = new Date().toISOString().split('T')[0];
 
+function setOrderType(type) {
+  if (!orderTypeToggle) return;
+  orderTypeToggle.dataset.selected = type;
+  orderTypeToggle.querySelectorAll('.otBtn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.type === type);
+  });
+  // Address is only relevant (and required) for delivery.
+  if (custAddressField) custAddressField.classList.toggle('hidden', type !== 'delivery');
+}
+
+if (orderTypeToggle) {
+  orderTypeToggle.querySelectorAll('.otBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setOrderType(btn.dataset.type);
+      saveCustomer(getCustomerFields());
+      updateSendButtonState();
+    });
+  });
+}
+
 function prefillCustomerFields() {
   const saved = loadCustomer();
+  setOrderType(saved.orderType || 'pickup');
   if (custNameInput) custNameInput.value = saved.name || '';
   if (custPhoneInput) custPhoneInput.value = saved.phone || '';
   if (custAddressInput) custAddressInput.value = saved.address || '';
   if (custDateInput) custDateInput.value = saved.date || '';
+  if (custTimeInput) custTimeInput.value = saved.time || '';
 }
 
-[custNameInput, custPhoneInput, custAddressInput, custDateInput].forEach(input => {
+[custNameInput, custPhoneInput, custAddressInput, custDateInput, custTimeInput].forEach(input => {
   if (!input) return;
   input.addEventListener('input', () => {
     saveCustomer(getCustomerFields());

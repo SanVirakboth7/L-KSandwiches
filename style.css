@@ -517,6 +517,27 @@
   min-width:0;
 }
 .custField{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+
+.orderTypeToggle{
+  display:flex; gap:8px;
+}
+.otBtn{
+  flex:1; padding:11px 10px; border-radius:12px;
+  border:1px solid var(--line); background:var(--white); color:var(--ink-soft);
+  font-family:'Inter',sans-serif; font-weight:700; font-size:14px; cursor:pointer;
+  touch-action:manipulation;
+}
+.otBtn.active{
+  background: var(--mustard-500); border-color:transparent; color:#fff;
+}
+
+.custFieldRow{
+  display:flex; gap:10px;
+}
+.custFieldRow .custField{ flex:1; min-width:0; }
+
+.custField.hidden{ display:none; }
+
 .custLabel{
   font-family:'Inter',sans-serif; font-size:11px; font-weight:700;
   color:var(--mustard-500); text-transform:uppercase; letter-spacing:.3px;
@@ -685,6 +706,47 @@
   }
 
 .confirmModalCard{ max-width:360px; }
+/* ---------- order receipt (rendered to PNG for Telegram) ---------- */
+.receiptCard{
+  width:380px;
+  background: var(--paper);
+  font-family:'Inter', sans-serif;
+  color: var(--ink);
+  border-radius:20px;
+  overflow:hidden;
+  border:1px solid var(--line);
+}
+.receiptHead{
+  background: linear-gradient(135deg, var(--mustard-500), var(--crust-500));
+  padding:22px 24px;
+  color:#fff;
+}
+.receiptHead .rShopName{ font-family:'Fraunces', serif; font-weight:700; font-size:20px; }
+.receiptHead .rTagline{ font-family:'Noto Sans Khmer', sans-serif; font-size:11px; opacity:.85; margin-top:4px; }
+.receiptBody{ padding:20px 24px; }
+.receiptRow{
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:13px; padding:4px 0; color: var(--ink-soft);
+}
+.receiptRow span:last-child{ color: var(--ink); font-weight:600; text-align:right; max-width:60%; }
+.receiptDivider{ border-top:1px dashed var(--line); margin:14px 0; }
+.receiptItemsTitle{ font-family:'Fraunces', serif; font-weight:700; font-size:14px; margin-bottom:8px; color:var(--ink); }
+.receiptItemRow{ display:flex; justify-content:space-between; align-items:flex-start; font-size:13px; padding:6px 0; gap:10px; }
+.receiptItemRow .riQty{ color:var(--ink-soft); flex-shrink:0; }
+.receiptItemRow .riName{ flex:1; color:var(--ink); }
+.receiptItemRow .riPrice{ color:var(--ink); font-weight:600; flex-shrink:0; min-width:55px; text-align:right; }
+.receiptTotalRow{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-family:'Fraunces', serif; font-weight:700; font-size:18px; color:var(--ink);
+  margin-top:6px;
+}
+.receiptTotalRow .rTotalUsd{ color: var(--mustard-500); }
+.receiptSubTotal{ font-size:12px; color:var(--ink-soft); text-align:right; margin-top:2px; }
+.receiptFooter{
+  text-align:center; padding:16px 24px 22px; font-size:11px; color:var(--ink-soft);
+  border-top:1px solid var(--line); margin-top:6px;
+}
+
 .confirmBody{ padding:26px 22px; text-align:center; }
 .confirmBody h3{
   font-family:'Fraunces', serif; font-size:19px; font-weight:700; color:var(--ink);

@@ -213,6 +213,13 @@
 
       <div class="cartCustomer">
         <div class="custField">
+          <label class="custLabel">Order Type</label>
+          <div class="orderTypeToggle" id="orderTypeToggle">
+            <button type="button" class="otBtn" data-type="pickup">Pickup</button>
+            <button type="button" class="otBtn" data-type="delivery">Delivery</button>
+          </div>
+        </div>
+        <div class="custField">
           <label class="custLabel" for="custName">Name</label>
           <input type="text" id="custName" class="custInput" placeholder="e.g. Sokha">
         </div>
@@ -220,13 +227,19 @@
           <label class="custLabel" for="custPhone">Phone Number</label>
           <input type="tel" id="custPhone" class="custInput" placeholder="e.g. 012 345 678">
         </div>
-        <div class="custField">
+        <div class="custField" id="custAddressField">
           <label class="custLabel" for="custAddress">Address</label>
           <input type="text" id="custAddress" class="custInput" placeholder="e.g. House 12, St 210, Phnom Penh">
         </div>
-        <div class="custField">
-          <label class="custLabel" for="custDate">Date</label>
-          <input type="date" id="custDate" class="custInput">
+        <div class="custFieldRow">
+          <div class="custField">
+            <label class="custLabel" for="custDate">Date</label>
+            <input type="date" id="custDate" class="custInput">
+          </div>
+          <div class="custField">
+            <label class="custLabel" for="custTime">Time</label>
+            <input type="time" id="custTime" class="custInput">
+          </div>
         </div>
       </div>
 
@@ -293,10 +306,12 @@
   </div>
   <footer>
   </footer>
-
 </div>
 
+<div id="receiptTemplate" class="receiptCard" style="position:absolute; left:-9999px; top:0;"></div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script type="module" src="script.js"></script>
 
 </body>
