@@ -91,10 +91,7 @@ function formatDate(iso) {
 }
 function formatTime(t) {
   if (!t) return '';
-  const [h, m] = t.split(':').map(Number);
-  const period = h >= 12 ? 'PM' : 'AM';
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+  return t;
 }
 /* ---------- keep content clear of the fixed header ----------
    header is `position:fixed` (see style.css), so it's out of document
@@ -278,7 +275,7 @@ function updateSendButtonState() {
   const { orderType, name, phone, address, date, time } = getCustomerFields();
   const items = cartEntries();
   const addressOk = orderType === 'delivery' ? !!address : true;
-  const complete = items.length > 0 && orderType && name && phone && addressOk && date && time;
+  const complete = items.length > 0 && orderType && name && phone && addressOk && date;
   sendBtn.disabled = !complete;
 }
 
