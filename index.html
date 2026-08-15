@@ -9,6 +9,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+Khmer:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="apple-touch-icon" href="img/logo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="img/logo.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -163,13 +168,16 @@
         </a>
       </div>
 
-      <div class="branchRow soon">
-        <div class="brNum soon">3</div>
+      <div class="branchRow" onclick="focusLocation(2)">
+        <div class="brNum">3</div>
         <div class="brInfo">
-          <p class="brName">Coming Soon</p>
-          <p class="brAddr">New location launching soon</p>
+          <p class="brName">Third Branch</p>
+          <p class="brAddr">Phnom Penh</p>
         </div>
-        <span class="brGo soon">Soon</span>
+        <a class="brGo" href="https://www.google.com/maps?q=11.60352624486013,104.88559800552896" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          Go
+        </a>
       </div>
     </div>
   </div>

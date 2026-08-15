@@ -833,6 +833,7 @@ if (confirmOverlay) confirmOverlay.addEventListener('click', (e) => { if (e.targ
 const locations = [
   { name: 'L&K - First Branch',  address: 'ABA Grand Phnom Penh Branch', lat: 11.629444, lng: 104.872917, url: 'https://maps.app.goo.gl/hN2KTEVes9xH4kVk7' },
   { name: 'L&K - Second Branch', address: 'The Westline school, Russey Keo (598)', lat: 11.632111, lng: 104.883500, url: 'https://maps.app.goo.gl/Qfq4Wr57AxrwQB8g6' }
+   { name: 'L&K - Third Branch',  address: 'Phnom Penh', lat: 11.60352624486013, lng: 104.88559800552896, url: 'https://www.google.com/maps?q=11.60352624486013,104.88559800552896' }
 ];
 
 let map, markers = [];
