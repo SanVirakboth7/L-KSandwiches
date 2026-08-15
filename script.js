@@ -12,9 +12,6 @@ const CATEGORY_MAP = {
   drink:      { gridId: "grid-drinks",     countId: "count-drinks" }
 };
 
-/* Supabase Edge Function that relays a completed order straight into the
-   Telegram group. Replaces the old tg://resolve deep-link approach so the
-   customer never has to leave the site or tap "send" themselves. */
 const TELEGRAM_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/clever-processor`;
 
 let allProducts = [];
@@ -811,14 +808,6 @@ if (addMoreBtn) addMoreBtn.addEventListener('click', closeCartPage);
 if (cartPageClear) cartPageClear.addEventListener('click', clearCart);
 if (sendOrderBtn) sendOrderBtn.addEventListener('click', openConfirmModal);
 
-/* NOTE: the block that used to live here referenced `cartOverlay`,
-   `cartClose`, and `clearCartBtn` — elements from an older popup-style
-   cart modal that no longer exist in the HTML (replaced by #cartPage /
-   #cartPageBack / #cartPageClear above). Those three variables were
-   never declared, so `if (cartClose)` threw a ReferenceError at load
-   time and silently killed every line of script after it — including
-   loadProducts(), loadHeroImages(), the map, focusLocation, the hours
-   check, and the realtime subscription. Removed. */
 
 /* ---------- confirm order modal ---------- */
 const confirmOverlay = document.getElementById('confirmOverlay');
@@ -833,7 +822,7 @@ if (confirmOverlay) confirmOverlay.addEventListener('click', (e) => { if (e.targ
 const locations = [
   { name: 'L&K - First Branch',  address: 'ABA Grand Phnom Penh Branch', lat: 11.629444, lng: 104.872917, url: 'https://maps.app.goo.gl/hN2KTEVes9xH4kVk7' },
   { name: 'L&K - Second Branch', address: 'The Westline school, Russey Keo (598)', lat: 11.632111, lng: 104.883500, url: 'https://maps.app.goo.gl/Qfq4Wr57AxrwQB8g6' },
-  { name: 'L&K - Third Branch',  address: 'Phnom Penh', lat: 11.60352624486013, lng: 104.88559800552896, url: 'https://www.google.com/maps?q=11.60352624486013,104.88559800552896' }
+  { name: 'L&K - Third Branch',  address: 'AEON Mall Sen Sok City near Maybank', lat: 11.60352624486013, lng: 104.88559800552896, url: 'https://www.google.com/maps?q=11.60352624486013,104.88559800552896' }
 ];
 
 let map, markers = [];
