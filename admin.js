@@ -183,17 +183,122 @@ function setGreeting() {
 }
 
 /* ---------- hero slideshow settings ---------- */
+const heroSettingsGrid = document.getElementById('heroSettingsGrid');
+const heroAddSlideBtn = document.getElementById('heroAddSlideBtn');
+const heroAddSlideInput = document.getElementById('heroAddSlideInput');
+
+function heroSlideNumber(key) {
+  const match = String(key || '').match(/^hero_([1-9]\d*)$/);
+  return match ? Number(match[1]) : 0;
+}
+
+function findHeroSlot(key) {
+  return Array.from(heroSettingsGrid?.querySelectorAll('.heroSlot[data-hero-key]') || [])
+    .find(slot => slot.dataset.heroKey === key) || null;
+}
+
+function createHeroSlot(key, imageUrl) {
+  const slideNumber = heroSlideNumber(key);
+  if (!slideNumber) return null;
+  const slot = document.createElement('div');
+  slot.className = 'heroSlot';
+  slot.dataset.heroKey = key;
+  slot.innerHTML = `
+    <img id="heroPreview${slideNumber}" src="${escapeAttr(imageUrl)}" alt="Slide ${slideNumber}">
+    <div class="heroSlotOverlay">Tap to replace</div>
+    <input type="file" accept="image/*" data-hero-input="${escapeAttr(key)}">`;
+  return slot;
+}
+
+function ensureHeroSlot(key, imageUrl) {
+  let slot = findHeroSlot(key);
+  if (!slot) {
+    slot = createHeroSlot(key, imageUrl);
+    if (slot && heroSettingsGrid) heroSettingsGrid.insertBefore(slot, heroAddSlideBtn || heroAddSlideInput || null);
+  }
+  const img = slot?.querySelector('img');
+  if (img && imageUrl) img.src = imageUrl;
+  return slot;
+}
+
+function nextHeroSlideNumber() {
+  const numbers = Array.from(heroSettingsGrid?.querySelectorAll('.heroSlot[data-hero-key]') || [])
+    .map(slot => heroSlideNumber(slot.dataset.heroKey));
+  return Math.max(3, ...numbers) + 1;
+}
+
+async function uploadHeroSlide(file, key, slot) {
+  if (!file || !key || !slot) return false;
+  const uploading = document.createElement('div');
+  uploading.className = 'heroSlotUploading';
+  uploading.textContent = 'Uploading…';
+  slot.appendChild(uploading);
+
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `site/${key}-${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(path, file, { upsert: true, cacheControl: '3600' });
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    const publicUrl = publicUrlData.publicUrl;
+    const { error: updateError } = await supabase
+      .from('site_settings')
+      .upsert({ key, value: publicUrl }, { onConflict: 'key' });
+    if (updateError) throw updateError;
+
+    const img = slot.querySelector('img');
+    if (img) img.src = publicUrl;
+    toast(`Slide ${heroSlideNumber(key)} updated`);
+    return true;
+  } catch (error) {
+    toast('Could not upload slide: ' + (error?.message || 'Unknown error'), true);
+    return false;
+  } finally {
+    uploading.remove();
+  }
+}
+
+function bindHeroSettingsEditor() {
+  if (!heroSettingsGrid || heroSettingsGrid.dataset.editorBound === 'true') return;
+  heroSettingsGrid.dataset.editorBound = 'true';
+
+  heroAddSlideBtn?.addEventListener('click', () => heroAddSlideInput?.click());
+  heroSettingsGrid.addEventListener('change', async event => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || input.type !== 'file') return;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    input.disabled = true;
+    if (input === heroAddSlideInput) {
+      const slideNumber = nextHeroSlideNumber();
+      const key = `hero_${slideNumber}`;
+      const temporaryUrl = URL.createObjectURL(file);
+      const slot = ensureHeroSlot(key, temporaryUrl);
+      const uploaded = await uploadHeroSlide(file, key, slot);
+      URL.revokeObjectURL(temporaryUrl);
+      if (!uploaded) slot?.remove();
+    } else if (input.matches('[data-hero-input]')) {
+      await uploadHeroSlide(file, input.dataset.heroInput, input.closest('.heroSlot'));
+    }
+    input.value = '';
+    input.disabled = false;
+  });
+}
+
 async function loadHeroSettings() {
-  const { data, error } = await supabase.from('site_settings').select('*').in('key', ['hero_1', 'hero_2', 'hero_3']);
+  const { data, error } = await supabase.from('site_settings').select('key,value').like('key', 'hero_%');
   if (error) {
     console.warn('[L&K admin] Could not load hero settings:', error.message);
     return;
   }
-  data.forEach(row => {
-    const idNum = row.key.split('_')[1];
-    const img = document.getElementById(`heroPreview${idNum}`);
-    if (img && row.value) img.src = row.value;
-  });
+  (data || [])
+    .filter(row => heroSlideNumber(row.key) > 0 && row.value)
+    .sort((a, b) => heroSlideNumber(a.key) - heroSlideNumber(b.key))
+    .forEach(row => ensureHeroSlot(row.key, row.value));
 }
 
 /* ---------- settings page ---------- */
@@ -204,6 +309,7 @@ function getPublicSiteUrl() {
 }
 
 async function setupSettingsPage() {
+  bindHeroSettingsEditor();
   const emailEl = document.getElementById('settingsEmail');
   if (emailEl) {
     try {
@@ -213,54 +319,6 @@ async function setupSettingsPage() {
       emailEl.textContent = '—';
     }
   }
-
-  document.querySelectorAll('[data-hero-input]').forEach(input => {
-    input.addEventListener('change', async () => {
-      const file = input.files[0];
-      const key = input.dataset.heroInput;
-      if (!file) return;
-
-      const slot = input.closest('.heroSlot');
-      const uploading = document.createElement('div');
-      uploading.className = 'heroSlotUploading';
-      uploading.textContent = 'Uploading…';
-      slot.appendChild(uploading);
-
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-      const path = `site/${key}-${Date.now()}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(path, file, { upsert: true, cacheControl: '3600' });
-
-      if (uploadError) {
-        uploading.remove();
-        toast('Upload failed: ' + uploadError.message, true);
-        return;
-      }
-
-      const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-      const publicUrl = publicUrlData.publicUrl;
-
-      const { error: updateError } = await supabase
-        .from('site_settings')
-        .upsert({ key, value: publicUrl }, { onConflict: 'key' });
-
-      uploading.remove();
-      input.value = '';
-
-      if (updateError) {
-        toast('Saved photo but failed to save it: ' + updateError.message, true);
-        return;
-      }
-
-      const idNum = key.split('_')[1];
-      const previewImg = document.getElementById(`heroPreview${idNum}`);
-      if (previewImg) previewImg.src = publicUrl;
-
-      toast(`Slide ${idNum} updated`);
-    });
-  });
 
   const publicUrl = getPublicSiteUrl();
   const qrImg = document.getElementById('qrImg');
@@ -358,7 +416,7 @@ function mergeProductCategories(savedCategories) {
   const merged = DEFAULT_CATEGORIES.map(category => ({ ...category }));
   savedCategories.forEach(category => {
     const existingIndex = merged.findIndex(item => item.slug === category.slug);
-    if (existingIndex >= 0) merged[existingIndex] = { ...merged[existingIndex], ...category, hidden: false };
+    if (existingIndex >= 0) merged[existingIndex] = { ...merged[existingIndex], ...category };
     else merged.push({ ...category });
   });
   const seen = new Set(merged.map(category => category.slug));
@@ -739,6 +797,7 @@ function refreshFilterControls() {
 function applyVisibleFilters() {
   refreshFilterControls();
   render();
+  setFilterPopoverOpen(false);
 }
 
 menuFilterBtn?.addEventListener('click', event => {
@@ -836,24 +895,24 @@ async function persistCategories() {
 
 function renderCategoryManager() {
   if (!categoryManagerList) return;
-  const customCategories = categories.filter(category => !isDefaultCategory(category.slug));
-  if (!customCategories.length) {
-    categoryManagerList.innerHTML = '<p class="categoryManagerEmpty">No custom categories yet.</p>';
+  if (!categories.length) {
+    categoryManagerList.innerHTML = '<p class="categoryManagerEmpty">No categories yet.</p>';
     return;
   }
 
-  categoryManagerList.innerHTML = customCategories.map(category => {
+  categoryManagerList.innerHTML = categories.map(category => {
     const productCount = products.filter(product => product.category === category.slug).length;
+    const isDefault = isDefaultCategory(category.slug);
     return `
       <div class="categoryManagerRow" data-category-slug="${escapeAttr(category.slug)}">
         <div class="categoryManagerInfo">
           <span class="categoryManagerName">${escapeHTML(category.name)}</span>
-          <span class="categoryManagerMeta">${productCount} product${productCount === 1 ? '' : 's'}${category.hidden ? ' · Hidden from customers' : ''}</span>
+          <span class="categoryManagerMeta">${productCount} product${productCount === 1 ? '' : 's'}${isDefault ? ' · Existing' : ''}${category.hidden ? ' · Hidden from customers' : ''}</span>
         </div>
         <button type="button" class="categoryManagerBtn${category.hidden ? ' isHidden' : ''}" data-category-action="toggle">
           ${category.hidden ? 'Show' : 'Hide'}
         </button>
-        <button type="button" class="categoryManagerBtn delete" data-category-action="delete">Delete</button>
+        ${isDefault ? '' : '<button type="button" class="categoryManagerBtn delete" data-category-action="delete">Delete</button>'}
       </div>`;
   }).join('');
 }
@@ -878,9 +937,10 @@ categoryManagerList?.addEventListener('click', async event => {
   const row = button?.closest('[data-category-slug]');
   const slug = row?.dataset.categorySlug;
   const category = categories.find(item => item.slug === slug);
-  if (!button || !category || isDefaultCategory(slug)) return;
+  if (!button || !category) return;
 
   const action = button.dataset.categoryAction;
+  if (action === 'delete' && isDefaultCategory(slug)) return;
   const previousCategories = categories.map(item => ({ ...item }));
 
   if (action === 'delete') {
@@ -953,7 +1013,7 @@ categoryForm?.addEventListener('submit', async event => {
     return;
   }
 
-  activeCategory = slug;
+  activeCategory = 'all';
   renderCategoryControls();
   const productCategorySelect = document.getElementById('newCategory');
   if (productCategorySelect) productCategorySelect.value = slug;

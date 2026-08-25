@@ -204,7 +204,7 @@
   .sectionHead h3{
     font-family:'Fraunces', serif,Noto sans khmer; font-size:23px; font-weight:700; color:var(--ink);
   }
-  .sectionHead .count{ font-family:'Inter', Inter; font-size:16px; color:var(--ink-soft); opacity:.8; }
+  .sectionHead .sectionStatus{ font-family:'Inter',sans-serif; font-size:16px; color:var(--ink-soft); opacity:.8; }
 
   .grid{ display:grid; grid-template-columns:1fr 1fr; gap:15px; padding:12px 16px 20px; }
   .card{
@@ -281,7 +281,8 @@
     min-width:32px; min-height:32px; max-width:100%; padding-bottom:1px;
     margin:0; position:absolute; top:-12px; right:10px; z-index:4;
   }
-  .addBtn{
+  .addBtn,
+  .cartAddedBtn{
     width:32px; height:32px; border-radius:50%; border:none; cursor:pointer;
     background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
     color:#fff;
@@ -290,8 +291,16 @@
     transition: transform .15s ease;
     touch-action: manipulation;
   }
-  .addBtn svg{ width:15px; height:15px; }
+  .addBtn svg,
+  .cartAddedBtn svg{ width:15px; height:15px; }
   .addBtn:active{ transform:scale(.88); }
+  .cartAddedBtn{ animation:cartAddedIn .22s cubic-bezier(.2,.8,.2,1); }
+  .cartAddedBtn:active{ transform:scale(.88); }
+  @keyframes cartAddedIn{
+    0%{ transform:scale(.72); }
+    65%{ transform:scale(1.08); }
+    100%{ transform:scale(1); }
+  }
 
   .stepper{
     display:flex; align-items:center; gap:6px;
@@ -1024,7 +1033,7 @@ body.adminLayerOpen{ overflow:hidden; }
 }
 .confirmItemName{ flex:1; min-width:0; }
 .confirmItemPrice{
-  font-family:'Inter', monospace; color:var(--ink);
+  font-family:'Inter', monospace,Noto sans khmer; color:var(--ink);
   flex-shrink:0;
 }
 .confirmTotalRow{
@@ -1040,7 +1049,12 @@ body.adminLayerOpen{ overflow:hidden; }
   color:#292521;
   box-shadow:0 20px 60px rgba(41,37,33,.20);
 }
-.confirmModalCard .confirmBody h3{ color:#292521; }
+.confirmModalCard .confirmBody h3{
+  color:#292521;
+  font-family:'Inter',sans-serif;
+  font-size:21px;
+  font-weight:800;
+}
 .confirmModalCard .confirmText{ color:#756f69; }
 .confirmModalCard .confirmSummary{
   background:#f8f6f4;
@@ -1057,6 +1071,41 @@ body.adminLayerOpen{ overflow:hidden; }
 .confirmModalCard .sendOrderBtn{
   background:#723c10;
   box-shadow:0 6px 16px rgba(114,60,16,.18);
+}
+
+.orderSuccessCard{
+  width:min(100%,340px); padding:32px 24px 24px;
+  border-radius:24px; background:#fff; color:#292521;
+  text-align:center; box-shadow:0 20px 60px rgba(41,37,33,.20);
+}
+.successCheckmark{
+  width:62px; height:62px; margin:0 auto 16px;
+  border-radius:50%; background:#723c10; color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 8px 20px rgba(114,60,16,.22);
+}
+.successCheckmark svg{ width:32px; height:32px; }
+.orderSuccessCard h3{
+  font-family:'Inter',sans-serif; font-size:22px; font-weight:800;
+  color:#292521;
+}
+.orderSuccessCard p{
+  margin-top:9px; font-family:'Inter',sans-serif;
+  font-size:13.5px; line-height:1.55; color:#756f69;
+}
+.orderSuccessDoneBtn{
+  width:100%; margin-top:22px; padding:14px;
+  border-radius:999px; background:#723c10;
+  box-shadow:0 6px 16px rgba(114,60,16,.18);
+}
+
+@media (prefers-reduced-motion:no-preference){
+  .modalOverlay.open .successCheckmark{ animation:successCheckIn .28s cubic-bezier(.2,.8,.2,1); }
+}
+@keyframes successCheckIn{
+  0%{ opacity:0; transform:scale(.55); }
+  70%{ opacity:1; transform:scale(1.08); }
+  100%{ opacity:1; transform:scale(1); }
 }
 
   @media (prefers-reduced-motion:no-preference){

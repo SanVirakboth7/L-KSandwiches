@@ -1,6 +1,6 @@
 :root{
   --white:#ffffff;
-  --paper:#fbf7ef;
+  --paper:#2b211814;
   --paper-200:#f3ecdf;
   --ink:#723c10;
   --ink-soft:#6b5f52;
@@ -421,7 +421,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .rowId{ font-family:'Inter', sans-serif; font-size:11px; color:var(--ink-soft); }
 .catTag{
   font-size:9.5px; font-weight:700; letter-spacing:.3px; text-transform:uppercase;
-  background: var(--paper-200); color:var(--ink-soft); padding:3px 8px; border-radius:999px;
+  background: var(--paper); color:var(--ink-soft); padding:3px 8px; border-radius:999px;
 }
 .savedTick{ font-size:11px; color:var(--brand-brown); font-weight:700; opacity:0; transition:opacity .2s ease; }
 .savedTick.show{ opacity:1; }
@@ -458,8 +458,8 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .bestBtn svg, .stockBtn svg, .deleteIconBtn svg{ width:16px; height:16px; }
 
 .bestBtn{
-  background: var(--paper-200); color: var(--ink-soft);
-  border:1px solid var(--line); transition: background .15s ease, color .15s ease;
+  background: var(--paper); color: var(--ink-soft);
+  border:1px solid rgba(43,33,24,.14); transition: background .15s ease, color .15s ease;
 }
 .bestBtn.active{
   background: var(--brand-brown);
@@ -467,8 +467,8 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 
 .stockBtn{
-  background: var(--paper-200); color: var(--ink-soft);
-  border:1px solid var(--line); transition: background .15s ease, color .15s ease;
+  background: var(--paper); color: var(--ink-soft);
+  border:1px solid rgba(43,33,24,.14); transition: background .15s ease, color .15s ease;
 }
 .stockBtn.active{
   background: rgba(43,33,24,.10); color: var(--ink); border-color: rgba(43,33,24,.25);
@@ -481,8 +481,8 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 
 /* visually separate the destructive action from the toggle buttons */
 .deleteIconBtn{
-  background: var(--paper-200); color: var(--brand-brown-dark);
-  border:1px solid var(--line);
+  background: var(--paper); color: var(--brand-brown-dark);
+  border:1px solid rgba(43,33,24,.14);
   margin-left:6px;
   position:relative;
 }
@@ -545,6 +545,12 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .settingsRowChevron{ color: var(--ink-soft); font-size:18px; opacity:.5; }
 .settingsRowDanger{ color: var(--brand-brown-dark); }
 .settingsRowDanger .settingsRowIcon{ background: rgba(43,33,24,.08); color: var(--ink); }
+#settingsViewSite,
+#settingsEditSlideshow{ border-color:rgba(43,33,24,.14); }
+#settingsViewSite .settingsRowIcon,
+#settingsEditSlideshow .settingsRowIcon{ background:var(--paper); }
+#settingsViewSite:active,
+#settingsEditSlideshow:active{ background:rgba(43,33,24,.08); }
 
 /* ---------- floating add button ---------- */
 /* ---------- floating add button ---------- */
@@ -704,6 +710,17 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   display:flex; align-items:center; justify-content:center;
   font-weight:700; color:var(--ink); font-size:13px;
 }
+.heroAddSlideBtn{
+  width:100%; min-height:74px; border-radius:16px;
+  border:1.5px dashed rgba(43,33,24,.24); background:var(--paper);
+  color:var(--brand-brown); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:800;
+  transition:background .15s ease,border-color .15s ease,transform .15s ease;
+}
+.heroAddSlideBtn svg{ width:21px; height:21px; }
+.heroAddSlideBtn:hover{ background:rgba(43,33,24,.11); border-color:rgba(43,33,24,.38); }
+.heroAddSlideBtn:active{ transform:scale(.985); }
 .slideshowModalCard{ max-width:420px; padding:24px; }
 .slideshowModalHeader{ display:flex; align-items:center; justify-content:space-between; }
 .slideshowModalHeader h2{ font-size:18px; }

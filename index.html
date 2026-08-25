@@ -77,40 +77,31 @@
         <img id="heroImg3" src="img/Banner3.jpg" alt="Breakfast stacks">
       </div>
 
-      <div class="heroSlide" data-hero-clone="hero_1" aria-hidden="true">
-        <img src="img/banner1.jpg" alt="">
-      </div>
-
     </div>
   </div>
 
   <div class="sectionHead" id="sec-bestseller">
     <h3>Bestseller</h3>
-    <span class="count" id="count-bestseller">Loading…</span>
   </div>
   <div class="grid" id="grid-bestseller"></div>
 
   <div class="sectionHead" id="sec-sandwich">
     <h3>សាំងវិច</h3>
-    <span class="count" id="count-sandwich">Loading…</span>
   </div>
   <div class="grid" id="grid-sandwich"></div>
 
   <div class="sectionHead" id="sec-rice">
     <h3>បាយ</h3>
-    <span class="count" id="count-rice">Loading…</span>
   </div>
   <div class="grid" id="grid-rice"></div>
 
   <div class="sectionHead" id="sec-dessert">
     <h3>បង្អែម</h3>
-    <span class="count" id="count-dessert">Loading…</span>
   </div>
   <div class="grid" id="grid-dessert"></div>
 
   <div class="sectionHead" id="sec-drinks">
     <h3>ភេសជ្ជៈ</h3>
-    <span class="count" id="count-drinks">Loading…</span>
   </div>
   <div class="grid" id="grid-drinks"></div>
 
@@ -119,7 +110,6 @@
   <!-- ---------- our locations ---------- -->
   <div class="sectionHead" id="sec-locations">
     <h3>ទីតាំងរបស់យើង</h3>
-    <span class="count">3 branches</span>
   </div>
 
   <div class="locationsWrap">
@@ -289,9 +279,9 @@
 
   <!-- ---------- confirm order modal ---------- -->
 <div class="modalOverlay" id="confirmOverlay">
-  <div class="modalCard confirmModalCard">
+  <div class="modalCard confirmModalCard" role="dialog" aria-modal="true" aria-labelledby="confirmOrderTitle">
     <div class="confirmBody">
-      <h3>Confirm Your Order?</h3>
+      <h3 id="confirmOrderTitle">Confirm Your Order?</h3>
       <p class="confirmText">Please double-check your order before confirming.</p>
       <div class="confirmSummary" id="confirmSummary"></div>
       <div class="confirmActions">
@@ -302,9 +292,20 @@
   </div>
 </div>
 
+<div class="modalOverlay" id="orderSuccessOverlay" aria-hidden="true">
+  <div class="modalCard orderSuccessCard" role="dialog" aria-modal="true" aria-labelledby="orderSuccessTitle">
+    <div class="successCheckmark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 12 4 4 8-9"/></svg>
+    </div>
+    <h3 id="orderSuccessTitle">Order Confirmed</h3>
+    <p>Your order was sent successfully. L&amp;K will contact you if confirmation is needed.</p>
+    <button type="button" class="sendOrderBtn orderSuccessDoneBtn" id="orderSuccessDoneBtn">Done</button>
+  </div>
+</div>
+
   <div class="sectionHead" id="sec-hours">
     <h3>ម៉ោងលក់ខាងក្រៅ</h3>
-    <span class="count" id="openStatus">Open now</span>
+    <span class="sectionStatus" id="openStatus">Open now</span>
   </div>
 
   <div class="hoursCard">

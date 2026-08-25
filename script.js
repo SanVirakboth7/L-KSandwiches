@@ -105,10 +105,24 @@ customerAdminLoginForm?.addEventListener('submit', async (event) => {
   setAdminPortalOpen(true, true);
 });
 
-window.addEventListener('message', (event) => {
+async function refreshCustomerSiteAfterAdmin() {
+  const results = await Promise.allSettled([
+    loadProducts(),
+    loadHeroImages()
+  ]);
+
+  results.forEach(result => {
+    if (result.status === 'rejected') {
+      console.warn('[L&K] Could not refresh customer data after leaving admin:', result.reason);
+    }
+  });
+}
+
+window.addEventListener('message', async (event) => {
   if (event.origin !== window.location.origin) return;
   if (event.data?.type === 'lk-admin-exit' || event.data?.type === 'lk-admin-signed-out') {
     setAdminPortalOpen(false);
+    await refreshCustomerSiteAfterAdmin();
   }
 });
 
@@ -124,11 +138,11 @@ supabase.auth.onAuthStateChange((event) => {
 
 /* ---------- category -> DOM ids ---------- */
 const CATEGORY_MAP = {
-  bestseller: { gridId: "grid-bestseller", countId: "count-bestseller" },
-  sandwich:   { gridId: "grid-sandwich",   countId: "count-sandwich" },
-  rice:       { gridId: "grid-rice",       countId: "count-rice" },
-  dessert:    { gridId: "grid-dessert",    countId: "count-dessert" },
-  drink:      { gridId: "grid-drinks",     countId: "count-drinks" }
+  bestseller: { gridId: "grid-bestseller" },
+  sandwich:   { gridId: "grid-sandwich" },
+  rice:       { gridId: "grid-rice" },
+  dessert:    { gridId: "grid-dessert" },
+  drink:      { gridId: "grid-drinks" }
 };
 const CATEGORY_SETTING_KEY = 'menu_categories';
 const DEFAULT_CATEGORIES = [
@@ -244,21 +258,27 @@ window.addEventListener('resize', setHeaderHeight);
 document.fonts?.ready?.then(setHeaderHeight);
 
 /* ---------- add-to-basket control ----------
-   Renders either a "+" button (nothing in the basket yet) or a
-   −/qty/+ stepper (already in the basket) for a given product. Shared
-   between grid cards and the product detail modal so both stay in sync. */
-function addControlHTML(p) {
+   Grid cards stay compact: "+" becomes a cart icon after the first add.
+   The product detail modal is the only product view that shows the
+   −/qty/+ quantity stepper. */
+function addControlHTML(p, { showQuantity = false } = {}) {
   if (p.is_out_of_stock) {
     return `<p class="outOfStockText">Unavailable</p>`;
   }
   const qty = cart[p.id] || 0;
-  if (qty > 0) {
+  if (qty > 0 && showQuantity) {
     return `
       <div class="stepper" data-id="${p.id}">
         <button type="button" class="stepBtn minus" data-action="dec" aria-label="Remove one">−</button>
         <span class="stepQty">${qty}</span>
         <button type="button" class="stepBtn plus" data-action="inc" aria-label="Add one">+</button>
       </div>`;
+  }
+  if (qty > 0) {
+    return `
+      <button type="button" class="cartAddedBtn" data-id="${p.id}" aria-label="View basket">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1"/><circle cx="19" cy="20" r="1"/><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H6"/></svg>
+      </button>`;
   }
   return `
     <button type="button" class="addBtn" data-id="${p.id}" aria-label="Add to basket">
@@ -270,7 +290,9 @@ function refreshCardControl(id) {
   const product = allProducts.find(p => p.id === id);
   if (!product) return;
   document.querySelectorAll(`.addWrap[data-add-id="${id}"]`).forEach(wrap => {
-    wrap.innerHTML = addControlHTML(product);
+    wrap.innerHTML = addControlHTML(product, {
+      showQuantity: wrap.classList.contains('modalAddWrap')
+    });
   });
 }
 
@@ -554,6 +576,19 @@ function closeConfirmModal() {
   pendingReceiptImage = null;
 }
 
+function openOrderSuccessModal() {
+  const overlay = document.getElementById('orderSuccessOverlay');
+  overlay?.classList.add('open');
+  overlay?.setAttribute('aria-hidden', 'false');
+  window.setTimeout(() => document.getElementById('orderSuccessDoneBtn')?.focus(), 120);
+}
+
+function closeOrderSuccessModal() {
+  const overlay = document.getElementById('orderSuccessOverlay');
+  overlay?.classList.remove('open');
+  overlay?.setAttribute('aria-hidden', 'true');
+}
+
 function showPayWayStatus(message, type = 'info') {
   let status = document.getElementById('paywayStatus');
   if (!status) {
@@ -739,6 +774,7 @@ async function sendOrderToTelegram({ paymentVerifiedTranId = '' } = {}) {
     if (!data.success) throw new Error(data.error || 'Failed to send order');
 
     closeConfirmModal();
+    openOrderSuccessModal();
     sendBtn.textContent = 'Order Sent ✓';
     if (paymentVerifiedTranId) {
       localStorage.removeItem(PAYWAY_PENDING_KEY);
@@ -771,6 +807,12 @@ async function sendOrderToTelegram({ paymentVerifiedTranId = '' } = {}) {
    which registered a brand-new duplicate listener on every single
    click — fixed by flattening it into one handler.) */
 document.addEventListener('click', (e) => {
+  const cartAddedBtn = e.target.closest('.cartAddedBtn');
+  if (cartAddedBtn) {
+    e.stopPropagation();
+    openCartPage();
+    return;
+  }
   const addBtn = e.target.closest('.addBtn');
   if (addBtn) {
     e.stopPropagation();
@@ -880,7 +922,7 @@ function mergeProductCategories(savedCategories) {
   const merged = DEFAULT_CATEGORIES.map(category => ({ ...category }));
   savedCategories.forEach(category => {
     const existingIndex = merged.findIndex(item => item.slug === category.slug);
-    if (existingIndex >= 0) merged[existingIndex] = { ...merged[existingIndex], ...category, hidden: false };
+    if (existingIndex >= 0) merged[existingIndex] = { ...merged[existingIndex], ...category };
     else merged.push({ ...category });
   });
   const seen = new Set(merged.map(category => category.slug));
@@ -926,12 +968,22 @@ function renderCategoryUI() {
   const dynamicSections = document.getElementById('dynamicCategorySections');
   if (dynamicSections) dynamicSections.innerHTML = '';
 
+  DEFAULT_CATEGORIES.forEach(category => {
+    const isHidden = menuCategories.find(item => item.slug === category.slug)?.hidden === true;
+    const cfg = CATEGORY_MAP[category.slug];
+    const grid = cfg ? document.getElementById(cfg.gridId) : null;
+    const section = grid?.previousElementSibling;
+    const chip = section?.id ? chipRow?.querySelector(`[data-target="${section.id}"]`) : null;
+    if (section) section.style.display = isHidden ? 'none' : '';
+    if (grid) grid.style.display = isHidden ? 'none' : '';
+    if (chip) chip.style.display = isHidden ? 'none' : '';
+  });
+
   menuCategories.filter(category => !category.hidden).forEach(category => {
     if (defaultSlugs.has(category.slug)) return;
     const sectionId = `sec-${category.slug}`;
     const gridId = `grid-${category.slug}`;
-    const countId = `count-${category.slug}`;
-    CATEGORY_MAP[category.slug] = { gridId, countId };
+    CATEGORY_MAP[category.slug] = { gridId };
 
     if (chipRow) {
       const chip = document.createElement('div');
@@ -946,7 +998,6 @@ function renderCategoryUI() {
       dynamicSections.insertAdjacentHTML('beforeend', `
         <div class="sectionHead" id="${escapeAttr(sectionId)}" data-dynamic-category="${escapeAttr(category.slug)}">
           <h3>${escapeHTML(category.customerLabel || category.name)}</h3>
-          <span class="count" id="${escapeAttr(countId)}">Loading…</span>
         </div>
         <div class="grid" id="${escapeAttr(gridId)}" data-dynamic-category="${escapeAttr(category.slug)}"></div>
       `);
@@ -975,9 +1026,7 @@ function renderGrid(category, items) {
   const cfg = CATEGORY_MAP[category];
   if (!cfg) return;
   const gridEl = document.getElementById(cfg.gridId);
-  const countEl = document.getElementById(cfg.countId);
   if (gridEl) gridEl.innerHTML = items.map(cardHTML).join("");
-  if (countEl) countEl.textContent = items.length ? String(items.length).padStart(2, "0") + " items" : "Coming soon";
 }
 
 /* ---------- chips / section nav ---------- */
@@ -1012,19 +1061,28 @@ function refreshSectionObserver() {
 
 /* ---------- hero slider ---------- */
 const heroCarousel = document.getElementById('hero');
-const heroSlides = document.querySelectorAll('#hero .heroSlide:not([data-hero-clone])');
+let heroSlides = Array.from(document.querySelectorAll('#hero .heroSlide'));
 let heroIndex = 0;
 let heroTimer;
+let heroScrollTimer;
 
 function showHeroSlide(i) {
   if (!heroCarousel || !heroSlides.length) return;
-  heroIndex = i;
-  const slide = heroSlides[i];
+  heroIndex = ((i % heroSlides.length) + heroSlides.length) % heroSlides.length;
+  const slide = heroSlides[heroIndex];
   const maxScroll = Math.max(0, heroCarousel.scrollWidth - heroCarousel.clientWidth);
   const targetLeft = Math.min(slide.offsetLeft - heroCarousel.offsetLeft, maxScroll);
   heroCarousel.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
 }
 function nextHeroSlide() { showHeroSlide((heroIndex + 1) % heroSlides.length); }
+function syncHeroIndexFromScroll() {
+  if (!heroCarousel || !heroSlides.length) return;
+  const nearest = Array.from(heroSlides).reduce((best, slide, index) => {
+    const distance = Math.abs((slide.offsetLeft - heroCarousel.offsetLeft) - heroCarousel.scrollLeft);
+    return distance < best.distance ? { index, distance } : best;
+  }, { index: 0, distance: Infinity });
+  heroIndex = nearest.index;
+}
 function startHeroAutoplay() {
   clearInterval(heroTimer);
   if (heroSlides.length < 2) return;
@@ -1032,12 +1090,23 @@ function startHeroAutoplay() {
 }
 heroCarousel?.addEventListener('pointerdown', () => clearInterval(heroTimer));
 heroCarousel?.addEventListener('pointerup', () => {
-  const nearest = Array.from(heroSlides).reduce((best, slide, index) => {
-    const distance = Math.abs((slide.offsetLeft - heroCarousel.offsetLeft) - heroCarousel.scrollLeft);
-    return distance < best.distance ? { index, distance } : best;
-  }, { index: 0, distance: Infinity });
-  heroIndex = nearest.index;
+  syncHeroIndexFromScroll();
   startHeroAutoplay();
+});
+heroCarousel?.addEventListener('pointercancel', () => {
+  syncHeroIndexFromScroll();
+  startHeroAutoplay();
+});
+heroCarousel?.addEventListener('scroll', () => {
+  clearTimeout(heroScrollTimer);
+  heroScrollTimer = setTimeout(() => {
+    syncHeroIndexFromScroll();
+    startHeroAutoplay();
+  }, 180);
+}, { passive: true });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) clearInterval(heroTimer);
+  else startHeroAutoplay();
 });
 startHeroAutoplay();
 
@@ -1115,7 +1184,7 @@ function openModal(product) {
   const addRow = document.getElementById('modalAddRow');
   if (addRow) {
     addRow.dataset.addId = product.id;
-    addRow.innerHTML = addControlHTML(product);
+    addRow.innerHTML = addControlHTML(product, { showQuantity: true });
   }
 
   overlay.classList.add('open');
@@ -1238,10 +1307,14 @@ if (sendOrderBtn) sendOrderBtn.addEventListener('click', openConfirmModal);
 const confirmOverlay = document.getElementById('confirmOverlay');
 const confirmCancelBtn = document.getElementById('confirmCancelBtn');
 const confirmSendBtn = document.getElementById('confirmSendBtn');
+const orderSuccessOverlay = document.getElementById('orderSuccessOverlay');
+const orderSuccessDoneBtn = document.getElementById('orderSuccessDoneBtn');
 
 if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', closeConfirmModal);
 if (confirmSendBtn) confirmSendBtn.addEventListener('click', sendOrderToTelegram);
 if (confirmOverlay) confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirmModal(); });
+if (orderSuccessDoneBtn) orderSuccessDoneBtn.addEventListener('click', closeOrderSuccessModal);
+if (orderSuccessOverlay) orderSuccessOverlay.addEventListener('click', (e) => { if (e.target === orderSuccessOverlay) closeOrderSuccessModal(); });
 
 /* ---------- our locations map ---------- */
 const locations = [
@@ -1337,15 +1410,30 @@ window.focusLocation = focusLocation;
 })();
 
 async function loadHeroImages() {
-  const { data, error } = await supabase.from('site_settings').select('*').in('key', ['hero_1', 'hero_2', 'hero_3']);
+  const { data, error } = await supabase.from('site_settings').select('key,value').like('key', 'hero_%');
   if (error) return;
-  data.forEach(row => {
-    const idNum = row.key.split('_')[1];
-    const img = document.getElementById(`heroImg${idNum}`);
-    if (img && row.value) img.src = row.value;
-    const cloneImg = document.querySelector(`[data-hero-clone="${row.key}"] img`);
-    if (cloneImg && row.value) cloneImg.src = row.value;
+  const rows = (data || []).flatMap(row => {
+    const match = String(row.key || '').match(/^hero_([1-9]\d*)$/);
+    return match && row.value ? [{ ...row, slideNumber: Number(match[1]) }] : [];
+  }).sort((a, b) => a.slideNumber - b.slideNumber);
+
+  rows.forEach(row => {
+    let img = document.getElementById(`heroImg${row.slideNumber}`);
+    if (!img && heroCarousel) {
+      const slide = document.createElement('div');
+      slide.className = 'heroSlide';
+      img = document.createElement('img');
+      img.id = `heroImg${row.slideNumber}`;
+      img.alt = `Slideshow image ${row.slideNumber}`;
+      slide.appendChild(img);
+      heroCarousel.appendChild(slide);
+    }
+    if (img) img.src = row.value;
   });
+
+  heroSlides = Array.from(document.querySelectorAll('#hero .heroSlide'));
+  if (heroIndex >= heroSlides.length) heroIndex = 0;
+  startHeroAutoplay();
 }
 
 /* ---------- go ---------- */
@@ -1364,10 +1452,15 @@ supabase
   .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
     loadProducts();
   })
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings', filter: `key=eq.${CATEGORY_SETTING_KEY}` }, async () => {
-    await loadMenuCategories();
-    renderCategoryUI();
-    renderAll(allProducts);
-    initCardClicks();
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, async payload => {
+    const settingKey = payload.new?.key || payload.old?.key || '';
+    if (settingKey === CATEGORY_SETTING_KEY) {
+      await loadMenuCategories();
+      renderCategoryUI();
+      renderAll(allProducts);
+      initCardClicks();
+    } else if (/^hero_[1-9]\d*$/.test(settingKey)) {
+      await loadHeroImages();
+    }
   })
   .subscribe();
