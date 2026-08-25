@@ -41,13 +41,14 @@ let currentPage = 'dashboard';
 let filterBestseller = false;
 let filterOutOfStock = false;
 
-const CATEGORY_LABELS = {
-  all: 'All',
-  sandwich: 'Sandwich',
-  rice: 'Rice',
-  dessert: 'Dessert',
-  drink: 'Drink'
-};
+const CATEGORY_SETTING_KEY = 'menu_categories';
+const DEFAULT_CATEGORIES = [
+  { slug: 'sandwich', name: 'Sandwich', customerLabel: 'សាំងវិច' },
+  { slug: 'rice', name: 'Rice', customerLabel: 'បាយ' },
+  { slug: 'dessert', name: 'Dessert', customerLabel: 'បង្អែម' },
+  { slug: 'drink', name: 'Drink', customerLabel: 'ភេសជ្ជៈ' }
+];
+let categories = DEFAULT_CATEGORIES.map(category => ({ ...category }));
 
 const PLACEHOLDER_IMAGE = 'img/placeholder.jpg';
 
@@ -99,6 +100,9 @@ loginForm.addEventListener('submit', async (e) => {
 
 async function logout() {
   await supabase.auth.signOut();
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'lk-admin-signed-out' }, window.location.origin);
+  }
   showLogin();
 }
 
@@ -158,9 +162,7 @@ function updateDashboardStats() {
 document.getElementById('quickAddItem')?.addEventListener('click', () => {
   addModalOverlay.classList.add('open');
 });
-document.getElementById('quickViewSite')?.addEventListener('click', () => {
-  window.open('index.html', '_blank');
-});
+document.getElementById('quickCreateCategory')?.addEventListener('click', () => setCategoryModalOpen(true));
 
 /* ---------- greeting ---------- */
 function setGreeting() {
@@ -272,6 +274,13 @@ async function setupSettingsPage() {
 document.getElementById('settingsViewSite')?.addEventListener('click', () => {
   window.open('index.html', '_blank');
 });
+document.getElementById('customerSiteBtn')?.addEventListener('click', () => {
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'lk-admin-exit' }, window.location.origin);
+  } else {
+    window.location.href = 'index.html';
+  }
+});
 document.getElementById('settingsLogout')?.addEventListener('click', () => {
   if (confirm('Log out of the admin panel?')) logout();
 });
@@ -314,21 +323,118 @@ async function loadProducts() {
     return;
   }
   products = data || [];
+  await loadCategories();
   updateCategoryCounts();
   updateDashboardStats();
   render();
 }
 
+function titleFromSlug(slug) {
+  return String(slug || '')
+    .split('-')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function normalizeCategoryList(value) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+  return value.flatMap(item => {
+    const slug = String(item?.slug || '').trim().toLowerCase();
+    const name = String(item?.name || '').trim();
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || !name || seen.has(slug)) return [];
+    seen.add(slug);
+    return [{
+      slug,
+      name,
+      customerLabel: String(item?.customerLabel || name).trim() || name,
+      hidden: Boolean(item?.hidden)
+    }];
+  });
+}
+
+function mergeProductCategories(savedCategories) {
+  const merged = DEFAULT_CATEGORIES.map(category => ({ ...category }));
+  savedCategories.forEach(category => {
+    const existingIndex = merged.findIndex(item => item.slug === category.slug);
+    if (existingIndex >= 0) merged[existingIndex] = { ...merged[existingIndex], ...category, hidden: false };
+    else merged.push({ ...category });
+  });
+  const seen = new Set(merged.map(category => category.slug));
+  products.forEach(product => {
+    const slug = String(product.category || '').trim().toLowerCase();
+    if (!slug || seen.has(slug)) return;
+    seen.add(slug);
+    const name = titleFromSlug(slug) || slug;
+    merged.push({ slug, name, customerLabel: name, hidden: false });
+  });
+  return merged;
+}
+
+async function loadCategories() {
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', CATEGORY_SETTING_KEY)
+    .maybeSingle();
+
+  let savedCategories = [];
+  if (error) {
+    console.warn('[L&K admin] Could not load menu categories:', error.message);
+  } else if (data?.value) {
+    try {
+      savedCategories = normalizeCategoryList(JSON.parse(data.value));
+    } catch (parseError) {
+      console.warn('[L&K admin] Invalid menu category setting:', parseError);
+    }
+  }
+
+  categories = mergeProductCategories(savedCategories);
+  if (activeCategory !== 'all' && !categories.some(category => category.slug === activeCategory)) {
+    activeCategory = 'all';
+  }
+  renderCategoryControls();
+}
+
+function renderCategoryControls() {
+  const catFilter = document.getElementById('catFilter');
+  const newCategorySelect = document.getElementById('newCategory');
+  if (catFilter) {
+    const controls = [{ slug: 'all', name: 'All' }, ...categories];
+    catFilter.innerHTML = controls.map(category => `
+      <button type="button" class="catBtn${activeCategory === category.slug ? ' active' : ''}" data-cat="${escapeAttr(category.slug)}">
+        <span class="catDot" aria-hidden="true"></span>
+        <span class="catLabel">${escapeHTML(category.name)}</span>
+      </button>`).join('');
+    window.requestAnimationFrame(() => {
+      catFilter.querySelector('.catBtn.active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
+  }
+  if (newCategorySelect) {
+    const selected = newCategorySelect.value;
+    newCategorySelect.innerHTML = categories.map(category =>
+      `<option value="${escapeAttr(category.slug)}">${escapeHTML(category.name)}${category.hidden ? ' (Hidden)' : ''}</option>`
+    ).join('');
+    if (categories.some(category => category.slug === selected)) newCategorySelect.value = selected;
+  }
+  renderCategoryManager();
+}
 
 function updateCategoryCounts() {
-  const counts = { all: products.length, sandwich: 0, rice: 0, dessert: 0, drink: 0 };
+  const counts = { all: products.length };
+  categories.forEach(category => { counts[category.slug] = 0; });
   products.forEach(p => {
     if (counts[p.category] !== undefined) counts[p.category]++;
   });
-  document.querySelectorAll('.catBtn').forEach(btn => {
-    const cat = btn.dataset.cat;
-    const label = CATEGORY_LABELS[cat] || cat;
-    btn.textContent = `${label} (${counts[cat] ?? 0})`;
+  document.querySelectorAll('.catBtn').forEach(button => {
+    const cat = button.dataset.cat;
+    const category = categories.find(item => item.slug === cat);
+    const label = cat === 'all'
+      ? 'All'
+      : category?.name || titleFromSlug(cat) || cat;
+    const labelEl = button.querySelector('.catLabel');
+    if (labelEl) labelEl.textContent = `${label} (${counts[cat] ?? 0})${category?.hidden ? ' · Hidden' : ''}`;
   });
 }
 
@@ -608,57 +714,65 @@ if (photoModalReady) {
   });
 }
 
-/* ---------- side drawer ---------- */
-const hamburgerBtn = document.getElementById('hamburgerBtn');
-const sideDrawer = document.getElementById('sideDrawer');
-const sideDrawerOverlay = document.getElementById('sideDrawerOverlay');
-const sideDrawerClose = document.getElementById('sideDrawerClose');
+/* ---------- visible menu filters ---------- */
+const menuFilterBtn = document.getElementById('menuFilterBtn');
+const filterPopover = document.getElementById('filterPopover');
 const filterBestsellerBtn = document.getElementById('filterBestseller');
 const filterOutOfStockBtn = document.getElementById('filterOutOfStock');
 const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
-function openDrawer() {
-  sideDrawer?.classList.add('open');
-  sideDrawerOverlay?.classList.add('open');
-}
-function closeDrawer() {
-  sideDrawer?.classList.remove('open');
-  sideDrawerOverlay?.classList.remove('open');
+function setFilterPopoverOpen(open) {
+  filterPopover?.classList.toggle('open', open);
+  menuFilterBtn?.classList.toggle('active', open);
+  menuFilterBtn?.setAttribute('aria-expanded', String(open));
 }
 
-hamburgerBtn?.addEventListener('click', openDrawer);
-sideDrawerClose?.addEventListener('click', closeDrawer);
-sideDrawerOverlay?.addEventListener('click', closeDrawer);
+function refreshFilterControls() {
+  filterBestsellerBtn?.classList.toggle('active', filterBestseller);
+  filterBestsellerBtn?.setAttribute('aria-pressed', String(filterBestseller));
+  filterOutOfStockBtn?.classList.toggle('active', filterOutOfStock);
+  filterOutOfStockBtn?.setAttribute('aria-pressed', String(filterOutOfStock));
+  menuFilterBtn?.classList.toggle('hasFilters', filterBestseller || filterOutOfStock);
+  if (clearFiltersBtn) clearFiltersBtn.hidden = !filterBestseller && !filterOutOfStock;
+}
 
-function applyFilterAndGoToMenu() {
-  if (currentPage !== 'menu') switchPage('menu');
+function applyVisibleFilters() {
+  refreshFilterControls();
   render();
-  closeDrawer();
 }
+
+menuFilterBtn?.addEventListener('click', event => {
+  event.stopPropagation();
+  setFilterPopoverOpen(!filterPopover?.classList.contains('open'));
+});
+
+document.addEventListener('click', event => {
+  if (!filterPopover?.classList.contains('open')) return;
+  if (!filterPopover.contains(event.target) && event.target !== menuFilterBtn) setFilterPopoverOpen(false);
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') setFilterPopoverOpen(false);
+});
 
 filterBestsellerBtn?.addEventListener('click', () => {
-  filterBestseller = !filterBestseller;
-  filterBestsellerBtn.classList.toggle('active', filterBestseller);
-  filterBestsellerBtn.dataset.active = filterBestseller ? '1' : '0';
-  applyFilterAndGoToMenu();
+  const willEnable = !filterBestseller;
+  filterBestseller = willEnable;
+  if (willEnable) filterOutOfStock = false;
+  applyVisibleFilters();
 });
 
 filterOutOfStockBtn?.addEventListener('click', () => {
-  filterOutOfStock = !filterOutOfStock;
-  filterOutOfStockBtn.classList.toggle('active', filterOutOfStock);
-  filterOutOfStockBtn.dataset.active = filterOutOfStock ? '1' : '0';
-  applyFilterAndGoToMenu();
+  const willEnable = !filterOutOfStock;
+  filterOutOfStock = willEnable;
+  if (willEnable) filterBestseller = false;
+  applyVisibleFilters();
 });
 
 clearFiltersBtn?.addEventListener('click', () => {
   filterBestseller = false;
   filterOutOfStock = false;
-  filterBestsellerBtn?.classList.remove('active');
-  filterOutOfStockBtn?.classList.remove('active');
-  if (filterBestsellerBtn) filterBestsellerBtn.dataset.active = '0';
-  if (filterOutOfStockBtn) filterOutOfStockBtn.dataset.active = '0';
-  render();
-  closeDrawer();
+  applyVisibleFilters();
 });
 
 
@@ -680,13 +794,173 @@ clearSearchBtn?.addEventListener('click', () => {
   adminSearchEl.focus();
 });
 
-document.querySelectorAll('.catBtn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.catBtn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activeCategory = btn.dataset.cat;
-    render();
+document.getElementById('catFilter')?.addEventListener('click', event => {
+  const button = event.target.closest('.catBtn');
+  if (!button) return;
+  activeCategory = button.dataset.cat;
+  document.querySelectorAll('.catBtn').forEach(categoryButton => {
+    categoryButton.classList.toggle('active', categoryButton === button);
   });
+  render();
+});
+
+/* ---------- create category ---------- */
+const categoryModalOverlay = document.getElementById('categoryModalOverlay');
+const categoryForm = document.getElementById('categoryForm');
+const newCategoryName = document.getElementById('newCategoryName');
+const newCategorySlug = document.getElementById('newCategorySlug');
+const saveCategoryBtn = document.getElementById('saveCategoryBtn');
+const categoryManagerList = document.getElementById('categoryManagerList');
+let categorySlugWasEdited = false;
+
+function slugifyCategory(value) {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 32);
+}
+
+function isDefaultCategory(slug) {
+  return DEFAULT_CATEGORIES.some(category => category.slug === slug);
+}
+
+async function persistCategories() {
+  return supabase.from('site_settings').upsert({
+    key: CATEGORY_SETTING_KEY,
+    value: JSON.stringify(categories)
+  }, { onConflict: 'key' });
+}
+
+function renderCategoryManager() {
+  if (!categoryManagerList) return;
+  const customCategories = categories.filter(category => !isDefaultCategory(category.slug));
+  if (!customCategories.length) {
+    categoryManagerList.innerHTML = '<p class="categoryManagerEmpty">No custom categories yet.</p>';
+    return;
+  }
+
+  categoryManagerList.innerHTML = customCategories.map(category => {
+    const productCount = products.filter(product => product.category === category.slug).length;
+    return `
+      <div class="categoryManagerRow" data-category-slug="${escapeAttr(category.slug)}">
+        <div class="categoryManagerInfo">
+          <span class="categoryManagerName">${escapeHTML(category.name)}</span>
+          <span class="categoryManagerMeta">${productCount} product${productCount === 1 ? '' : 's'}${category.hidden ? ' · Hidden from customers' : ''}</span>
+        </div>
+        <button type="button" class="categoryManagerBtn${category.hidden ? ' isHidden' : ''}" data-category-action="toggle">
+          ${category.hidden ? 'Show' : 'Hide'}
+        </button>
+        <button type="button" class="categoryManagerBtn delete" data-category-action="delete">Delete</button>
+      </div>`;
+  }).join('');
+}
+
+function setCategoryModalOpen(open) {
+  categoryModalOverlay?.classList.toggle('open', open);
+  if (open) {
+    categorySlugWasEdited = false;
+    window.setTimeout(() => newCategoryName?.focus(), 120);
+  } else {
+    categoryForm?.reset();
+  }
+}
+
+document.getElementById('cancelCategory')?.addEventListener('click', () => setCategoryModalOpen(false));
+categoryModalOverlay?.addEventListener('click', event => {
+  if (event.target === categoryModalOverlay) setCategoryModalOpen(false);
+});
+
+categoryManagerList?.addEventListener('click', async event => {
+  const button = event.target.closest('[data-category-action]');
+  const row = button?.closest('[data-category-slug]');
+  const slug = row?.dataset.categorySlug;
+  const category = categories.find(item => item.slug === slug);
+  if (!button || !category || isDefaultCategory(slug)) return;
+
+  const action = button.dataset.categoryAction;
+  const previousCategories = categories.map(item => ({ ...item }));
+
+  if (action === 'delete') {
+    const productCount = products.filter(product => product.category === slug).length;
+    if (productCount > 0) {
+      toast(`Move or delete the ${productCount} product${productCount === 1 ? '' : 's'} in ${category.name} first`, true);
+      return;
+    }
+    if (!confirm(`Delete the ${category.name} category?`)) return;
+    categories = categories.filter(item => item.slug !== slug);
+    if (activeCategory === slug) activeCategory = 'all';
+  } else if (action === 'toggle') {
+    category.hidden = !category.hidden;
+  } else {
+    return;
+  }
+
+  button.disabled = true;
+  const { error } = await persistCategories();
+  if (error) {
+    categories = previousCategories;
+    toast(`Could not ${action === 'delete' ? 'delete' : 'update'} category: ${error.message}`, true);
+  } else {
+    toast(action === 'delete'
+      ? `${category.name} category deleted`
+      : `${category.name} is now ${category.hidden ? 'hidden' : 'visible'}`);
+  }
+  renderCategoryControls();
+  updateCategoryCounts();
+  render();
+});
+
+newCategoryName?.addEventListener('input', () => {
+  if (!categorySlugWasEdited && newCategorySlug) newCategorySlug.value = slugifyCategory(newCategoryName.value);
+});
+newCategorySlug?.addEventListener('input', () => {
+  categorySlugWasEdited = true;
+  newCategorySlug.value = slugifyCategory(newCategorySlug.value);
+});
+
+categoryForm?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const name = newCategoryName.value.trim();
+  const slug = slugifyCategory(newCategorySlug.value);
+  if (!name || !slug) {
+    toast('Enter a category name and a valid category key', true);
+    return;
+  }
+  if (categories.some(category => category.slug === slug)) {
+    toast('That category already exists', true);
+    return;
+  }
+
+  const previousCategories = categories.map(category => ({ ...category }));
+  categories.push({ slug, name, customerLabel: name, hidden: false });
+  if (saveCategoryBtn) {
+    saveCategoryBtn.disabled = true;
+    saveCategoryBtn.textContent = 'Creating…';
+  }
+
+  const { error } = await persistCategories();
+
+  if (saveCategoryBtn) {
+    saveCategoryBtn.disabled = false;
+    saveCategoryBtn.textContent = 'Create Category';
+  }
+  if (error) {
+    categories = previousCategories;
+    toast('Could not create category: ' + error.message, true);
+    return;
+  }
+
+  activeCategory = slug;
+  renderCategoryControls();
+  const productCategorySelect = document.getElementById('newCategory');
+  if (productCategorySelect) productCategorySelect.value = slug;
+  updateCategoryCounts();
+  render();
+  setCategoryModalOpen(false);
+  toast(`${name} category created`);
 });
 
 /* ---------- add product ---------- */

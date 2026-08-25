@@ -51,11 +51,19 @@
   <div class="dashHeaderTop">
   <div class="dashBrand">
     <span class="dashLogo"><img src="img/logo.png" alt="L&amp;K"></span>
-    <span id="pageTitle">Dashboard</span>
+    <span class="dashTitleBlock">
+      <span class="dashKicker">Admin workspace</span>
+      <span id="pageTitle">Dashboard</span>
+    </span>
   </div>
-  <button class="hamburgerBtn" id="hamburgerBtn" aria-label="Open menu">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  </button>
+  <div class="dashHeaderActions">
+    <button class="customerSiteBtn" id="customerSiteBtn" type="button" aria-label="Return to customer site">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+      <span>Customer site</span>
+    </button>
+  </div>
 </div>
     <!-- Search + category chips — only shown on the Menu tab -->
     <div class="dashToolbar" id="menuToolbar">
@@ -63,54 +71,37 @@
         <div class="searchBarWrap">
           <input type="text" id="adminSearch" placeholder="Search by ID or name…" inputmode="search">
           <button type="button" id="clearSearch" class="clearSearchBtn" aria-label="Clear search">&times;</button>
+          <button type="button" id="menuFilterBtn" class="menuFilterBtn" aria-label="Open menu filters" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>
+            <span class="filterActiveDot" id="filterActiveDot" aria-hidden="true"></span>
+          </button>
+          <div class="filterPopover" id="filterPopover" aria-label="Menu filters">
+            <div class="filterPopoverHead">
+              <span>Filter products</span>
+              <button type="button" class="clearFiltersBtn" id="clearFiltersBtn" hidden>Clear</button>
+            </div>
+            <button type="button" class="filterOption" id="filterBestseller" aria-pressed="false">
+              <span class="filterOptionIcon">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+              </span>
+              <span>Bestseller</span>
+              <span class="filterOptionCheck" aria-hidden="true">✓</span>
+            </button>
+            <button type="button" class="filterOption" id="filterOutOfStock" aria-pressed="false">
+              <span class="filterOptionIcon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              </span>
+              <span>Out of stock</span>
+              <span class="filterOptionCheck" aria-hidden="true">✓</span>
+            </button>
+          </div>
         </div>
-         </div>
-      <div class="catFilter" id="catFilter">
-        <button class="catBtn active" data-cat="all">All</button>
-        <button class="catBtn" data-cat="sandwich">Sandwich</button>
-        <button class="catBtn" data-cat="rice">Rice</button>
-        <button class="catBtn" data-cat="dessert">Dessert</button>
-        <button class="catBtn" data-cat="drink">Drink</button>
+      </div>
+      <div class="catFilter" id="catFilter" aria-label="Filter products by category">
+        <button type="button" class="catBtn active" data-cat="all"><span class="catDot" aria-hidden="true"></span>All</button>
       </div>
     </div>
   </header>
-
-  <div class="sideDrawerOverlay" id="sideDrawerOverlay"></div>
-  <aside class="sideDrawer" id="sideDrawer">
-  <div class="sideDrawerHead">
-    <span class="dashLogo"><img src="img/logo.png" alt="L&amp;K"></span>
-    <div class="sideDrawerHeadText">
-      <p class="sideDrawerTitle">L&amp;K Sandwich</p>
-      <p class="sideDrawerSub">Admin Panel</p>
-    </div>
-    <button class="sideDrawerClose" id="sideDrawerClose" aria-label="Close menu">&times;</button>
-     </div>
-     <p class="sideDrawerLabel">Filter Menu Items</p>
-  <div class="filterList">
-    <button type="button" class="filterRow" id="filterBestseller" data-active="0">
-      <span class="filterRowIcon filterIconGold">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
-      </span>
-      <span class="filterRowText">
-        <span class="filterRowTitle">Bestseller</span>
-        <span class="filterRowSub">Only show Bestseller items</span>
-      </span>
-      <span class="filterToggle"><span class="filterToggleKnob"></span></span>
-    </button>
-    <button type="button" class="filterRow" id="filterOutOfStock" data-active="0">
-      <span class="filterRowIcon filterIconTomato">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      </span>
-      <span class="filterRowText">
-        <span class="filterRowTitle">Out of Stock</span>
-        <span class="filterRowSub">Only show Out of Stock items</span>
-      </span>
-      <span class="filterToggle"><span class="filterToggleKnob"></span></span>
-    </button>
-    </div>
-
-  <button type="button" class="clearFiltersBtn" id="clearFiltersBtn">Clear Filters</button>
-</aside>
 
   <div class="toast" id="toast"></div>
 
@@ -169,13 +160,13 @@
           </div>
           <span class="quickActionChevron">›</span>
         </button>
-        <button class="quickActionCard" id="quickViewSite">
+        <button class="quickActionCard" id="quickCreateCategory">
           <div class="quickActionIcon quickActionIconAlt">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h10M4 18h7"/><path d="M19 14v6M16 17h6"/></svg>
           </div>
           <div class="quickActionText">
-            <span class="quickActionTitle">View Site</span>
-            <span class="quickActionSub">Open your live menu</span>
+            <span class="quickActionTitle">Create New Category</span>
+            <span class="quickActionSub">Organize products into a new section</span>
           </div>
           <span class="quickActionChevron">›</span>
         </button>
@@ -255,6 +246,33 @@
 
 </div>
 
+<!-- ---------- ADD CATEGORY MODAL ---------- -->
+<div class="modalOverlay" id="categoryModalOverlay">
+  <form class="modalCard" id="categoryForm">
+    <h2>New Category</h2>
+
+    <label for="newCategoryName">Category name</label>
+    <input type="text" id="newCategoryName" placeholder="e.g. Soup" maxlength="40" required>
+
+    <label for="newCategorySlug">Category key</label>
+    <input type="text" id="newCategorySlug" placeholder="e.g. soup" maxlength="32" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required>
+    <p class="fieldHelp">Lowercase letters, numbers and hyphens only.</p>
+
+    <div class="modalActions">
+      <button type="button" class="ghostBtn" id="cancelCategory">Cancel</button>
+      <button type="submit" class="primaryBtn" id="saveCategoryBtn">Create Category</button>
+    </div>
+
+    <div class="categoryManager">
+      <div class="categoryManagerHead">
+        <h3>Custom Categories</h3>
+        <span>Hide or delete</span>
+      </div>
+      <div class="categoryManagerList" id="categoryManagerList"></div>
+    </div>
+  </form>
+</div>
+
 <!-- ---------- ADD PRODUCT MODAL ---------- -->
 <div class="modalOverlay" id="addModalOverlay">
   <form class="modalCard" id="addForm">
@@ -266,9 +284,6 @@
     <label>Category</label>
     <select id="newCategory" required>
       <option value="sandwich">Sandwich</option>
-      <option value="rice">Rice</option>
-      <option value="dessert">Dessert</option>
-      <option value="drink">Drink</option>
     </select>
 
     <label>Name</label>

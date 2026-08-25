@@ -3,6 +3,125 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./supabase-config.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/* ---------- admin access from the customer logo ---------- */
+const adminLogoTrigger = document.getElementById('adminLogoTrigger');
+const adminLoginOverlay = document.getElementById('adminLoginOverlay');
+const adminLoginClose = document.getElementById('adminLoginClose');
+const customerAdminLoginForm = document.getElementById('customerAdminLoginForm');
+const customerAdminEmail = document.getElementById('customerAdminEmail');
+const customerAdminPassword = document.getElementById('customerAdminPassword');
+const customerAdminPasswordToggle = document.getElementById('customerAdminPasswordToggle');
+const customerAdminLoginSubmit = document.getElementById('customerAdminLoginSubmit');
+const customerAdminLoginLabel = document.getElementById('customerAdminLoginLabel');
+const customerAdminLoginError = document.getElementById('customerAdminLoginError');
+const adminPortal = document.getElementById('adminPortal');
+const adminPortalFrame = document.getElementById('adminPortalFrame');
+
+function syncAdminLayerBody() {
+  const hasOpenLayer = adminLoginOverlay?.classList.contains('open') || adminPortal?.classList.contains('open');
+  document.body.classList.toggle('adminLayerOpen', Boolean(hasOpenLayer));
+}
+
+function setAdminLoginOpen(open) {
+  if (!adminLoginOverlay) return;
+  adminLoginOverlay.classList.toggle('open', open);
+  adminLoginOverlay.setAttribute('aria-hidden', String(!open));
+  if (!open) {
+    if (customerAdminLoginError) customerAdminLoginError.textContent = '';
+    if (customerAdminPassword) customerAdminPassword.value = '';
+  }
+  syncAdminLayerBody();
+  if (open) window.setTimeout(() => customerAdminEmail?.focus(), 180);
+}
+
+function setAdminPortalOpen(open, refreshFrame = false) {
+  if (!adminPortal || !adminPortalFrame) return;
+
+  if (open) {
+    const frameSource = adminPortalFrame.dataset.src || 'admin.html';
+    if (!adminPortalFrame.getAttribute('src')) {
+      adminPortalFrame.setAttribute('src', frameSource);
+    } else if (refreshFrame) {
+      adminPortalFrame.setAttribute('src', frameSource);
+    }
+  }
+
+  adminPortal.classList.toggle('open', open);
+  adminPortal.setAttribute('aria-hidden', String(!open));
+  syncAdminLayerBody();
+  if (!open) adminLogoTrigger?.focus();
+}
+
+async function openAdminAccess() {
+  if (customerAdminLoginError) customerAdminLoginError.textContent = '';
+  const { data: { session }, error } = await supabase.auth.getSession();
+
+  if (!error && session) {
+    setAdminPortalOpen(true);
+    return;
+  }
+
+  setAdminLoginOpen(true);
+}
+
+adminLogoTrigger?.addEventListener('click', openAdminAccess);
+adminLoginClose?.addEventListener('click', () => setAdminLoginOpen(false));
+adminLoginOverlay?.addEventListener('click', (event) => {
+  if (event.target === adminLoginOverlay) setAdminLoginOpen(false);
+});
+
+customerAdminPasswordToggle?.addEventListener('click', () => {
+  if (!customerAdminPassword) return;
+  const willShow = customerAdminPassword.type === 'password';
+  customerAdminPassword.type = willShow ? 'text' : 'password';
+  customerAdminPasswordToggle.textContent = willShow ? 'Hide' : 'Show';
+  customerAdminPasswordToggle.setAttribute('aria-label', willShow ? 'Hide password' : 'Show password');
+});
+
+customerAdminLoginForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!customerAdminEmail || !customerAdminPassword) return;
+
+  if (customerAdminLoginError) customerAdminLoginError.textContent = '';
+  if (customerAdminLoginSubmit) customerAdminLoginSubmit.disabled = true;
+  if (customerAdminLoginLabel) customerAdminLoginLabel.textContent = 'Signing in…';
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: customerAdminEmail.value.trim(),
+    password: customerAdminPassword.value
+  });
+
+  if (customerAdminLoginSubmit) customerAdminLoginSubmit.disabled = false;
+  if (customerAdminLoginLabel) customerAdminLoginLabel.textContent = 'Open Admin';
+
+  if (error) {
+    if (customerAdminLoginError) {
+      customerAdminLoginError.textContent = error.message || 'Could not sign in. Check your email and password.';
+    }
+    return;
+  }
+
+  setAdminLoginOpen(false);
+  setAdminPortalOpen(true, true);
+});
+
+window.addEventListener('message', (event) => {
+  if (event.origin !== window.location.origin) return;
+  if (event.data?.type === 'lk-admin-exit' || event.data?.type === 'lk-admin-signed-out') {
+    setAdminPortalOpen(false);
+  }
+});
+
+window.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  if (adminLoginOverlay?.classList.contains('open')) setAdminLoginOpen(false);
+  else if (adminPortal?.classList.contains('open')) setAdminPortalOpen(false);
+});
+
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') setAdminPortalOpen(false);
+});
+
 /* ---------- category -> DOM ids ---------- */
 const CATEGORY_MAP = {
   bestseller: { gridId: "grid-bestseller", countId: "count-bestseller" },
@@ -11,10 +130,19 @@ const CATEGORY_MAP = {
   dessert:    { gridId: "grid-dessert",    countId: "count-dessert" },
   drink:      { gridId: "grid-drinks",     countId: "count-drinks" }
 };
+const CATEGORY_SETTING_KEY = 'menu_categories';
+const DEFAULT_CATEGORIES = [
+  { slug: 'sandwich', name: 'Sandwich', customerLabel: 'សាំងវិច' },
+  { slug: 'rice', name: 'Rice', customerLabel: 'បាយ' },
+  { slug: 'dessert', name: 'Dessert', customerLabel: 'បង្អែម' },
+  { slug: 'drink', name: 'Drink', customerLabel: 'ភេសជ្ជៈ' }
+];
 
 const TELEGRAM_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/clever-processor`;
 
 let allProducts = [];
+let menuCategories = DEFAULT_CATEGORIES.map(category => ({ ...category }));
+let sectionObserver = null;
 
 let storageAvailable = true;
 try {
@@ -119,13 +247,13 @@ function addControlHTML(p) {
   if (qty > 0) {
     return `
       <div class="stepper" data-id="${p.id}">
-        <button class="stepBtn minus" data-action="dec" aria-label="Remove one">−</button>
+        <button type="button" class="stepBtn minus" data-action="dec" aria-label="Remove one">−</button>
         <span class="stepQty">${qty}</span>
-        <button class="stepBtn plus" data-action="inc" aria-label="Add one">+</button>
+        <button type="button" class="stepBtn plus" data-action="inc" aria-label="Add one">+</button>
       </div>`;
   }
   return `
-    <button class="addBtn" data-id="${p.id}" aria-label="Add to basket">
+    <button type="button" class="addBtn" data-id="${p.id}" aria-label="Add to basket">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     </button>`;
 }
@@ -548,25 +676,132 @@ async function loadProducts() {
   }
 
   allProducts = data || [];
+  await loadMenuCategories();
+  renderCategoryUI();
   renderAll(allProducts);
   initCardClicks();
   updateCartBar();
   if (document.getElementById('cartPage')?.classList.contains('open')) renderCartModal();
 }
 
+function titleFromSlug(slug) {
+  return String(slug || '')
+    .split('-')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function normalizeCategoryList(value) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+  return value.flatMap(item => {
+    const slug = String(item?.slug || '').trim().toLowerCase();
+    const name = String(item?.name || '').trim();
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || !name || seen.has(slug)) return [];
+    seen.add(slug);
+    return [{
+      slug,
+      name,
+      customerLabel: String(item?.customerLabel || name).trim() || name,
+      hidden: Boolean(item?.hidden)
+    }];
+  });
+}
+
+function mergeProductCategories(savedCategories) {
+  const merged = DEFAULT_CATEGORIES.map(category => ({ ...category }));
+  savedCategories.forEach(category => {
+    const existingIndex = merged.findIndex(item => item.slug === category.slug);
+    if (existingIndex >= 0) merged[existingIndex] = { ...merged[existingIndex], ...category, hidden: false };
+    else merged.push({ ...category });
+  });
+  const seen = new Set(merged.map(category => category.slug));
+  allProducts.forEach(product => {
+    const slug = String(product.category || '').trim().toLowerCase();
+    if (!slug || seen.has(slug)) return;
+    seen.add(slug);
+    const name = titleFromSlug(slug) || slug;
+    merged.push({ slug, name, customerLabel: name, hidden: false });
+  });
+  return merged;
+}
+
+async function loadMenuCategories() {
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', CATEGORY_SETTING_KEY)
+    .maybeSingle();
+
+  let savedCategories = [];
+  if (error) {
+    console.warn('[L&K menu] Could not load menu categories:', error.message);
+  } else if (data?.value) {
+    try {
+      savedCategories = normalizeCategoryList(JSON.parse(data.value));
+    } catch (parseError) {
+      console.warn('[L&K menu] Invalid menu category setting:', parseError);
+    }
+  }
+  menuCategories = mergeProductCategories(savedCategories);
+}
+
+function renderCategoryUI() {
+  const defaultSlugs = new Set(DEFAULT_CATEGORIES.map(category => category.slug));
+  Object.keys(CATEGORY_MAP).forEach(slug => {
+    if (slug !== 'bestseller' && !defaultSlugs.has(slug)) delete CATEGORY_MAP[slug];
+  });
+
+  const chipRow = document.getElementById('chipRow');
+  chipRow?.querySelectorAll('[data-dynamic-category]').forEach(chip => chip.remove());
+  const locationChip = chipRow?.querySelector('[data-target="sec-locations"]');
+  const dynamicSections = document.getElementById('dynamicCategorySections');
+  if (dynamicSections) dynamicSections.innerHTML = '';
+
+  menuCategories.filter(category => !category.hidden).forEach(category => {
+    if (defaultSlugs.has(category.slug)) return;
+    const sectionId = `sec-${category.slug}`;
+    const gridId = `grid-${category.slug}`;
+    const countId = `count-${category.slug}`;
+    CATEGORY_MAP[category.slug] = { gridId, countId };
+
+    if (chipRow) {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.dataset.target = sectionId;
+      chip.dataset.dynamicCategory = category.slug;
+      chip.innerHTML = `<span class="dot"></span>${escapeHTML(category.customerLabel || category.name)}`;
+      chipRow.insertBefore(chip, locationChip || null);
+    }
+
+    if (dynamicSections) {
+      dynamicSections.insertAdjacentHTML('beforeend', `
+        <div class="sectionHead" id="${escapeAttr(sectionId)}" data-dynamic-category="${escapeAttr(category.slug)}">
+          <h3>${escapeHTML(category.customerLabel || category.name)}</h3>
+          <span class="count" id="${escapeAttr(countId)}">Loading…</span>
+        </div>
+        <div class="grid" id="${escapeAttr(gridId)}" data-dynamic-category="${escapeAttr(category.slug)}"></div>
+      `);
+    }
+  });
+  refreshSectionObserver();
+}
+
 function renderAll(products) {
-  // group by category
+  const visibleCategories = menuCategories.filter(category => !category.hidden);
+  const visibleCategorySlugs = new Set(visibleCategories.map(category => category.slug));
+  const visibleProducts = products.filter(product => visibleCategorySlugs.has(product.category));
+
+  // group by visible category
   const byCategory = {};
-  products.forEach(p => {
+  visibleProducts.forEach(p => {
     (byCategory[p.category] ||= []).push(p);
   });
-  const bestsellers = products.filter(p => p.is_bestseller);
+  const bestsellers = visibleProducts.filter(p => p.is_bestseller);
 
   renderGrid("bestseller", bestsellers);
-  renderGrid("sandwich", byCategory.sandwich || []);
-  renderGrid("rice", byCategory.rice || []);
-  renderGrid("dessert", byCategory.dessert || []);
-  renderGrid("drink", byCategory.drink || []);
+  visibleCategories.forEach(category => renderGrid(category.slug, byCategory[category.slug] || []));
 }
 
 function renderGrid(category, items) {
@@ -579,15 +814,11 @@ function renderGrid(category, items) {
 }
 
 /* ---------- chips / section nav ---------- */
-const chips = document.querySelectorAll('.chip');
-const sections = document.querySelectorAll('.sectionHead');
-const twines = document.querySelectorAll('.twine');
-
-chips.forEach(chip => {
-  chip.addEventListener('click', () => {
-    const target = document.getElementById(chip.dataset.target);
-    if (target) target.scrollIntoView({ behavior: 'smooth' });
-  });
+document.getElementById('chipRow')?.addEventListener('click', event => {
+  const chip = event.target.closest('.chip');
+  if (!chip) return;
+  const target = document.getElementById(chip.dataset.target);
+  if (target) target.scrollIntoView({ behavior: 'smooth' });
 });
 
 // rootMargin's top offset should track the fixed header's real height so
@@ -599,36 +830,47 @@ function currentHeaderPx() {
   return Number.isFinite(n) ? n : 172;
 }
 
-const sectionObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      chips.forEach(c => c.classList.toggle('active', c.dataset.target === entry.target.id));
-    }
-  });
-}, { rootMargin: `-${currentHeaderPx() + 20}px 0px -70% 0px`, threshold: 0 });
-sections.forEach(sec => sectionObserver.observe(sec));
+function refreshSectionObserver() {
+  sectionObserver?.disconnect();
+  sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      document.querySelectorAll('.chip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.target === entry.target.id);
+      });
+    });
+  }, { rootMargin: `-${currentHeaderPx() + 20}px 0px -70% 0px`, threshold: 0 });
+  document.querySelectorAll('.sectionHead').forEach(section => sectionObserver.observe(section));
+}
 
 /* ---------- hero slider ---------- */
-const heroSlides = document.querySelectorAll('#hero .heroSlide');
-const heroDotBtns = document.querySelectorAll('#heroDots button');
+const heroCarousel = document.getElementById('hero');
+const heroSlides = document.querySelectorAll('#hero .heroSlide:not([data-hero-clone])');
 let heroIndex = 0;
 let heroTimer;
 
 function showHeroSlide(i) {
+  if (!heroCarousel || !heroSlides.length) return;
   heroIndex = i;
-  heroSlides.forEach((s, idx) => s.classList.toggle('active', idx === i));
-  heroDotBtns.forEach((d, idx) => d.classList.toggle('active', idx === i));
+  const slide = heroSlides[i];
+  const maxScroll = Math.max(0, heroCarousel.scrollWidth - heroCarousel.clientWidth);
+  const targetLeft = Math.min(slide.offsetLeft - heroCarousel.offsetLeft, maxScroll);
+  heroCarousel.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
 }
 function nextHeroSlide() { showHeroSlide((heroIndex + 1) % heroSlides.length); }
 function startHeroAutoplay() {
   clearInterval(heroTimer);
+  if (heroSlides.length < 2) return;
   heroTimer = setInterval(nextHeroSlide, 4000);
 }
-heroDotBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    showHeroSlide(parseInt(btn.dataset.i));
-    startHeroAutoplay();
-  });
+heroCarousel?.addEventListener('pointerdown', () => clearInterval(heroTimer));
+heroCarousel?.addEventListener('pointerup', () => {
+  const nearest = Array.from(heroSlides).reduce((best, slide, index) => {
+    const distance = Math.abs((slide.offsetLeft - heroCarousel.offsetLeft) - heroCarousel.scrollLeft);
+    return distance < best.distance ? { index, distance } : best;
+  }, { index: 0, distance: Infinity });
+  heroIndex = nearest.index;
+  startHeroAutoplay();
 });
 startHeroAutoplay();
 
@@ -648,7 +890,7 @@ if (searchInput) {
       card.style.display = matches ? '' : 'none';
     });
 
-    sections.forEach(sectionHead => {
+    document.querySelectorAll('.sectionHead').forEach(sectionHead => {
       let grid = sectionHead.nextElementSibling;
       while (grid && !grid.classList.contains('grid')) {
         grid = grid.nextElementSibling;
@@ -658,13 +900,6 @@ if (searchInput) {
         .some(c => c.style.display !== 'none');
       sectionHead.style.display = anyVisible ? '' : 'none';
       grid.style.display = anyVisible ? '' : 'none';
-    });
-
-    twines.forEach(twine => {
-      const next = twine.nextElementSibling;
-      if (next && next.classList.contains('sectionHead')) {
-        twine.style.display = next.style.display === 'none' ? 'none' : '';
-      }
     });
   });
 }
@@ -722,7 +957,10 @@ function closeModal() { overlay.classList.remove('open'); }
 
 function initCardClicks() {
   document.querySelectorAll('.grid .card').forEach(card => {
-    card.addEventListener('click', () => {
+    card.addEventListener('click', event => {
+      // Add/quantity controls are actions of their own. Do not also open
+      // the product detail modal when the customer taps one of them.
+      if (event.target.closest('.addWrap')) return;
       const id = card.dataset.id;
       const product = allProducts.find(p => p.id === id);
       if (!product) {
@@ -822,7 +1060,7 @@ if (confirmOverlay) confirmOverlay.addEventListener('click', (e) => { if (e.targ
 const locations = [
   { name: 'L&K - First Branch',  address: 'ABA Grand Phnom Penh Branch', lat: 11.629444, lng: 104.872917, url: 'https://maps.app.goo.gl/hN2KTEVes9xH4kVk7' },
   { name: 'L&K - Second Branch', address: 'The Westline school, Russey Keo (598)', lat: 11.632111, lng: 104.883500, url: 'https://maps.app.goo.gl/Qfq4Wr57AxrwQB8g6' },
-  { name: 'L&K - Third Branch',  address: 'AEON Mall Sen Sok City near Maybank', lat: 11.60352624486013, lng: 104.88559800552896, url: 'https://www.google.com/maps?q=11.60352624486013,104.88559800552896' }
+  { name: 'L&K - Third Branch',  address: 'AEON Mall Sen Sok City (near Maybank)', lat: 11.60352624486013, lng: 104.88559800552896, url: 'https://www.google.com/maps?q=11.60352624486013,104.88559800552896' }
 ];
 
 let map, markers = [];
@@ -918,6 +1156,8 @@ async function loadHeroImages() {
     const idNum = row.key.split('_')[1];
     const img = document.getElementById(`heroImg${idNum}`);
     if (img && row.value) img.src = row.value;
+    const cloneImg = document.querySelector(`[data-hero-clone="${row.key}"] img`);
+    if (cloneImg && row.value) cloneImg.src = row.value;
   });
 }
 
@@ -930,8 +1170,14 @@ updateSendButtonState();
 // Live updates: if the admin edits a product while someone has the site
 // open, refresh the grids automatically.
 supabase
-  .channel('products-changes')
+  .channel('menu-changes')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
     loadProducts();
+  })
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings', filter: `key=eq.${CATEGORY_SETTING_KEY}` }, async () => {
+    await loadMenuCategories();
+    renderCategoryUI();
+    renderAll(allProducts);
+    initCardClicks();
   })
   .subscribe();

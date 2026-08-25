@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-wideliveryth, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="format-detection" content="telephone=no">
 <title>L&amp;K Sandwiches</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,9 +21,9 @@
 
   <header>
     <div class="brandRow">
-      <div class="logo">
+      <button class="logo logoAdminTrigger" id="adminLogoTrigger" type="button" aria-label="Open admin access" title="Admin access">
         <img src="img/logo.png" alt="L&amp;K Sandwich logo">
-      </div>
+      </button>
       <div class="brandText">
         <h1>L&amp;K Sandwiches</h1>
         <p>ធានាគុណភាព · អនាម័យ · តម្លៃ</p>
@@ -63,7 +63,6 @@
   </header>
 
   <div class="heroWrap">
-    <div class="heroTopText">ទទួលរៀបចំ Catering សម្រាប់គ្រប់កម្មវិធី</div>
     <div class="hero" id="hero">
 
       <div class="heroSlide active">
@@ -78,15 +77,12 @@
         <img id="heroImg3" src="img/Banner3.jpg" alt="Breakfast stacks">
       </div>
 
-      <div class="heroDots" id="heroDots">
-        <button class="active" data-i="0" aria-label="Slide 1"></button>
-        <button data-i="1" aria-label="Slide 2"></button>
-        <button data-i="2" aria-label="Slide 3"></button>
+      <div class="heroSlide" data-hero-clone="hero_1" aria-hidden="true">
+        <img src="img/banner1.jpg" alt="">
       </div>
+
     </div>
   </div>
-
-  <div class="twine" aria-hidden="true"></div>
 
   <div class="sectionHead" id="sec-bestseller">
     <h3>Bestseller</h3>
@@ -94,15 +90,11 @@
   </div>
   <div class="grid" id="grid-bestseller"></div>
 
-  <div class="twine" aria-hidden="true"></div>
-
   <div class="sectionHead" id="sec-sandwich">
     <h3>សាំងវិច</h3>
     <span class="count" id="count-sandwich">Loading…</span>
   </div>
   <div class="grid" id="grid-sandwich"></div>
-
-  <div class="twine" aria-hidden="true"></div>
 
   <div class="sectionHead" id="sec-rice">
     <h3>បាយ</h3>
@@ -110,15 +102,11 @@
   </div>
   <div class="grid" id="grid-rice"></div>
 
-  <div class="twine" aria-hidden="true"></div>
-
   <div class="sectionHead" id="sec-dessert">
     <h3>បង្អែម</h3>
     <span class="count" id="count-dessert">Loading…</span>
   </div>
   <div class="grid" id="grid-dessert"></div>
-
-  <div class="twine" aria-hidden="true"></div>
 
   <div class="sectionHead" id="sec-drinks">
     <h3>ភេសជ្ជៈ</h3>
@@ -126,7 +114,7 @@
   </div>
   <div class="grid" id="grid-drinks"></div>
 
-  <div class="twine" aria-hidden="true"></div>
+  <div id="dynamicCategorySections"></div>
 
   <!-- ---------- our locations ---------- -->
   <div class="sectionHead" id="sec-locations">
@@ -182,8 +170,6 @@
     </div>
   </div>
 
-  <div class="twine" aria-hidden="true"></div>
-
   <!-- ---------- product detail modal ---------- -->
   <div class="modalOverlay" id="modalOverlay">
     <div class="modalCard">
@@ -220,35 +206,58 @@
       <div class="cartItems" id="cartItems"></div>
 
       <div class="cartCustomer">
-        <div class="custField">
-          <label class="custLabel">Order Type</label>
-          <div class="orderTypeToggle" id="orderTypeToggle">
-            <button type="button" class="otBtn" data-type="pickup">Pickup</button>
-            <button type="button" class="otBtn" data-type="delivery">Delivery</button>
-          </div>
-        </div>
-        <div class="custField">
-          <label class="custLabel" for="custName">Name</label>
-          <input type="text" id="custName" class="custInput" placeholder="e.g. Sokha">
-        </div>
-        <div class="custField">
-          <label class="custLabel" for="custPhone">Phone Number</label>
-          <input type="tel" id="custPhone" class="custInput" placeholder="e.g. 012 345 678">
-        </div>
-        <div class="custField" id="custAddressField">
-          <label class="custLabel" for="custAddress">Address</label>
-          <input type="text" id="custAddress" class="custInput" placeholder="e.g. House 12, St 210, Phnom Penh">
-        </div>
-        <div class="custFieldRow">
-          <div class="custField">
-            <label class="custLabel" for="custDate">Date</label>
-            <input type="date" id="custDate" class="custInput">
+        <section class="checkoutSection">
+          <div class="checkoutSectionTitle">
+            <span class="checkoutStep">1</span>
+            <h3>Order Method</h3>
           </div>
           <div class="custField">
-            <label class="custLabel" for="custTime">Time (optional)</label>
-            <input type="text" id="custTime" class="custInput" placeholder="e.g. 6:30 PM">
+            <div class="orderTypeToggle" id="orderTypeToggle">
+              <button type="button" class="otBtn" data-type="pickup">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16"/><path d="m5 10 1-5h12l1 5"/><path d="M6 13v7h12v-7"/><path d="M9 20v-4h6v4"/></svg>
+                <span>Pickup</span>
+              </button>
+              <button type="button" class="otBtn" data-type="delivery">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h11v10H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+                <span>Delivery</span>
+              </button>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section class="checkoutSection">
+          <div class="checkoutSectionTitle">
+            <span class="checkoutStep">2</span>
+            <h3>Contact Information</h3>
+          </div>
+          <div class="custField">
+            <input type="text" id="custName" class="custInput" placeholder="Full name" aria-label="Full name" autocomplete="name">
+          </div>
+          <div class="custField">
+            <input type="tel" id="custPhone" class="custInput" placeholder="+855" aria-label="Phone number" autocomplete="tel" inputmode="tel">
+          </div>
+          <div class="custField" id="custAddressField">
+            <label class="custLabel" for="custAddress">Address</label>
+            <input type="text" id="custAddress" class="custInput" placeholder="e.g. House 12, St 210, Phnom Penh">
+          </div>
+        </section>
+
+        <section class="checkoutSection">
+          <div class="checkoutSectionTitle">
+            <span class="checkoutStep">3</span>
+            <h3>Order Schedule</h3>
+          </div>
+          <div class="custFieldRow">
+            <div class="custField">
+              <label class="custLabel" for="custDate">Date</label>
+              <input type="date" id="custDate" class="custInput">
+            </div>
+            <div class="custField">
+              <label class="custLabel" for="custTime">Time (optional)</label>
+              <input type="text" id="custTime" class="custInput" placeholder="e.g. 6:30 PM">
+            </div>
+          </div>
+        </section>
       </div>
 
       <div class="cartPageTotals">
@@ -315,6 +324,42 @@
   <footer>
   </footer>
 </div>
+
+<div class="adminLoginOverlay" id="adminLoginOverlay" aria-hidden="true">
+  <div class="adminLoginCard" role="dialog" aria-modal="true" aria-labelledby="adminLoginTitle">
+    <button class="adminLoginClose" id="adminLoginClose" type="button" aria-label="Close admin login">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <path d="M6 6l12 12M18 6 6 18"/>
+      </svg>
+    </button>
+    <div class="adminLoginLogo" aria-hidden="true">
+      <img src="img/logo.png" alt="">
+    </div>
+    <p class="adminLoginEyebrow">Private access</p>
+    <h2 id="adminLoginTitle">L&amp;K Admin</h2>
+    <p class="adminLoginSub">Sign in to manage the menu, photos, and availability.</p>
+
+    <form id="customerAdminLoginForm">
+      <label for="customerAdminEmail">Email</label>
+      <input type="email" id="customerAdminEmail" autocomplete="username" placeholder="you@example.com" required>
+
+      <label for="customerAdminPassword">Password</label>
+      <div class="adminPasswordField">
+        <input type="password" id="customerAdminPassword" autocomplete="current-password" placeholder="Enter your password" required>
+        <button id="customerAdminPasswordToggle" type="button" aria-label="Show password">Show</button>
+      </div>
+
+      <button class="adminLoginSubmit" id="customerAdminLoginSubmit" type="submit">
+        <span id="customerAdminLoginLabel">Open Admin</span>
+      </button>
+      <p class="adminLoginError" id="customerAdminLoginError" role="alert"></p>
+    </form>
+  </div>
+</div>
+
+<section class="adminPortal" id="adminPortal" aria-hidden="true">
+  <iframe id="adminPortalFrame" title="L&amp;K admin dashboard" data-src="admin.html"></iframe>
+</section>
 
 <div id="receiptTemplate" class="receiptCard" style="position:absolute; left:-9999px; top:0;"></div>
 
