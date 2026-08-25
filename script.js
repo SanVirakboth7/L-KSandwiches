@@ -139,6 +139,7 @@ const DEFAULT_CATEGORIES = [
 ];
 
 const TELEGRAM_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/clever-processor`;
+const PAYWAY_PENDING_KEY = 'lk_payway_pending';
 
 let allProducts = [];
 let menuCategories = DEFAULT_CATEGORIES.map(category => ({ ...category }));
@@ -157,6 +158,7 @@ try {
 let memoryCart = {};
 let cart = loadCart();
 let pendingReceiptImage = null;
+let verifiedPayWayTransactionId = '';
 
 function loadCart() {
   if (!storageAvailable) return memoryCart;
@@ -200,12 +202,13 @@ function saveCustomer(info) {
 }
 function getCustomerFields() {
   return {
-    orderType : document.getElementById('orderTypeToggle')?.dataset.selected || '',
-    name      : document.getElementById('custName')?.value.trim() || '',
-    phone     : document.getElementById('custPhone')?.value.trim() || '',
-    address   : document.getElementById('custAddress')?.value.trim() || '',
-    date      : document.getElementById('custDate')?.value || '',
-    time      : document.getElementById('custTime')?.value || ''
+    orderType    : document.getElementById('orderTypeToggle')?.dataset.selected || '',
+    paymentMethod: document.getElementById('paymentMethodToggle')?.dataset.selected || '',
+    name         : document.getElementById('custName')?.value.trim() || '',
+    phone        : document.getElementById('custPhone')?.value.trim() || '',
+    address      : document.getElementById('custAddress')?.value.trim() || '',
+    date         : document.getElementById('custDate')?.value || '',
+    time         : document.getElementById('custTime')?.value || ''
   };
 }
 function formatDate(iso) {
@@ -217,6 +220,11 @@ function formatDate(iso) {
 function formatTime(t) {
   if (!t) return '';
   return t;
+}
+function paymentMethodLabel(method) {
+  if (method === 'aba') return 'ABA PayWay';
+  if (method === 'cash') return 'Cash on Delivery';
+  return '—';
 }
 /* ---------- keep content clear of the fixed header ----------
    header is `position:fixed` (see style.css), so it's out of document
@@ -326,7 +334,7 @@ function updateCartBar() {
 
 function buildQuoteText() {
   const entries = cartEntries();
-  const { orderType, name, phone, address, date, time } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, date, time } = getCustomerFields();
   const total = cartTotal();
 
   const divider = "────────────────";
@@ -339,6 +347,8 @@ function buildQuoteText() {
   }
   text += `Date: ${date ? formatDate(date) : '—'}\n`;
   text += `Time: ${time ? formatTime(time) : '—'}\n`;
+  text += `Payment Method: ${paymentMethodLabel(paymentMethod)}\n`;
+  if (verifiedPayWayTransactionId) text += `ABA Transaction: ${verifiedPayWayTransactionId}\n`;
   text += `${divider}\n`;
   text += `Items\n\n`;
   entries.forEach(([id, qty], i) => {
@@ -397,10 +407,10 @@ function renderCartModal() {
 function updateSendButtonState() {
   const sendBtn = document.getElementById('sendOrderBtn');
   if (!sendBtn) return;
-  const { orderType, name, phone, address, date, time } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, date } = getCustomerFields();
   const items = cartEntries();
   const addressOk = orderType === 'delivery' ? !!address : true;
-  const complete = items.length > 0 && orderType && name && phone && addressOk && date;
+  const complete = items.length > 0 && orderType && paymentMethod && name && phone && addressOk && date;
   sendBtn.disabled = !complete;
 }
 
@@ -409,7 +419,7 @@ function updateSendButtonState() {
    message itself (buildQuoteText handles that one). */
 function buildConfirmSummaryHTML() {
   const entries = cartEntries();
-  const { orderType, name, phone, address, date, time } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, date, time } = getCustomerFields();
 
   const itemsHTML = entries.map(([id, qty]) => {
     const p = allProducts.find(pp => pp.id === id);
@@ -434,6 +444,8 @@ function buildConfirmSummaryHTML() {
     ${addressRow}
     <div class="confirmDetailRow"><span>Date</span><span>${date ? escapeHTML(formatDate(date)) : '—'}</span></div>
     <div class="confirmDetailRow"><span>Time</span><span>${time ? escapeHTML(formatTime(time)) : '—'}</span></div>
+    <div class="confirmDetailRow"><span>Payment Method</span><span>${paymentMethodLabel(paymentMethod)}</span></div>
+    ${verifiedPayWayTransactionId ? `<div class="confirmDetailRow"><span>ABA Transaction</span><span>${escapeHTML(verifiedPayWayTransactionId)}</span></div>` : ''}
     <div class="confirmDivider"></div>
     ${itemsHTML}
     <div class="confirmDivider"></div>
@@ -443,7 +455,7 @@ function buildConfirmSummaryHTML() {
 
 function buildReceiptHTML() {
   const entries = cartEntries();
-  const { orderType, name, phone, address, date, time } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, date, time } = getCustomerFields();
   const total = cartTotal();
 
   const itemsHTML = entries.map(([id, qty]) => {
@@ -474,6 +486,8 @@ function buildReceiptHTML() {
       ${addressRow}
       <div class="receiptRow"><span>Date</span><span>${date ? escapeHTML(formatDate(date)) : '—'}</span></div>
       <div class="receiptRow"><span>Time</span><span>${time ? escapeHTML(formatTime(time)) : '—'}</span></div>
+      <div class="receiptRow"><span>Payment Method</span><span>${paymentMethodLabel(paymentMethod)}</span></div>
+      ${verifiedPayWayTransactionId ? `<div class="receiptRow"><span>ABA Transaction</span><span>${escapeHTML(verifiedPayWayTransactionId)}</span></div>` : ''}
       <div class="receiptDivider"></div>
       <div class="receiptItemsTitle">Order Items</div>
       ${itemsHTML}
@@ -507,6 +521,13 @@ function openConfirmModal() {
   const sendBtn = document.getElementById('sendOrderBtn');
   if (!sendBtn || sendBtn.disabled) return;
 
+  const confirmSendBtn = document.getElementById('confirmSendBtn');
+  if (confirmSendBtn) {
+    confirmSendBtn.textContent = getCustomerFields().paymentMethod === 'aba'
+      ? 'Pay with ABA'
+      : 'Confirm Order';
+  }
+
   const summaryEl = document.getElementById('confirmSummary');
   if (summaryEl) summaryEl.innerHTML = buildConfirmSummaryHTML();
 
@@ -533,10 +554,150 @@ function closeConfirmModal() {
   pendingReceiptImage = null;
 }
 
-async function sendOrderToTelegram() {
+function showPayWayStatus(message, type = 'info') {
+  let status = document.getElementById('paywayStatus');
+  if (!status) {
+    status = document.createElement('div');
+    status.id = 'paywayStatus';
+    status.className = 'paywayStatus';
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-live', 'polite');
+    document.body.appendChild(status);
+  }
+  status.className = `paywayStatus show ${type}`;
+  status.textContent = message;
+}
+
+function clearPayWayReturnParams() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('payway');
+  url.searchParams.delete('tran_id');
+  window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+}
+
+function buildPayWayOrderPayload() {
+  const { orderType, name, phone, address, date, time } = getCustomerFields();
+  return {
+    orderType,
+    customer: { name, phone, address },
+    schedule: { date, time },
+    items: cartEntries().map(([id, quantity]) => ({ id, quantity }))
+  };
+}
+
+async function startPayWayCheckout() {
+  const sendBtn = document.getElementById('sendOrderBtn');
+  const confirmSendBtn = document.getElementById('confirmSendBtn');
+  const originalLabel = sendBtn?.textContent || 'Send Order';
+  const originalConfirmLabel = confirmSendBtn?.textContent || 'Pay with ABA';
+
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = 'Opening ABA…'; }
+  if (confirmSendBtn) { confirmSendBtn.disabled = true; confirmSendBtn.textContent = 'Opening ABA…'; }
+
+  try {
+    if (!storageAvailable) throw new Error('Browser storage is required to safely complete an ABA payment.');
+    const response = await fetch('/api/payway/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildPayWayOrderPayload())
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Could not start ABA PayWay.');
+
+    localStorage.setItem(PAYWAY_PENDING_KEY, JSON.stringify({
+      tranId: result.tranId,
+      amount: Number(result.amount),
+      createdAt: Date.now()
+    }));
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = result.gatewayUrl;
+    form.style.display = 'none';
+    Object.entries(result.fields || {}).forEach(([name, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = String(value ?? '');
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+  } catch (error) {
+    console.error('[L&K] Could not start PayWay:', error);
+    alert(error instanceof Error ? error.message : 'Could not start ABA PayWay.');
+    if (sendBtn) { sendBtn.textContent = originalLabel; sendBtn.disabled = false; }
+    if (confirmSendBtn) { confirmSendBtn.textContent = originalConfirmLabel; confirmSendBtn.disabled = false; }
+  }
+}
+
+async function handlePayWayReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const returnState = params.get('payway');
+  if (!returnState) return;
+
+  if (returnState === 'cancelled') {
+    localStorage.removeItem(PAYWAY_PENDING_KEY);
+    showPayWayStatus('ABA payment was cancelled. Your basket is still saved.', 'warning');
+    clearPayWayReturnParams();
+    return;
+  }
+  if (returnState !== 'return') return;
+
+  const tranId = params.get('tran_id') || '';
+  let pending = null;
+  try { pending = JSON.parse(localStorage.getItem(PAYWAY_PENDING_KEY) || 'null'); }
+  catch { pending = null; }
+
+  if (!pending || pending.tranId !== tranId) {
+    showPayWayStatus('Payment returned, but this order could not be recovered. Please contact L&K.', 'error');
+    return;
+  }
+
+  showPayWayStatus('Checking your ABA payment…');
+  try {
+    const response = await fetch(`/api/payway/check?tran_id=${encodeURIComponent(tranId)}`, {
+      headers: { Accept: 'application/json' }
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Could not verify payment.');
+    if (!result.approved) {
+      showPayWayStatus(`ABA payment status: ${result.status || 'Processing'}. Please refresh to check again.`, 'warning');
+      return;
+    }
+    if (result.currency !== 'USD' || Math.abs(Number(result.amount) - Number(pending.amount)) > 0.001) {
+      throw new Error('The verified payment amount does not match this order. Please contact L&K.');
+    }
+
+    prefillCustomerFields();
+    setPaymentMethod('aba');
+    renderCartModal();
+    verifiedPayWayTransactionId = tranId;
+    updateSendButtonState();
+
+    if (document.getElementById('sendOrderBtn')?.disabled) {
+      throw new Error('Your paid order is missing checkout details. Please contact L&K.');
+    }
+
+    showPayWayStatus('ABA payment approved. Sending your order…', 'success');
+    await sendOrderToTelegram({ paymentVerifiedTranId: tranId });
+  } catch (error) {
+    console.error('[L&K] PayWay verification failed:', error);
+    showPayWayStatus(error instanceof Error ? error.message : 'Could not verify ABA payment.', 'error');
+  }
+}
+
+async function sendOrderToTelegram({ paymentVerifiedTranId = '' } = {}) {
   const sendBtn = document.getElementById('sendOrderBtn');
   const confirmSendBtn = document.getElementById('confirmSendBtn');
   if (!sendBtn || sendBtn.disabled) return;
+
+  if (getCustomerFields().paymentMethod === 'aba' && !paymentVerifiedTranId) {
+    await startPayWayCheckout();
+    return;
+  }
+
+  if (paymentVerifiedTranId) verifiedPayWayTransactionId = paymentVerifiedTranId;
 
   const originalLabel = sendBtn.textContent;
   const originalConfirmLabel = confirmSendBtn?.textContent;
@@ -579,10 +740,16 @@ async function sendOrderToTelegram() {
 
     closeConfirmModal();
     sendBtn.textContent = 'Order Sent ✓';
+    if (paymentVerifiedTranId) {
+      localStorage.removeItem(PAYWAY_PENDING_KEY);
+      clearPayWayReturnParams();
+      showPayWayStatus('Payment approved and order sent to L&K.', 'success');
+    }
     setTimeout(() => {
       clearCart();
       closeCartPage();
       pendingReceiptImage = null;
+      verifiedPayWayTransactionId = '';
       sendBtn.textContent = originalLabel;
       sendBtn.disabled = false;
       if (confirmSendBtn) { confirmSendBtn.textContent = originalConfirmLabel; confirmSendBtn.disabled = false; }
@@ -989,6 +1156,7 @@ const custAddressField = document.getElementById('custAddressField');
 const custDateInput = document.getElementById('custDate');
 const custTimeInput = document.getElementById('custTime');
 const orderTypeToggle = document.getElementById('orderTypeToggle');
+const paymentMethodToggle = document.getElementById('paymentMethodToggle');
 
 // Don't let a customer pick a date in the past.
 if (custDateInput) custDateInput.min = new Date().toISOString().split('T')[0];
@@ -1013,9 +1181,28 @@ if (orderTypeToggle) {
   });
 }
 
+function setPaymentMethod(method) {
+  if (!paymentMethodToggle) return;
+  paymentMethodToggle.dataset.selected = method;
+  paymentMethodToggle.querySelectorAll('.pmBtn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.payment === method);
+  });
+}
+
+if (paymentMethodToggle) {
+  paymentMethodToggle.querySelectorAll('.pmBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setPaymentMethod(btn.dataset.payment);
+      saveCustomer(getCustomerFields());
+      updateSendButtonState();
+    });
+  });
+}
+
 function prefillCustomerFields() {
   const saved = loadCustomer();
   setOrderType(saved.orderType || 'pickup');
+  setPaymentMethod(saved.paymentMethod || 'aba');
   if (custNameInput) custNameInput.value = saved.name || '';
   if (custPhoneInput) custPhoneInput.value = saved.phone || '';
   if (custAddressInput) custAddressInput.value = saved.address || '';
@@ -1162,10 +1349,13 @@ async function loadHeroImages() {
 }
 
 /* ---------- go ---------- */
-loadProducts();
+const productsReady = loadProducts();
 loadHeroImages();
 updateCartBar();
 updateSendButtonState();
+productsReady
+  .then(handlePayWayReturn)
+  .catch(error => console.error('[L&K] Initial menu load failed:', error));
 
 // Live updates: if the admin edits a product while someone has the site
 // open, refresh the grids automatically.

@@ -1,0 +1,11 @@
+.git/
+.vscode/
+.wrangler/
+node_modules/
+worker.js
+wrangler.jsonc
+worker-configuration.d.ts
+.dev.vars
+.env*
+*.md
+*.sql

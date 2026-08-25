@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "lnksandwiches",
+  "main": "./worker.js",
+  "compatibility_date": "2026-08-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "PAYWAY_ENV": "sandbox",
+    "SUPABASE_URL": "https://chaxkujdkybcgekryudr.supabase.co"
+  },
+  "secrets": {
+    "required": ["PAYWAY_MERCHANT_ID", "PAYWAY_API_KEY", "SUPABASE_ANON_KEY"]
+  },
+  "observability": {
+    "enabled": true,
+    "logs": { "enabled": true, "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.05 }
+  }
+}
