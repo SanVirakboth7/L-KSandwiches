@@ -741,6 +741,7 @@ function buildOrderRecord(paymentVerifiedTranId = '', telegramSent = false) {
     return [{
       id: product.id,
       name: product.name,
+      image_url: product.image_url || '',
       quantity,
       unit_price: unitPrice,
       line_total: Number((unitPrice * quantity).toFixed(2))

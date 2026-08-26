@@ -334,15 +334,30 @@ function orderAddressHTML(order) {
 
 function orderCardHTML(order) {
   const items = safeOrderItems(order.items);
-  const itemsHTML = items.map(item => `
+  const itemsHTML = items.map(item => {
+    const catalogProduct = products.find(product => String(product.id) === String(item.id));
+    const snapshotImage = String(item.image_url || '');
+    const safeSnapshotImage = snapshotImage.startsWith('img/')
+      || snapshotImage.startsWith(`${SUPABASE_URL}/storage/v1/object/public/`)
+      ? snapshotImage
+      : '';
+    const imageUrl = String(catalogProduct?.image_url || safeSnapshotImage || PLACEHOLDER_IMAGE);
+    const itemName = String(item.name || catalogProduct?.name || item.id || 'Item');
+    return `
     <div class="adminOrderItem">
-      <span class="adminOrderQty">${Number(item.quantity) || 0}×</span>
-      <span class="adminOrderItemName">
-        <span>${escapeHTML(String(item.name || item.id || 'Item'))}</span>
-        ${item.id ? `<small class="adminOrderItemId">ID: ${escapeHTML(String(item.id))}</small>` : ''}
+      <span class="adminOrderItemImage">
+        <img src="${escapeAttr(imageUrl)}" alt="${escapeAttr(itemName)}" loading="lazy">
       </span>
-      <span class="adminOrderItemPrice">$${Number(item.line_total || 0).toFixed(2)}</span>
-    </div>`).join('');
+      <span class="adminOrderItemBody">
+        <span class="adminOrderItemName">${escapeHTML(itemName)}</span>
+        ${item.id ? `<small class="adminOrderItemId">ID: ${escapeHTML(String(item.id))}</small>` : ''}
+        <span class="adminOrderItemMeta">
+          <span>${Number(item.quantity) || 0} ordered</span>
+          <strong>$${Number(item.line_total || 0).toFixed(2)}</strong>
+        </span>
+      </span>
+    </div>`;
+  }).join('');
   const phone = String(order.customer_phone || '');
   const paymentLabel = order.payment_method === 'aba' ? 'ABA Pay' : 'Cash';
   const paymentState = order.payment_status === 'paid' ? 'Paid' : 'Cash on delivery';
@@ -350,6 +365,7 @@ function orderCardHTML(order) {
   const orderNumber = Number.isFinite(numericOrderNumber) && numericOrderNumber > 0
     ? String(numericOrderNumber).padStart(3, '0')
     : String(order.id || '').slice(0, 8).toUpperCase();
+  const itemsPanelId = `admin-order-items-${String(order.id || orderNumber).replace(/[^a-z0-9_-]/gi, '')}`;
   const phoneHref = phone.replace(/[^+\d]/g, '');
   const phoneHTML = phone
     ? `<a class="adminOrderPhone" href="tel:${escapeAttr(phoneHref)}">
@@ -393,12 +409,19 @@ function orderCardHTML(order) {
           <span>${escapeHTML(formatOrderSchedule(order.scheduled_date, order.scheduled_time))}</span>
         </div>
         ${orderAddressHTML(order)}
+        <button type="button" class="adminOrderItemsToggle" data-order-items-toggle aria-expanded="false" aria-controls="${escapeAttr(itemsPanelId)}">
+          <span class="adminOrderItemsToggleLabel">View more</span>
+          <strong>${Number(order.item_count) || 0}</strong>
+          <svg class="adminOrderItemsChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
       </div>
 
-      <div class="adminOrderItems">${itemsHTML || '<p class="adminOrderNoItems">No item details</p>'}</div>
+      <div class="adminOrderItems" id="${escapeAttr(itemsPanelId)}" hidden>
+        ${itemsHTML || '<p class="adminOrderNoItems">No item details</p>'}
+        <div class="adminOrderTotal"><span>Total</span><strong>$${Number(order.total || 0).toFixed(2)}</strong></div>
+      </div>
 
       ${order.payment_transaction_id ? `<p class="adminOrderTransaction">ABA transaction: ${escapeHTML(String(order.payment_transaction_id))}</p>` : ''}
-      <div class="adminOrderTotal"><span>Total</span><strong>$${Number(order.total || 0).toFixed(2)}</strong></div>
     </article>`;
 }
 
@@ -443,6 +466,17 @@ async function loadOrders() {
 }
 
 ordersRefreshBtn?.addEventListener('click', loadOrders);
+ordersList?.addEventListener('click', event => {
+  const button = event.target.closest('[data-order-items-toggle]');
+  if (!button) return;
+  const panel = document.getElementById(button.getAttribute('aria-controls'));
+  if (!panel) return;
+  const expanded = button.getAttribute('aria-expanded') === 'true';
+  button.setAttribute('aria-expanded', String(!expanded));
+  panel.hidden = expanded;
+  const label = button.querySelector('.adminOrderItemsToggleLabel');
+  if (label) label.textContent = expanded ? 'View more' : 'Hide items';
+});
 ordersPrevPeriod?.addEventListener('click', () => moveOrderPeriod(-1));
 ordersNextPeriod?.addEventListener('click', () => moveOrderPeriod(1));
 ordersWeekStrip?.addEventListener('click', event => {
@@ -700,6 +734,7 @@ async function loadProducts() {
     return;
   }
   products = data || [];
+  if (currentPage === 'orders' && orders.length) renderOrders();
   await loadCategories();
   updateCategoryCounts();
   updateDashboardStats();
