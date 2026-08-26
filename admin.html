@@ -181,6 +181,50 @@
       <div class="productList" id="productList"></div>
     </section>
 
+    <!-- ============ ORDERS PAGE ============ -->
+    <section class="page" id="page-orders">
+      <div class="ordersToolbar">
+        <div class="ordersToolbarHead">
+          <div class="ordersPeriodTitle">
+            <span id="ordersPeriodMode">Day</span>
+            <strong id="ordersPeriodLabel">Today</strong>
+          </div>
+          <div class="ordersToolbarActions">
+            <button type="button" class="ordersNavBtn" id="ordersPrevPeriod" aria-label="Previous period">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <button type="button" class="ordersNavBtn" id="ordersNextPeriod" aria-label="Next period">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <div class="ordersPeriodFilter">
+              <button type="button" class="ordersFilterBtn" id="ordersFilterBtn" aria-label="Filter orders by period" aria-expanded="false" aria-controls="ordersFilterMenu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>
+                <span class="ordersFilterDot" aria-hidden="true"></span>
+              </button>
+              <div class="ordersFilterMenu" id="ordersFilterMenu" role="menu" aria-label="Order date range">
+                <p>Show orders by</p>
+                <button type="button" class="ordersFilterOption active" data-order-period="day" role="menuitem"><span>Day</span><span class="ordersFilterCheck">✓</span></button>
+                <button type="button" class="ordersFilterOption" data-order-period="week" role="menuitem"><span>Week</span><span class="ordersFilterCheck">✓</span></button>
+                <button type="button" class="ordersFilterOption" data-order-period="month" role="menuitem"><span>Month</span><span class="ordersFilterCheck">✓</span></button>
+                <button type="button" class="ordersFilterOption" data-order-period="year" role="menuitem"><span>Year</span><span class="ordersFilterCheck">✓</span></button>
+                <button type="button" class="ordersFilterOption" data-order-period="all" role="menuitem"><span>All records</span><span class="ordersFilterCheck">✓</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ordersWeekStrip" id="ordersWeekStrip" aria-label="Choose order date"></div>
+      </div>
+      <div class="ordersMeta">
+        <p class="ordersCount" id="ordersCount" aria-live="polite">Loading orders…</p>
+        <button type="button" class="ordersRefreshBtn" id="ordersRefreshBtn" aria-label="Refresh orders">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 1 0 2 5.3"/><path d="M20 4v7h-7"/></svg>
+        </button>
+      </div>
+      <div class="ordersList" id="ordersList">
+        <p class="ordersEmpty">Loading orders…</p>
+      </div>
+    </section>
+
     <!-- ============ SETTINGS PAGE ============ -->
     <section class="page" id="page-settings">
       <div class="settingsAccount">
@@ -237,6 +281,10 @@
     <button class="navBtn" data-page="menu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v7a2 2 0 0 0 2 2v11"/><path d="M6 11V2"/><path d="M8 2v7"/><path d="M18 2c-2 0-3 2.5-3 5.5S16 13 18 13"/><path d="M18 2v20"/></svg>
       <span>Menu</span>
+    </button>
+    <button class="navBtn" data-page="orders">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h6"/><path d="M9 3h6a2 2 0 0 1 2 2v1h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2V5a2 2 0 0 1 2-2Z"/><path d="m8 13 2 2 5-5"/></svg>
+      <span>Orders</span>
     </button>
     <button class="navBtn" data-page="settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>

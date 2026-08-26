@@ -153,7 +153,10 @@ const DEFAULT_CATEGORIES = [
 ];
 
 const TELEGRAM_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/clever-processor`;
+// Temporary pause: set this back to true when Telegram order delivery should resume.
+const TELEGRAM_ORDER_SENDING_ENABLED = false;
 const PAYWAY_PENDING_KEY = 'lk_payway_pending';
+const ORDER_RECORD_PENDING_KEY = 'lk_pending_order_records';
 
 let allProducts = [];
 let menuCategories = DEFAULT_CATEGORIES.map(category => ({ ...category }));
@@ -555,10 +558,8 @@ function openConfirmModal() {
 
   document.getElementById('confirmOverlay')?.classList.add('open');
 
-
   pendingReceiptImage = null;
-  const { name } = getCustomerFields();
-  const total = cartTotal();
+  if (!TELEGRAM_ORDER_SENDING_ENABLED) return;
   const caption = `🧾 New Order`;
 
   generateReceiptImageBase64()
@@ -714,15 +715,103 @@ async function handlePayWayReturn() {
       throw new Error('Your paid order is missing checkout details. Please contact L&K.');
     }
 
-    showPayWayStatus('ABA payment approved. Sending your order…', 'success');
-    await sendOrderToTelegram({ paymentVerifiedTranId: tranId });
+    showPayWayStatus('ABA payment approved. Saving your order…', 'success');
+    await submitOrder({ paymentVerifiedTranId: tranId });
   } catch (error) {
     console.error('[L&K] PayWay verification failed:', error);
     showPayWayStatus(error instanceof Error ? error.message : 'Could not verify ABA payment.', 'error');
   }
 }
 
-async function sendOrderToTelegram({ paymentVerifiedTranId = '' } = {}) {
+function newClientOrderId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
+    const random = Math.floor(Math.random() * 16);
+    const value = character === 'x' ? random : ((random & 3) | 8);
+    return value.toString(16);
+  });
+}
+
+function buildOrderRecord(paymentVerifiedTranId = '', telegramSent = false) {
+  const { orderType, paymentMethod, name, phone, address, date, time } = getCustomerFields();
+  const items = cartEntries().flatMap(([id, quantity]) => {
+    const product = allProducts.find(item => item.id === id);
+    if (!product) return [];
+    const unitPrice = priceNum(product);
+    return [{
+      id: product.id,
+      name: product.name,
+      quantity,
+      unit_price: unitPrice,
+      line_total: Number((unitPrice * quantity).toFixed(2))
+    }];
+  });
+
+  return {
+    client_order_id: newClientOrderId(),
+    customer_name: name,
+    customer_phone: phone,
+    delivery_address: orderType === 'delivery' ? address : '',
+    order_type: orderType,
+    payment_method: paymentMethod,
+    payment_status: paymentMethod === 'aba' ? 'paid' : 'cash_due',
+    payment_transaction_id: paymentMethod === 'aba' ? paymentVerifiedTranId : null,
+    scheduled_date: date,
+    scheduled_time: time,
+    items,
+    item_count: items.reduce((sum, item) => sum + item.quantity, 0),
+    total: Number(cartTotal().toFixed(2)),
+    currency: 'USD',
+    status: 'new',
+    telegram_sent: telegramSent
+  };
+}
+
+function loadPendingOrderRecords() {
+  if (!storageAvailable) return [];
+  try {
+    const value = JSON.parse(localStorage.getItem(ORDER_RECORD_PENDING_KEY) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+
+function savePendingOrderRecords(records) {
+  if (!storageAvailable) return;
+  if (records.length) localStorage.setItem(ORDER_RECORD_PENDING_KEY, JSON.stringify(records));
+  else localStorage.removeItem(ORDER_RECORD_PENDING_KEY);
+}
+
+function queueOrderRecord(record) {
+  if (!storageAvailable) return;
+  const records = loadPendingOrderRecords();
+  if (!records.some(item => item.client_order_id === record.client_order_id)) records.push(record);
+  savePendingOrderRecords(records.slice(-10));
+}
+
+async function insertOrderRecord(record) {
+  const { error } = await supabase.from('orders').insert(record);
+  if (error && error.code !== '23505') throw error;
+}
+
+async function flushPendingOrderRecords() {
+  const records = loadPendingOrderRecords();
+  if (!records.length) return;
+
+  const remaining = [];
+  for (const record of records) {
+    try {
+      await insertOrderRecord(record);
+    } catch (error) {
+      console.warn('[L&K] Pending admin order record could not sync:', error.message || error);
+      remaining.push(record);
+    }
+  }
+  savePendingOrderRecords(remaining);
+}
+
+async function submitOrder({ paymentVerifiedTranId = '' } = {}) {
   const sendBtn = document.getElementById('sendOrderBtn');
   const confirmSendBtn = document.getElementById('confirmSendBtn');
   if (!sendBtn || sendBtn.disabled) return;
@@ -737,49 +826,59 @@ async function sendOrderToTelegram({ paymentVerifiedTranId = '' } = {}) {
   const originalLabel = sendBtn.textContent;
   const originalConfirmLabel = confirmSendBtn?.textContent;
   sendBtn.disabled = true;
-  sendBtn.textContent = 'Sending…';
-  if (confirmSendBtn) { confirmSendBtn.disabled = true; confirmSendBtn.textContent = 'Sending…'; }
+  sendBtn.textContent = 'Saving…';
+  if (confirmSendBtn) { confirmSendBtn.disabled = true; confirmSendBtn.textContent = 'Saving…'; }
 
   try {
-    let payload;
+    let telegramSent = false;
 
-    if (pendingReceiptImage) {
-      // Already generated while the confirm modal was open — no wait.
-      payload = { image: pendingReceiptImage.base64, caption: pendingReceiptImage.caption };
-    } else {
-      // Background generation hadn't finished (or failed) — generate now
-      // as a fallback, same as before.
-      const { name } = getCustomerFields();
-      const total = cartTotal();
-      const caption = `🧾 New Order — ${name || 'Customer'} — $${total.toFixed(2)} (${formatRiel(total)})`;
-      try {
-        const imageBase64 = await generateReceiptImageBase64();
-        if (!imageBase64) throw new Error('html2canvas unavailable or produced no image');
-        payload = { image: imageBase64, caption };
-      } catch (imgErr) {
-        console.warn('[L&K] Receipt image generation failed, falling back to text:', imgErr);
-        payload = { text: buildQuoteText() };
+    if (TELEGRAM_ORDER_SENDING_ENABLED) {
+      let payload;
+
+      if (pendingReceiptImage) {
+        payload = { image: pendingReceiptImage.base64, caption: pendingReceiptImage.caption };
+      } else {
+        const { name } = getCustomerFields();
+        const total = cartTotal();
+        const caption = `🧾 New Order — ${name || 'Customer'} — $${total.toFixed(2)} (${formatRiel(total)})`;
+        try {
+          const imageBase64 = await generateReceiptImageBase64();
+          if (!imageBase64) throw new Error('html2canvas unavailable or produced no image');
+          payload = { image: imageBase64, caption };
+        } catch (imgErr) {
+          console.warn('[L&K] Receipt image generation failed, falling back to text:', imgErr);
+          payload = { text: buildQuoteText() };
+        }
       }
+
+      const res = await fetch(TELEGRAM_FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to send order');
+      telegramSent = true;
     }
 
-    const res = await fetch(TELEGRAM_FUNCTION_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Failed to send order');
+    const orderRecord = buildOrderRecord(paymentVerifiedTranId, telegramSent);
+    try {
+      await insertOrderRecord(orderRecord);
+    } catch (recordError) {
+      queueOrderRecord(orderRecord);
+      console.warn('[L&K] The admin order record was queued for retry:', recordError.message || recordError);
+    }
 
     closeConfirmModal();
     openOrderSuccessModal();
-    sendBtn.textContent = 'Order Sent ✓';
+    sendBtn.textContent = 'Order Saved ✓';
     if (paymentVerifiedTranId) {
       localStorage.removeItem(PAYWAY_PENDING_KEY);
       clearPayWayReturnParams();
-      showPayWayStatus('Payment approved and order sent to L&K.', 'success');
+      showPayWayStatus('Payment approved and order saved to L&K.', 'success');
     }
     setTimeout(() => {
       clearCart();
@@ -791,8 +890,8 @@ async function sendOrderToTelegram({ paymentVerifiedTranId = '' } = {}) {
       if (confirmSendBtn) { confirmSendBtn.textContent = originalConfirmLabel; confirmSendBtn.disabled = false; }
     }, 1200);
   } catch (err) {
-    console.error('[L&K] Failed to send order:', err);
-    alert('Could not send your order. Please check your connection and try again.');
+    console.error('[L&K] Failed to save order:', err);
+    alert('Could not save your order. Please check your connection and try again.');
     sendBtn.textContent = originalLabel;
     sendBtn.disabled = false;
     if (confirmSendBtn) { confirmSendBtn.textContent = originalConfirmLabel; confirmSendBtn.disabled = false; }
@@ -1222,10 +1321,19 @@ const custNameInput = document.getElementById('custName');
 const custPhoneInput = document.getElementById('custPhone');
 const custAddressInput = document.getElementById('custAddress');
 const custAddressField = document.getElementById('custAddressField');
+const deliveryAddressResult = document.getElementById('deliveryAddressResult');
+const deliveryAddressEdit = document.getElementById('deliveryAddressEdit');
+const addressEditorOverlay = document.getElementById('addressEditorOverlay');
+const addressEditorClose = document.getElementById('addressEditorClose');
+const addressCancelBtn = document.getElementById('addressCancelBtn');
+const addressSaveBtn = document.getElementById('addressSaveBtn');
+const useLocationBtn = document.getElementById('useLocationBtn');
+const locationStatus = document.getElementById('locationStatus');
 const custDateInput = document.getElementById('custDate');
 const custTimeInput = document.getElementById('custTime');
 const orderTypeToggle = document.getElementById('orderTypeToggle');
 const paymentMethodToggle = document.getElementById('paymentMethodToggle');
+let addressBeforeEdit = '';
 
 // Don't let a customer pick a date in the past.
 if (custDateInput) custDateInput.min = new Date().toISOString().split('T')[0];
@@ -1254,7 +1362,9 @@ function setPaymentMethod(method) {
   if (!paymentMethodToggle) return;
   paymentMethodToggle.dataset.selected = method;
   paymentMethodToggle.querySelectorAll('.pmBtn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.payment === method);
+    const isActive = btn.dataset.payment === method;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', String(isActive));
   });
 }
 
@@ -1268,6 +1378,99 @@ if (paymentMethodToggle) {
   });
 }
 
+function displayAddressValue(address) {
+  const locationMatch = String(address || '').match(/[?&]q=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+  if (locationMatch) return `Current location (${locationMatch[1]}, ${locationMatch[2]})`;
+  return String(address || '').trim();
+}
+
+function syncDeliveryAddressResult() {
+  if (!deliveryAddressResult) return;
+  const address = custAddressInput?.value.trim() || '';
+  deliveryAddressResult.textContent = displayAddressValue(address) || 'Add your delivery address';
+  deliveryAddressResult.classList.toggle('empty', !address);
+}
+
+function setLocationStatus(message = '', type = '') {
+  if (!locationStatus) return;
+  locationStatus.textContent = message;
+  locationStatus.classList.toggle('success', type === 'success');
+  locationStatus.classList.toggle('error', type === 'error');
+}
+
+function openAddressEditor() {
+  if (!addressEditorOverlay || !custAddressInput) return;
+  addressBeforeEdit = custAddressInput.value;
+  setLocationStatus();
+  addressEditorOverlay.classList.add('open');
+  addressEditorOverlay.setAttribute('aria-hidden', 'false');
+  window.setTimeout(() => custAddressInput.focus(), 100);
+}
+
+function closeAddressEditor({ restore = false } = {}) {
+  if (restore && custAddressInput) custAddressInput.value = addressBeforeEdit;
+  addressEditorOverlay?.classList.remove('open');
+  addressEditorOverlay?.setAttribute('aria-hidden', 'true');
+  setLocationStatus();
+  syncDeliveryAddressResult();
+  window.setTimeout(() => deliveryAddressEdit?.focus(), 60);
+}
+
+function saveEditedAddress() {
+  if (!custAddressInput) return;
+  custAddressInput.value = custAddressInput.value.trim();
+  saveCustomer(getCustomerFields());
+  updateSendButtonState();
+  syncDeliveryAddressResult();
+  closeAddressEditor();
+}
+
+function useCurrentDeliveryLocation() {
+  if (!navigator.geolocation) {
+    setLocationStatus('Location access is not supported by this browser.', 'error');
+    return;
+  }
+
+  if (useLocationBtn) useLocationBtn.disabled = true;
+  setLocationStatus('Requesting access to your location…');
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      const latitude = position.coords.latitude.toFixed(6);
+      const longitude = position.coords.longitude.toFixed(6);
+      if (custAddressInput) {
+        custAddressInput.value = `https://www.google.com/maps?q=${latitude},${longitude}`;
+      }
+      setLocationStatus('Current location added. Save to use it for delivery.', 'success');
+      if (useLocationBtn) useLocationBtn.disabled = false;
+    },
+    error => {
+      const messages = {
+        1: 'Location permission was denied. You can enter the address manually.',
+        2: 'Your current location could not be found. Please try again or enter it manually.',
+        3: 'Location request timed out. Please try again.'
+      };
+      setLocationStatus(messages[error.code] || 'Could not access your location.', 'error');
+      if (useLocationBtn) useLocationBtn.disabled = false;
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+  );
+}
+
+deliveryAddressEdit?.addEventListener('click', openAddressEditor);
+addressEditorClose?.addEventListener('click', () => closeAddressEditor({ restore: true }));
+addressCancelBtn?.addEventListener('click', () => closeAddressEditor({ restore: true }));
+addressSaveBtn?.addEventListener('click', saveEditedAddress);
+useLocationBtn?.addEventListener('click', useCurrentDeliveryLocation);
+addressEditorOverlay?.addEventListener('click', event => {
+  if (event.target === addressEditorOverlay) closeAddressEditor({ restore: true });
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && addressEditorOverlay?.classList.contains('open')) {
+    closeAddressEditor({ restore: true });
+  }
+});
+
 function prefillCustomerFields() {
   const saved = loadCustomer();
   setOrderType(saved.orderType || 'pickup');
@@ -1277,9 +1480,10 @@ function prefillCustomerFields() {
   if (custAddressInput) custAddressInput.value = saved.address || '';
   if (custDateInput) custDateInput.value = saved.date || '';
   if (custTimeInput) custTimeInput.value = saved.time || '';
+  syncDeliveryAddressResult();
 }
 
-[custNameInput, custPhoneInput, custAddressInput, custDateInput, custTimeInput].forEach(input => {
+[custNameInput, custPhoneInput, custDateInput, custTimeInput].forEach(input => {
   if (!input) return;
   input.addEventListener('input', () => {
     saveCustomer(getCustomerFields());
@@ -1293,6 +1497,7 @@ function openCartPage() {
   cartPage?.classList.add('open');
 }
 function closeCartPage() {
+  if (addressEditorOverlay?.classList.contains('open')) closeAddressEditor({ restore: true });
   cartPage?.classList.remove('open');
 }
 
@@ -1311,7 +1516,7 @@ const orderSuccessOverlay = document.getElementById('orderSuccessOverlay');
 const orderSuccessDoneBtn = document.getElementById('orderSuccessDoneBtn');
 
 if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', closeConfirmModal);
-if (confirmSendBtn) confirmSendBtn.addEventListener('click', sendOrderToTelegram);
+if (confirmSendBtn) confirmSendBtn.addEventListener('click', submitOrder);
 if (confirmOverlay) confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirmModal(); });
 if (orderSuccessDoneBtn) orderSuccessDoneBtn.addEventListener('click', closeOrderSuccessModal);
 if (orderSuccessOverlay) orderSuccessOverlay.addEventListener('click', (e) => { if (e.target === orderSuccessOverlay) closeOrderSuccessModal(); });
@@ -1441,6 +1646,7 @@ const productsReady = loadProducts();
 loadHeroImages();
 updateCartBar();
 updateSendButtonState();
+flushPendingOrderRecords();
 productsReady
   .then(handlePayWayReturn)
   .catch(error => console.error('[L&K] Initial menu load failed:', error));

@@ -40,6 +40,8 @@ let currentPhotoProductId = null;
 let currentPage = 'dashboard';
 let filterBestseller = false;
 let filterOutOfStock = false;
+let orders = [];
+let ordersRealtimeChannel = null;
 
 const CATEGORY_SETTING_KEY = 'menu_categories';
 const DEFAULT_CATEGORIES = [
@@ -74,6 +76,7 @@ function showDashboard() {
   setupSettingsPage();
   loadHeroSettings();
   setGreeting();
+  subscribeToOrderChanges();
   switchPage('dashboard');
 }
 
@@ -99,6 +102,10 @@ loginForm.addEventListener('submit', async (e) => {
 });
 
 async function logout() {
+  if (ordersRealtimeChannel) {
+    await supabase.removeChannel(ordersRealtimeChannel);
+    ordersRealtimeChannel = null;
+  }
   await supabase.auth.signOut();
   if (window.parent !== window) {
     window.parent.postMessage({ type: 'lk-admin-signed-out' }, window.location.origin);
@@ -113,9 +120,10 @@ const fabBtn = document.getElementById('addProductBtn');
 const pages = {
   dashboard: document.getElementById('page-dashboard'),
   menu: document.getElementById('page-menu'),
+  orders: document.getElementById('page-orders'),
   settings: document.getElementById('page-settings')
 };
-const PAGE_TITLES = { dashboard: 'Dashboard', menu: 'Menu', settings: 'Settings' };
+const PAGE_TITLES = { dashboard: 'Dashboard', menu: 'Menu', orders: 'Orders', settings: 'Settings' };
 
 function switchPage(name) {
   if (!pages[name]) return;
@@ -131,9 +139,10 @@ function switchPage(name) {
 
   if (pageTitleEl) pageTitleEl.textContent = PAGE_TITLES[name] || '';
   if (menuToolbar) menuToolbar.style.display = name === 'menu' ? 'flex' : 'none';
-  if (fabBtn) fabBtn.style.display = name === 'settings' ? 'none' : 'flex';
+  if (fabBtn) fabBtn.style.display = (name === 'settings' || name === 'orders') ? 'none' : 'flex';
 
   if (name === 'dashboard') updateDashboardStats();
+  if (name === 'orders') loadOrders();
 
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
 }
@@ -163,6 +172,316 @@ document.getElementById('quickAddItem')?.addEventListener('click', () => {
   addModalOverlay.classList.add('open');
 });
 document.getElementById('quickCreateCategory')?.addEventListener('click', () => setCategoryModalOpen(true));
+
+/* ---------- orders page ---------- */
+const ordersList = document.getElementById('ordersList');
+const ordersCount = document.getElementById('ordersCount');
+const ordersRefreshBtn = document.getElementById('ordersRefreshBtn');
+const ordersWeekStrip = document.getElementById('ordersWeekStrip');
+const ordersPeriodMode = document.getElementById('ordersPeriodMode');
+const ordersPeriodLabel = document.getElementById('ordersPeriodLabel');
+const ordersPrevPeriod = document.getElementById('ordersPrevPeriod');
+const ordersNextPeriod = document.getElementById('ordersNextPeriod');
+const ordersFilterBtn = document.getElementById('ordersFilterBtn');
+const ordersFilterMenu = document.getElementById('ordersFilterMenu');
+let selectedOrderDate = localDateInputValue();
+let activeOrderPeriod = 'day';
+
+function formatOrderCreatedAt(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString(undefined, {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+  });
+}
+
+function localDateInputValue(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function localDateFromInput(value) {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function startOfWeek(date) {
+  const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  result.setDate(result.getDate() - ((result.getDay() + 6) % 7));
+  return result;
+}
+
+function orderPeriodBounds(period, value) {
+  if (period === 'all') return null;
+  const anchor = localDateFromInput(value);
+  let start;
+  let end;
+
+  if (period === 'week') {
+    start = startOfWeek(anchor);
+    end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7);
+  } else if (period === 'month') {
+    start = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+    end = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 1);
+  } else if (period === 'year') {
+    start = new Date(anchor.getFullYear(), 0, 1);
+    end = new Date(anchor.getFullYear() + 1, 0, 1);
+  } else {
+    start = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate());
+    end = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + 1);
+  }
+
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+function formatOrderPeriodLabel() {
+  if (activeOrderPeriod === 'all') return 'All order records';
+  const anchor = localDateFromInput(selectedOrderDate);
+  if (activeOrderPeriod === 'day') {
+    return anchor.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+  if (activeOrderPeriod === 'month') {
+    return anchor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  }
+  if (activeOrderPeriod === 'year') return String(anchor.getFullYear());
+
+  const start = startOfWeek(anchor);
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+  const startText = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const endText = end.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  return `${startText} – ${endText}`;
+}
+
+function renderOrdersWeekStrip() {
+  if (!ordersWeekStrip) return;
+  const anchor = localDateFromInput(selectedOrderDate);
+  const weekStart = startOfWeek(anchor);
+  const today = localDateInputValue();
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + index);
+    const value = localDateInputValue(date);
+    const classes = ['ordersDayBtn'];
+    if (value === selectedOrderDate) classes.push('active');
+    if (value === today) classes.push('today');
+    const label = date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    return `<button type="button" class="${classes.join(' ')}" data-order-date="${value}" aria-label="${escapeAttr(label)}" aria-pressed="${value === selectedOrderDate}">
+      <span>${date.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 3)}</span>
+      <strong>${date.getDate()}</strong>
+    </button>`;
+  });
+  ordersWeekStrip.innerHTML = days.join('');
+}
+
+function setOrdersFilterOpen(open) {
+  if (!ordersFilterBtn || !ordersFilterMenu) return;
+  ordersFilterMenu.classList.toggle('open', open);
+  ordersFilterBtn.setAttribute('aria-expanded', String(open));
+}
+
+function syncOrderDateControls() {
+  if (ordersPeriodMode) ordersPeriodMode.textContent = activeOrderPeriod === 'all'
+    ? 'Records'
+    : `${activeOrderPeriod.charAt(0).toUpperCase()}${activeOrderPeriod.slice(1)} view`;
+  if (ordersPeriodLabel) ordersPeriodLabel.textContent = formatOrderPeriodLabel();
+  if (ordersFilterBtn) ordersFilterBtn.classList.toggle('hasActiveFilter', activeOrderPeriod !== 'day');
+  if (ordersPrevPeriod) ordersPrevPeriod.disabled = activeOrderPeriod === 'all';
+  if (ordersNextPeriod) ordersNextPeriod.disabled = activeOrderPeriod === 'all';
+  document.querySelectorAll('[data-order-period]').forEach(button => {
+    button.classList.toggle('active', button.dataset.orderPeriod === activeOrderPeriod);
+  });
+  renderOrdersWeekStrip();
+}
+
+function moveOrderPeriod(direction) {
+  if (activeOrderPeriod === 'all') return;
+  const anchor = localDateFromInput(selectedOrderDate);
+  if (activeOrderPeriod === 'month') anchor.setMonth(anchor.getMonth() + direction);
+  else if (activeOrderPeriod === 'year') anchor.setFullYear(anchor.getFullYear() + direction);
+  else anchor.setDate(anchor.getDate() + (7 * direction));
+  selectedOrderDate = localDateInputValue(anchor);
+  syncOrderDateControls();
+  loadOrders();
+}
+
+function formatOrderSchedule(dateValue, timeValue) {
+  const date = dateValue
+    ? new Date(`${dateValue}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    : 'No date';
+  return timeValue ? `${date} · ${timeValue}` : date;
+}
+
+function safeOrderItems(value) {
+  return Array.isArray(value) ? value.filter(item => item && typeof item === 'object') : [];
+}
+
+function orderAddressHTML(order) {
+  if (order.order_type !== 'delivery') return '';
+  const address = String(order.delivery_address || '—');
+  const isMapLink = /^https:\/\/www\.google\.com\/maps\?q=-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/i.test(address);
+  const value = isMapLink
+    ? `<a href="${escapeAttr(address)}" target="_blank" rel="noopener">Open customer location</a>`
+    : `<span>${escapeHTML(address)}</span>`;
+  return `
+    <div class="orderDetailRow orderAddressRow">
+      <span class="orderDetailIcon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      </span>
+      ${value}
+    </div>`;
+}
+
+function orderCardHTML(order) {
+  const items = safeOrderItems(order.items);
+  const itemsHTML = items.map(item => `
+    <div class="adminOrderItem">
+      <span class="adminOrderQty">${Number(item.quantity) || 0}×</span>
+      <span class="adminOrderItemName">
+        <span>${escapeHTML(String(item.name || item.id || 'Item'))}</span>
+        ${item.id ? `<small class="adminOrderItemId">ID: ${escapeHTML(String(item.id))}</small>` : ''}
+      </span>
+      <span class="adminOrderItemPrice">$${Number(item.line_total || 0).toFixed(2)}</span>
+    </div>`).join('');
+  const phone = String(order.customer_phone || '');
+  const paymentLabel = order.payment_method === 'aba' ? 'ABA Pay' : 'Cash';
+  const paymentState = order.payment_status === 'paid' ? 'Paid' : 'Cash on delivery';
+  const numericOrderNumber = Number(order.order_number);
+  const orderNumber = Number.isFinite(numericOrderNumber) && numericOrderNumber > 0
+    ? String(numericOrderNumber).padStart(3, '0')
+    : String(order.id || '').slice(0, 8).toUpperCase();
+  const phoneHref = phone.replace(/[^+\d]/g, '');
+  const phoneHTML = phone
+    ? `<a class="adminOrderPhone" href="tel:${escapeAttr(phoneHref)}">
+        <span class="adminOrderPhoneIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92Z"/></svg></span>
+        <span>${escapeHTML(phone)}</span>
+      </a>`
+    : '<span class="adminOrderPhone adminOrderPhoneMissing">No phone number</span>';
+
+  return `
+    <article class="adminOrderCard" data-order-id="${escapeAttr(String(order.id || ''))}">
+      <div class="adminOrderHead">
+        <div class="adminOrderIdentity">
+          <span class="adminOrderEyebrow">Order record</span>
+          <span class="adminOrderNumber">Order #${escapeHTML(String(orderNumber))}</span>
+        </div>
+        <time class="adminOrderTime">${escapeHTML(formatOrderCreatedAt(order.created_at))}</time>
+      </div>
+
+      <div class="adminOrderCustomer">
+        <span class="adminOrderCustomerIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        </span>
+        <div class="adminOrderCustomerBody">
+          <span class="adminOrderSectionLabel">Customer</span>
+          <strong>${escapeHTML(String(order.customer_name || 'Customer'))}</strong>
+          ${phoneHTML}
+        </div>
+      </div>
+
+      <div class="adminOrderChips">
+        <span class="adminOrderChip adminOrderChipPrimary">${order.order_type === 'delivery' ? 'Delivery' : 'Pick-up'}</span>
+        <span class="adminOrderChip">${paymentState}</span>
+        <span class="adminOrderChip">${Number(order.item_count) || 0} item${Number(order.item_count) === 1 ? '' : 's'}</span>
+      </div>
+
+      <div class="adminOrderFulfillment">
+        <div class="orderDetailRow">
+          <span class="orderDetailIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          </span>
+          <span>${escapeHTML(formatOrderSchedule(order.scheduled_date, order.scheduled_time))}</span>
+        </div>
+        ${orderAddressHTML(order)}
+      </div>
+
+      <div class="adminOrderItems">${itemsHTML || '<p class="adminOrderNoItems">No item details</p>'}</div>
+
+      ${order.payment_transaction_id ? `<p class="adminOrderTransaction">ABA transaction: ${escapeHTML(String(order.payment_transaction_id))}</p>` : ''}
+      <div class="adminOrderTotal"><span>Total</span><strong>$${Number(order.total || 0).toFixed(2)}</strong></div>
+    </article>`;
+}
+
+function renderOrders() {
+  if (!ordersList || !ordersCount) return;
+  ordersCount.textContent = `${orders.length} order${orders.length === 1 ? '' : 's'} · ${formatOrderPeriodLabel()}`;
+  ordersList.innerHTML = orders.length
+    ? orders.map(orderCardHTML).join('')
+    : `<p class="ordersEmpty">No orders found for ${escapeHTML(formatOrderPeriodLabel().toLowerCase())}.</p>`;
+}
+
+async function loadOrders() {
+  if (!ordersList || !ordersCount) return;
+  ordersCount.textContent = 'Loading orders…';
+  ordersRefreshBtn?.classList.add('loading');
+
+  let query = supabase
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  const dateBounds = orderPeriodBounds(activeOrderPeriod, selectedOrderDate);
+  if (dateBounds) {
+    const { start, end } = dateBounds;
+    query = query.gte('created_at', start).lt('created_at', end);
+  } else {
+    query = query.limit(200);
+  }
+
+  const { data, error } = await query;
+
+  ordersRefreshBtn?.classList.remove('loading');
+  if (error) {
+    console.error('[L&K admin] Could not load orders:', error);
+    ordersCount.textContent = 'Orders unavailable';
+    ordersList.innerHTML = '<p class="ordersEmpty ordersError">Could not load orders. Check the database setup and try again.</p>';
+    return;
+  }
+
+  orders = data || [];
+  renderOrders();
+}
+
+ordersRefreshBtn?.addEventListener('click', loadOrders);
+ordersPrevPeriod?.addEventListener('click', () => moveOrderPeriod(-1));
+ordersNextPeriod?.addEventListener('click', () => moveOrderPeriod(1));
+ordersWeekStrip?.addEventListener('click', event => {
+  const button = event.target.closest('[data-order-date]');
+  if (!button) return;
+  selectedOrderDate = button.dataset.orderDate;
+  activeOrderPeriod = 'day';
+  syncOrderDateControls();
+  loadOrders();
+});
+ordersFilterBtn?.addEventListener('click', event => {
+  event.stopPropagation();
+  setOrdersFilterOpen(!ordersFilterMenu?.classList.contains('open'));
+});
+ordersFilterMenu?.addEventListener('click', event => {
+  const button = event.target.closest('[data-order-period]');
+  if (!button) return;
+  activeOrderPeriod = button.dataset.orderPeriod;
+  setOrdersFilterOpen(false);
+  syncOrderDateControls();
+  loadOrders();
+});
+document.addEventListener('click', event => {
+  if (!event.target.closest('.ordersPeriodFilter')) setOrdersFilterOpen(false);
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') setOrdersFilterOpen(false);
+});
+syncOrderDateControls();
+
+function subscribeToOrderChanges() {
+  if (ordersRealtimeChannel) return;
+  ordersRealtimeChannel = supabase
+    .channel('admin-order-records')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+      if (currentPage === 'orders') loadOrders();
+    })
+    .subscribe();
+}
 
 /* ---------- greeting ---------- */
 function setGreeting() {

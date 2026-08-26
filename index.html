@@ -226,9 +226,19 @@
           <div class="custField">
             <input type="tel" id="custPhone" class="custInput" placeholder="+855" aria-label="Phone number" autocomplete="tel" inputmode="tel">
           </div>
-          <div class="custField" id="custAddressField">
-            <label class="custLabel" for="custAddress">Address</label>
-            <input type="text" id="custAddress" class="custInput" placeholder="e.g. House 12, St 210, Phnom Penh">
+          <div class="custField deliveryAddressField" id="custAddressField">
+            <span class="deliveryAddressTitle">Delivery address</span>
+            <div class="deliveryAddressCard">
+              <span class="deliveryAddressIcon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>
+              </span>
+              <div class="deliveryAddressMain">
+                <span class="deliveryAddressResult empty" id="deliveryAddressResult" aria-live="polite">Add your delivery address</span>
+              </div>
+              <button type="button" class="deliveryAddressEdit" id="deliveryAddressEdit" aria-label="Edit delivery address">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
+              </button>
+            </div>
           </div>
         </section>
 
@@ -256,12 +266,24 @@
           </div>
           <div class="paymentMethodToggle" id="paymentMethodToggle">
             <button type="button" class="pmBtn" data-payment="aba">
-              <img class="abaLogo" src="img/aba-pay.png" alt="" aria-hidden="true">
-              <span>ABA Pay</span>
+              <span class="paymentOptionIcon paymentOptionAba">
+                <img class="abaLogo" src="img/aba-pay.png" alt="" aria-hidden="true">
+              </span>
+              <span class="paymentOptionCopy">
+                <span class="paymentOptionTitle">ABA Pay</span>
+                <span class="paymentOptionSubtitle">Pay securely with ABA</span>
+              </span>
+              <span class="paymentOptionRadio" aria-hidden="true"></span>
             </button>
             <button type="button" class="pmBtn" data-payment="cash">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg>
-              <span>Cash on Delivery</span>
+              <span class="paymentOptionIcon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg>
+              </span>
+              <span class="paymentOptionCopy">
+                <span class="paymentOptionTitle">Cash on Delivery</span>
+                <span class="paymentOptionSubtitle">Pay when your order arrives</span>
+              </span>
+              <span class="paymentOptionRadio" aria-hidden="true"></span>
             </button>
           </div>
         </section>
@@ -274,6 +296,34 @@
 
     <div class="cartPageFooter">
       <button id="sendOrderBtn" class="sendOrderBtn" disabled>Send Order</button>
+    </div>
+
+    <div class="modalOverlay addressEditorOverlay" id="addressEditorOverlay" aria-hidden="true">
+      <div class="modalCard addressEditorCard" role="dialog" aria-modal="true" aria-labelledby="addressEditorTitle">
+        <div class="addressEditorHeader">
+          <div>
+            <h3 id="addressEditorTitle">Delivery address</h3>
+            <p>Enter an address or use your current location.</p>
+          </div>
+          <button type="button" class="addressEditorClose" id="addressEditorClose" aria-label="Close address editor">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+
+        <label class="addressEditorLabel" for="custAddress">Address or landmark</label>
+        <textarea id="custAddress" class="addressEditorInput" rows="3" placeholder="House, street, district or nearby landmark" autocomplete="street-address"></textarea>
+
+        <button type="button" class="useLocationBtn" id="useLocationBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+          <span>Use my current location</span>
+        </button>
+        <p class="locationStatus" id="locationStatus" aria-live="polite"></p>
+
+        <div class="addressEditorActions">
+          <button type="button" class="addressCancelBtn" id="addressCancelBtn">Cancel</button>
+          <button type="button" class="addressSaveBtn" id="addressSaveBtn">Save address</button>
+        </div>
+      </div>
     </div>
   </div>
 
