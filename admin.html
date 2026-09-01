@@ -201,6 +201,10 @@
             <span>Category title</span>
             <input type="text" id="newCategoryName" placeholder="ឧ. ស៊ុប or Soup" maxlength="60" required>
           </label>
+          <label class="categoryField" for="newCategoryId">
+            <span>Category ID</span>
+            <input type="text" id="newCategoryId" placeholder="LK-" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
+          </label>
         </div>
         <div class="categoryFormActions">
           <button type="reset" class="ghostBtn" id="resetCategoryBtn">Clear</button>
@@ -363,17 +367,37 @@
 <div class="modalOverlay" id="photoModalOverlay">
   <div class="modalCard photoModalCard">
     <button type="button" class="photoModalClose" id="photoModalClose" aria-label="Close">&times;</button>
-    <div class="photoModalImgWrap">
-      <img id="photoModalImg" src="" alt="">
-      <div class="photoModalUploading" id="photoModalUploading" style="display:none;">Uploading…</div>
+    <div class="photoModalView" id="photoModalView">
+      <div class="photoModalImgWrap">
+        <img id="photoModalImg" src="" alt="">
+        <div class="photoModalUploading" id="photoModalUploading" style="display:none;">Uploading…</div>
+      </div>
+      <p class="photoModalId" id="photoModalId"></p>
+      <div class="photoModalActions">
+        <button type="button" class="primaryBtn" id="photoChangeBtn">Change Photo</button>
+        <button type="button" class="ghostBtn" id="photoEditBtn">Edit / Crop</button>
+        <button type="button" class="dangerBtn" id="photoDeleteBtn">Delete Photo</button>
+      </div>
     </div>
-    <p class="photoModalId" id="photoModalId"></p>
-    <div class="photoModalActions">
-      <button type="button" class="primaryBtn" id="photoChangeBtn">Change Photo</button>
-      <button type="button" class="dangerBtn" id="photoDeleteBtn">Delete Photo</button>
+
+    <div class="photoCropEditor" id="photoCropEditor" hidden>
+      <div class="photoCropViewport">
+        <canvas id="photoCropCanvas" width="900" height="900" aria-label="Crop preview. Drag the image to reposition it."></canvas>
+        <span class="photoCropHint">Drag to reposition</span>
+      </div>
+      <div class="photoCropControls">
+        <label for="photoCropZoom">
+          <span>Zoom</span>
+          <input type="range" id="photoCropZoom" min="1" max="3" value="1" step="0.01">
+        </label>
+        <div class="photoCropActions">
+          <button type="button" class="ghostBtn" id="photoCropCancelBtn">Cancel</button>
+          <button type="button" class="primaryBtn" id="photoCropSaveBtn">Save Crop</button>
+        </div>
+      </div>
     </div>
     <input type="file" id="photoModalFileInput" accept="image/*" style="display:none;">
-     </div>
+  </div>
 </div>
 
 <!-- ---------- SLIDESHOW EDITOR MODAL ---------- -->

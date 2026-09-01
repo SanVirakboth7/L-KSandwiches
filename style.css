@@ -23,7 +23,7 @@
   }
   body{
   background: var(--white);
-  font-family:'Fraunces', serif;
+  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif;
   color: var(--ink);
   display:flex; justify-content:center;
   width:100%;
@@ -91,12 +91,12 @@
   }
   .brandText{ flex:1; min-width:0; }
   .brandText h1{
-    font-family:'Fraunces', serif; font-size:19px; font-weight:700;
+    font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:19px; font-weight:700;
     color:var(--ink); letter-spacing:.1px; line-height:1.15;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .brandText p{
-    font-family:'Noto Sans Khmer', monospace; font-size:12px;
+    font-family:'Khmer OS Sans','Noto Sans Khmer',monospace; font-size:12px;
     text-transform:uppercase; color: var(--ink-soft); margin-top:2px; opacity:.85;
   }
   .headIcons{ display:flex; align-items:center; gap:8px; }
@@ -139,7 +139,7 @@
   .chipRow::-webkit-scrollbar{ display:none; }
   .chip{
     flex-shrink:0; display:flex; align-items:center; gap:6px;
-    padding:6px 12px; border-radius:999px; font-size:14px; font-weight:600;font-family: Noto sans khmer;
+    padding:6px 12px; border-radius:999px; font-size:14px; font-weight:600;font-family:'Khmer OS Sans','Noto Sans Khmer',sans-serif;
     white-space:nowrap; border:1px solid var(--line);
     background: var(--paper); color: var(--ink-soft);
   }
@@ -161,7 +161,7 @@
   .searchExpandWrap svg:first-child{ width:20px; height:20px; color:var(--ink-soft); flex-shrink:0; }
   .searchExpandWrap input{
     background:none; border:none; outline:none; color:var(--ink);
-    font-family:'Inter',sans-serif;
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
     font-size:16px;
     width:100%;
   }
@@ -202,9 +202,9 @@
 
   .sectionHead{ padding:22px 16px 0; display:flex; align-items:baseline; justify-content:space-between; scroll-margin-top: calc(var(--header-h) + 10px); }
   .sectionHead h3{
-    font-family:'Fraunces', serif,Noto sans khmer; font-size:23px; font-weight:700; color:var(--ink);
+    font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:23px; font-weight:700; color:var(--ink);
   }
-  .sectionHead .sectionStatus{ font-family:'Inter',sans-serif; font-size:16px; color:var(--ink-soft); opacity:.8; }
+  .sectionHead .sectionStatus{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:16px; color:var(--ink-soft); opacity:.8; }
 
   .grid{ display:grid; grid-template-columns:1fr 1fr; gap:15px; padding:12px 16px 20px; }
   .card{
@@ -214,7 +214,7 @@
     display:flex; flex-direction:column;
   }
   .cardArt{
-    position:relative; height:160px;
+    position:relative; width:100%; height:auto; aspect-ratio:1 / 1;
     background: linear-gradient(160deg, var(--paper-200), var(--white));
     display:flex; align-items:center; justify-content:center;
     overflow:hidden;
@@ -236,7 +236,7 @@
 }
 .outOfStockBadge span{
   position:relative;
-  font-family:'Fraunces', serif;
+  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif;
   font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
   color: var(--mustard-500);
   border: 2px dashed var(--mustard-500);
@@ -267,10 +267,10 @@
     justify-content:space-between; gap:8px; position:relative;
   }
   .cardBodyMain{ min-width:0; width:100%; flex:1; }
-  .cardBody .name{font-family:'Inter', monospace,Noto sans khmer; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .cardBody .id{ padding-right:50px; font-family:'Fraunces', serif; font-weight:600; font-size:11px; color:#6b5f52; white-space:nowrap; overflow:hidden; text-overflow:clip; }
+  .cardBody .name{font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cardBody .id{ padding-right:50px; font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-weight:600; font-size:11px; color:#6b5f52; white-space:nowrap; overflow:hidden; text-overflow:clip; }
   .cardBody .price{
-    font-family:'Inter', monospace; font-weight:600; font-size:13px; color:var(--crust-500);
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; font-weight:600; font-size:13px; color:var(--crust-500);
     margin-top:5px;
   }
   .card{ cursor:pointer; touch-action: manipulation; }
@@ -319,12 +319,12 @@
   .stepBtn:active{ transform:scale(.85); }
   .stepBtn.plus{ background: var(--mustard-500); color:#fff; }
   .stepQty{
-    font-family:'Inter', monospace; font-size:12px; font-weight:700;
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; font-size:12px; font-weight:700;
     min-width:14px; text-align:center; color:var(--ink);
   }
 
   .outOfStockText{
-    font-family:'Inter',sans-serif; font-size:10.5px; font-weight:700;
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:10.5px; font-weight:700;
     color: var(--mustard-500); background:rgba(251,247,239,.92);
     padding:4px 9px; border-radius:999px; border:1px solid rgba(193,68,45,.3);
   }
@@ -351,7 +351,7 @@
     background: rgba(255,255,255,.94); backdrop-filter: blur(6px);
     border:1px solid var(--line); border-radius:999px;
     padding:5px 12px; display:flex; align-items:center; gap:6px;
-    font-family:'Inter', monospace; font-size:11px; font-weight:600; color:var(--ink);
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; font-size:11px; font-weight:600; color:var(--ink);
     box-shadow:0 3px 10px rgba(43,33,24,.12);
     pointer-events:none;
   }
@@ -373,16 +373,16 @@
   .brNum{
     width:30px; height:30px; border-radius:9px; flex-shrink:0;
     background: linear-gradient(160deg, var(--mustard-500), var(--crust-500));
-    color:#fff; font-family:'Fraunces', serif; font-weight:700; font-size:13px;
+    color:#fff; font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-weight:700; font-size:13px;
     display:flex; align-items:center; justify-content:center;
   }
   .brNum.soon{ background: var(--ink-soft); }
   .brInfo{ flex:1; min-width:0; }
-  .brName{ font-family:'Fraunces', serif; font-weight:700; font-size:13.5px; color:var(--ink); }
+  .brName{ font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-weight:700; font-size:13.5px; color:var(--ink); }
   .brAddr{ font-size:11px; color:var(--ink-soft); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .brGo{
     display:flex; align-items:center; gap:5px; flex-shrink:0;
-    font-family:'Inter',sans-serif; font-size:11.5px; font-weight:700; color:var(--crust-500);
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11.5px; font-weight:700; color:var(--crust-500);
     text-decoration:none; white-space:nowrap;
   }
   .brGo svg{ width:12px; height:12px; }
@@ -407,7 +407,7 @@
   }
   .modalOverlay.open .modalCard{ transform: translateY(0) scale(1); opacity:1; }
   .modalGallery{
-    position:relative; height:320px; overflow:hidden; border-radius:22px 22px 0 0;
+    position:relative; width:100%; height:auto; aspect-ratio:1 / 1; overflow:hidden; border-radius:22px 22px 0 0;
     background: linear-gradient(160deg, var(--paper-200), var(--paper));
   }
   #modalImg{
@@ -429,10 +429,10 @@
   }
   .modalClose svg{ width:14px; height:14px; }
   .modalBody{ padding:22px 22px 26px; }
-  .modalBody .mId{ font-family:'Fraunces'; font-size:14px; font-weight:700; color:var(--ink-soft); }
-  .modalBody .mName{ font-family:'Inter', serif,Noto sans khmer; font-size:22px; font-weight:700; color:var(--ink); margin-top:3px; }
+  .modalBody .mId{ font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:14px; font-weight:700; color:var(--ink-soft); }
+  .modalBody .mName{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:22px; font-weight:700; color:var(--ink); margin-top:3px; }
   .modalBody .mPrice{
-    font-family:'Inter', monospace; font-weight:700; font-size:19px;
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; font-weight:700; font-size:19px;
     color:var(--crust-500); margin-top:10px;
   }
   .modalBody .mDesc{ font-size:14px; color:var(--ink-soft); line-height:1.6; margin-top:12px; }
@@ -450,7 +450,7 @@
   .modalContact a.fb{ background:#1877f2; color:#fff; border-color:transparent; }
   .modalContact .phone{
     display:flex; align-items:center; gap:8px;
-    font-family:'Inter', monospace; font-size:14px; color:var(--ink); font-weight:500;
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; font-size:14px; color:var(--ink); font-weight:500;
   }
   .modalContact .phone svg{ width:18px; height:18px; color:var(--olive-500); }
 
@@ -478,7 +478,7 @@
   padding:16px; border-bottom:1px solid var(--cart-line); background:#fff;
 }
 .cartPageHeader h2{
-  font-family:'Fraunces', serif; font-size:20px; font-weight:700; color:var(--cart-text);
+  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:20px; font-weight:700; color:var(--cart-text);
 }
 .cpBackBtn, .cpClearBtn{
   width:38px; height:38px; border-radius:50%; cursor:pointer;
@@ -514,10 +514,10 @@
 .cartItemInfo{ flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
 .cartItemTop .stepper{ flex-shrink:0; } /* keep it from getting squished */
 .cartItemBottom{ display:flex; align-items:center; justify-content:flex-end; } /* was space-between */
-.cartItemId{ font-family:'Inter',sans-serif; font-size:11px; color:var(--cart-muted); }
-.cartItemName{font-family:'Noto sans khmer'; color:var(--cart-text);}
+.cartItemId{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11px; color:var(--cart-muted); }
+.cartItemName{font-family:'Khmer OS Sans','Noto Sans Khmer',sans-serif; color:var(--cart-text);}
 .cartItemLineTotal{
-  font-family:'Inter',sans-serif; font-weight:500; font-size:15px; color:var(--cart-text); margin-top:12px;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:500; font-size:15px; color:var(--cart-text); margin-top:12px;
 }
 .cartPage .stepper{ border-color:var(--cart-line); box-shadow:0 2px 7px rgba(41,37,33,.08); }
 .cartPage .stepBtn{ background:var(--cart-surface); color:var(--cart-text); }
@@ -535,14 +535,14 @@
 .checkoutSection:first-child{ padding-top:0; border-top:0; }
 .checkoutSectionTitle{ display:flex; align-items:center; gap:9px; }
 .checkoutSectionTitle h3{
-  font-family:'Inter',sans-serif; font-size:14px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:14px; font-weight:800;
   color:var(--cart-text); line-height:1.2;
 }
 .checkoutStep{
   width:22px; height:22px; flex-shrink:0; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
   background:var(--cart-accent); color:#fff;
-  font-family:'Inter',sans-serif; font-size:11px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11px; font-weight:800;
   box-shadow:0 2px 5px rgba(114,60,16,.14);
 }
 .custField{ display:flex; flex-direction:column; gap:7px; min-width:0; }
@@ -565,7 +565,7 @@
 .pmBtn{
   flex:1; min-height:44px; padding:9px; color:var(--cart-text);
   display:flex; align-items:center; justify-content:center; gap:8px;
-  font-family:'Inter',sans-serif; font-weight:700; font-size:14px; cursor:pointer;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:14px; cursor:pointer;
   touch-action:manipulation;
 }
 .otBtn{
@@ -632,11 +632,11 @@
   display:flex; flex-direction:column; gap:3px;
 }
 .paymentOptionTitle{
-  font-family:'Inter',sans-serif; font-size:14px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:14px; font-weight:800;
   color:var(--cart-text); line-height:1.2;
 }
 .paymentOptionSubtitle{
-  font-family:'Inter',sans-serif; font-size:11.5px; font-weight:500;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11.5px; font-weight:500;
   color:var(--cart-muted); line-height:1.25;
 }
 .paymentOptionRadio{
@@ -660,7 +660,7 @@
   width:min(390px,calc(100% - 32px)); padding:12px 16px;
   border:1px solid #e7e0da; border-radius:14px;
   background:#fff; color:#292521; box-shadow:0 12px 32px rgba(41,37,33,.14);
-  font-family:'Inter',sans-serif; font-size:13px; font-weight:700; line-height:1.45;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:13px; font-weight:700; line-height:1.45;
   text-align:center; opacity:0; pointer-events:none;
   transform:translate(-50%,-12px); transition:opacity .2s ease,transform .2s ease;
 }
@@ -678,7 +678,7 @@
 
 .deliveryAddressField{ gap:10px; padding-top:3px; }
 .deliveryAddressTitle{
-  font-family:'Inter',sans-serif; font-size:15px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:15px; font-weight:800;
   color:var(--cart-text); line-height:1.25;
 }
 .deliveryAddressCard{
@@ -706,7 +706,7 @@
 .deliveryAddressResult{
   display:-webkit-box; overflow:hidden;
   -webkit-box-orient:vertical; -webkit-line-clamp:2;
-  font-family:'Inter',sans-serif; font-size:13.5px; font-weight:700;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:13.5px; font-weight:700;
   color:var(--cart-text); line-height:1.4; overflow-wrap:anywhere;
 }
 .deliveryAddressResult.empty{ color:var(--cart-muted); font-weight:600; }
@@ -735,11 +735,11 @@
   margin-bottom:20px;
 }
 .addressEditorHeader h3{
-  font-family:'Inter',sans-serif; font-size:20px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:20px; font-weight:800;
   color:var(--address-text); line-height:1.2;
 }
 .addressEditorHeader p{
-  margin-top:5px; font-family:'Inter',sans-serif;
+  margin-top:5px; font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   font-size:12.5px; line-height:1.45; color:var(--address-muted);
 }
 .addressEditorClose{
@@ -751,7 +751,7 @@
 .addressEditorClose svg{ width:17px; height:17px; }
 .addressEditorLabel{
   display:block; margin-bottom:7px;
-  font-family:'Inter',sans-serif; font-size:12px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:12px; font-weight:800;
   color:var(--address-text); text-transform:uppercase; letter-spacing:.4px;
 }
 .addressEditorInput{
@@ -759,7 +759,7 @@
   padding:12px 13px; resize:vertical;
   border:1px solid var(--address-line); border-radius:14px;
   background:#fff; color:var(--address-text); outline:none;
-  font-family:'Inter',sans-serif; font-size:15px; line-height:1.45;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:15px; line-height:1.45;
 }
 .addressEditorInput::placeholder{ color:#918a84; }
 .addressEditorInput:focus{
@@ -771,13 +771,13 @@
   display:flex; align-items:center; justify-content:center; gap:8px;
   border:1px solid var(--address-line); border-radius:13px;
   background:#f8f6f4; color:var(--address-text); cursor:pointer;
-  font-family:'Inter',sans-serif; font-size:13px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:13px; font-weight:800;
 }
 .useLocationBtn svg{ width:19px; height:19px; color:var(--address-accent); }
 .useLocationBtn:disabled{ opacity:.6; cursor:wait; }
 .locationStatus{
   min-height:18px; margin-top:7px;
-  font-family:'Inter',sans-serif; font-size:11.5px; line-height:1.4;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11.5px; line-height:1.4;
   color:var(--address-muted);
 }
 .locationStatus.success{ color:var(--address-accent); font-weight:700; }
@@ -790,7 +790,7 @@
 .addressLocationMap{ width:100%; height:180px; background:#ece9e5; }
 .addressLocationCaption{
   min-height:36px; padding:8px 11px; display:flex; align-items:center; gap:7px;
-  color:var(--address-text); font:700 10.5px 'Inter',sans-serif;
+  color:var(--address-text); font:700 10.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
 }
 .addressLocationDot{
   width:8px; height:8px; border-radius:50%; flex:0 0 auto;
@@ -803,7 +803,7 @@
 .addressCancelBtn,
 .addressSaveBtn{
   min-height:46px; padding:11px 14px; border-radius:999px; cursor:pointer;
-  font-family:'Inter',sans-serif; font-size:13.5px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:13.5px; font-weight:800;
 }
 .addressCancelBtn{
   border:1px solid var(--address-line); background:#fff; color:var(--address-muted);
@@ -814,14 +814,14 @@
 }
 
 .custLabel{
-  font-family:'Inter',sans-serif; font-size:12.5px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:12.5px; font-weight:800;
   color:var(--cart-text); text-transform:uppercase; letter-spacing:.45px;
 }
 .custInput{
   width:100%; min-width:0; max-width:100%; box-sizing:border-box;
   min-height:44px; padding:11px 13px; border-radius:12px;
   border:1px solid var(--cart-line); background:#fff;
-  font-family:'Inter',sans-serif; font-size:16px; color:var(--cart-text);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:16px; color:var(--cart-text);
   outline:none;
   -webkit-appearance:none; appearance:none;
 }
@@ -839,7 +839,7 @@
   display:flex; justify-content:space-between; align-items:center;
   min-height:24px;
   padding:2px 4px;
-  font-family:'Inter',sans-serif; font-size:13px; color:var(--cart-muted);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:13px; color:var(--cart-muted);
 }
 .totalsRow span:last-child{
   color:var(--cart-text);
@@ -853,24 +853,25 @@
   border:0;
   border-radius:13px;
   background:transparent;
-  font-family:'Inter',sans-serif;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
 }
 .totalsGrand span:first-child{
   color:var(--cart-text);
-  font-size:18px;
+  font-size:22px;
+  line-height:1.1;
   font-weight:800;
 }
 .totalsGrandValue{
   display:flex; flex-direction:column; align-items:flex-end; gap:2px;
   color:var(--cart-accent) !important;
-  font-family:'Inter','Noto Sans Khmer',sans-serif;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   font-variant-numeric:tabular-nums;
 }
 .totalsGrandValue #cartModalTotal{
   color:var(--cart-accent); font-size:23px; font-weight:700; line-height:1.05; letter-spacing:-.2px;
 }
 .totalsGrandValue #cartModalRiel{
-  color:var(--cart-muted); font:700 11px/1.2 'Inter','Noto Sans Khmer',sans-serif;
+  color:var(--cart-muted); font:700 11px/1.2 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
 }
 
 .cartPageFooter{
@@ -886,7 +887,7 @@
 .cartFooter{ padding:14px 22px 22px; border-top:1px solid var(--line); }
   .cartTotalRow{
     display:flex; justify-content:space-between; align-items:baseline;
-    font-family:'Fraunces', serif; font-weight:700; font-size:17px; color:var(--ink);
+    font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-weight:700; font-size:17px; color:var(--ink);
     margin-bottom:12px;
   }
 .cartActionsRow{
@@ -898,7 +899,7 @@
   width:100%;
   padding: 14px 2px;
   border-radius:12px;
-  font-family:'Inter',sans-serif;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   font-weight:700;
   font-size:14px;
   cursor:pointer;
@@ -934,15 +935,15 @@
   .hoursRow:last-child{ border-bottom:none; }
   .hDay{
     display:flex; align-items:center; gap:8px;
-    font-family:'Fraunces', serif; font-weight:600; font-size:13.5px; color:var(--ink);
+    font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-weight:600; font-size:13.5px; color:var(--ink);
   }
   .hoursRow.today .hDay::after{
     content:"TODAY";
-    font-family:'Inter',sans-serif; font-size:9px; font-weight:700; letter-spacing:.4px;
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:9px; font-weight:700; letter-spacing:.4px;
     background: rgba(107,123,79,.15); color: var(--olive-500);
     padding:2px 7px; border-radius:999px;
   }
-  .hTime{ font-family:'Inter', monospace; font-size:12.5px; font-weight:500; color:var(--crust-500); }
+  .hTime{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; font-size:12.5px; font-weight:500; color:var(--crust-500); }
 
 /* ---------- floating basket bar (Telegram-style green pill) ---------- */
   .cartBar{
@@ -960,7 +961,7 @@
     width:fit-content;
     background: linear-gradient(135deg, #5a3111, #4a2609);
     color:#fff; border:none; border-radius:26px; cursor:pointer;
-    padding:6px 16px 6px 5px; font-family:'Inter',sans-serif;
+    padding:6px 16px 6px 5px; font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
     box-shadow: 0 8px 22px rgba(74,38,9,.4);
     transition: transform .15s ease;
     touch-action: manipulation;
@@ -977,7 +978,7 @@
     position:absolute; top:-5px; right:-5px;
     background:#fff; color:#4a2609;
     border-radius:999px; min-width:17px; height:17px; padding:0 4px;
-    font-size:10px; font-weight:800; font-family:'Inter', monospace;
+    font-size:10px; font-weight:800; font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace;
     display:flex; align-items:center; justify-content:center;
     border:2px solid #4a2609;
   }
@@ -992,14 +993,14 @@
     justify-content:center; line-height:1.3;
   }
   .cartBarLabel{
-    font-family:'Inter',sans-serif; font-weight:700; font-size:16px; color:#fff;
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:16px; color:#fff;
   }
   .cartBarPrice{ display:flex; align-items:baseline; gap:6px; }
   #cartBarRiel{
-    font-family:'Inter',sans-serif; font-weight:700; font-size:16px; color:#fff;
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:16px; color:#fff;
   }
   .cartBarUsd{
-    font-family:'Inter',sans-serif; font-weight:500; font-size:13px; color:rgba(255,255,255,.85);
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:500; font-size:13px; color:rgba(255,255,255,.85);
   }
 
 .confirmModalCard{ max-width:360px; }
@@ -1025,7 +1026,7 @@
   border-radius:28px;
   background:var(--white);
   box-shadow:0 28px 80px rgba(29,19,0,.35);
-  font-family:'Inter',sans-serif;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   transform:translateY(18px) scale(.97);
   transition:transform .25s cubic-bezier(.2,.8,.2,1);
 }
@@ -1049,7 +1050,7 @@
   text-align:center; text-transform:uppercase;
 }
 .adminLoginCard h2{
-  font-family:'Fraunces',serif; font-size:27px; line-height:1.1;
+  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:27px; line-height:1.1;
   text-align:center; color:var(--ink);
 }
 .adminLoginSub{
@@ -1065,7 +1066,7 @@
   width:100%; min-height:48px;
   padding:12px 14px; border:1.5px solid var(--line); border-radius:14px;
   outline:none; background:var(--paper); color:var(--ink);
-  font-family:'Inter',sans-serif; font-size:16px;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:16px;
   transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
 .adminLoginCard input:focus{
@@ -1078,13 +1079,13 @@
   position:absolute; top:7px; right:7px; height:34px;
   padding:0 10px; border:0; border-radius:9px;
   background:var(--paper-200); color:var(--ink-soft);
-  font-family:'Inter',sans-serif; font-size:11px; font-weight:700; cursor:pointer;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11px; font-weight:700; cursor:pointer;
 }
 .adminLoginSubmit{
   width:100%; min-height:48px; margin-top:24px;
   border:0; border-radius:999px; cursor:pointer;
   background:linear-gradient(135deg, var(--mustard-500), var(--crust-500));
-  color:#fff; font-family:'Inter',sans-serif; font-size:14px; font-weight:800;
+  color:#fff; font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:14px; font-weight:800;
   box-shadow:0 12px 24px -10px rgba(43,33,24,.65);
 }
 .adminLoginSubmit:disabled{ opacity:.65; cursor:wait; }
@@ -1117,7 +1118,7 @@ body.adminLayerOpen{ overflow:hidden; }
 .receiptCard{
   width:380px;
   background: var(--paper);
-  font-family:'Inter', sans-serif;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   color: var(--ink);
   border-radius:20px;
   overflow:hidden;
@@ -1128,8 +1129,8 @@ body.adminLayerOpen{ overflow:hidden; }
   padding:22px 24px;
   color:#fff;
 }
-.receiptHead .rShopName{ font-family:'Fraunces', serif; font-weight:700; font-size:20px; }
-.receiptHead .rTagline{ font-family:'Noto Sans Khmer', sans-serif; font-size:11px; opacity:.85; margin-top:4px; }
+.receiptHead .rShopName{ font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-weight:700; font-size:20px; }
+.receiptHead .rTagline{ font-family:'Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11px; opacity:.85; margin-top:4px; }
 .receiptBody{ padding:20px 24px; }
 .receiptRow{
   display:flex; justify-content:space-between; align-items:center;
@@ -1137,14 +1138,14 @@ body.adminLayerOpen{ overflow:hidden; }
 }
 .receiptRow span:last-child{ color: var(--ink); font-weight:600; text-align:right; max-width:60%; }
 .receiptDivider{ border-top:1px dashed var(--line); margin:14px 0; }
-.receiptItemsTitle{ font-family:'Fraunces', serif; font-weight:700; font-size:14px; margin-bottom:8px; color:var(--ink); }
+.receiptItemsTitle{ font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-weight:700; font-size:14px; margin-bottom:8px; color:var(--ink); }
 .receiptItemRow{ display:flex; justify-content:space-between; align-items:flex-start; font-size:13px; padding:6px 0; gap:10px; }
 .receiptItemRow .riQty{ color:var(--ink-soft); flex-shrink:0; }
 .receiptItemRow .riName{ flex:1; color:var(--ink); }
 .receiptItemRow .riPrice{ color:var(--ink); font-weight:600; flex-shrink:0; min-width:55px; text-align:right; }
 .receiptTotalRow{
   display:flex; justify-content:space-between; align-items:baseline;
-  font-family:'Fraunces', serif; font-weight:700; font-size:18px; color:var(--ink);
+  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-weight:700; font-size:18px; color:var(--ink);
   margin-top:6px;
 }
 .receiptTotalRow .rTotalUsd{ color: var(--mustard-500); }
@@ -1156,10 +1157,10 @@ body.adminLayerOpen{ overflow:hidden; }
 
 .confirmBody{ padding:26px 22px; text-align:center; }
 .confirmBody h3{
-  font-family:'Fraunces', serif; font-size:19px; font-weight:700; color:var(--ink);
+  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:19px; font-weight:700; color:var(--ink);
 }
 .confirmText{
-  font-family: 'Inter';
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   font-size:13px; color:var(--ink-soft); margin-top:8px; line-height:1.5;
 }
 .confirmSummary{
@@ -1169,7 +1170,7 @@ body.adminLayerOpen{ overflow:hidden; }
 }
 .confirmDetailRow{
   display:flex; justify-content:space-between; align-items:center;
-  font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:14px; color:var(--ink);
   padding:5px 0;
 }
 .confirmDetailRow span:first-child{ color:var(--ink-soft); font-weight:600; }
@@ -1177,20 +1178,20 @@ body.adminLayerOpen{ overflow:hidden; }
 .confirmDivider{ height:1px; background:var(--line); margin:8px 0; }
 .confirmItemRow{
   display:flex; align-items:center; gap:8px;
-  font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:14px; color:var(--ink);
   padding:6px 0;
 }
 .confirmItemQty{
-  font-family:'Inter', monospace; color:var(--crust-500);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; color:var(--crust-500);
   flex-shrink:0; min-width:26px;
 }
 .confirmItemName{ flex:1; min-width:0; }
 .confirmItemPrice{
-  font-family:'sans-serif'; color:var(--ink);
+  font-family:'Khmer OS Sans','Noto Sans Khmer','Inter',sans-serif; color:var(--ink);
   flex-shrink:0;
 }
 .confirmTotalRow{
-  font-family:'Fraunces', serif; font-size:17px; font-weight:700;
+  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:17px; font-weight:700;
   padding-top:8px;
 }
 .confirmTotalRow span:first-child{ color:var(--ink); }
@@ -1205,7 +1206,7 @@ body.adminLayerOpen{ overflow:hidden; }
 }
 .confirmDetailRow{
   display:flex; justify-content:space-between; align-items:center;
-  font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:14px; color:var(--ink);
   padding:5px 0;
 }
 .confirmDetailRow span:first-child{ color:var(--ink-soft); font-weight:600; }
@@ -1213,20 +1214,20 @@ body.adminLayerOpen{ overflow:hidden; }
 .confirmDivider{ height:1px; background:var(--line); margin:8px 0; }
 .confirmItemRow{
   display:flex; align-items:center; gap:8px;
-  font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:14px; color:var(--ink);
   padding:6px 0;
 }
 .confirmItemQty{
-  font-family:'Inter', monospace; font-weight:500; color:var(--crust-500);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; font-weight:500; color:var(--crust-500);
   flex-shrink:0; min-width:26px;
 }
 .confirmItemName{ flex:1; min-width:0; }
 .confirmItemPrice{
-  font-family:'Inter', monospace,Noto sans khmer; color:var(--ink);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; color:var(--ink);
   flex-shrink:0;
 }
 .confirmTotalRow{
-  font-family:'Fraunces', serif; font-size:17px; font-weight:700;
+  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:17px; font-weight:700;
   padding-top:8px;
 }
 .confirmTotalRow span:first-child{ color:var(--ink); }
@@ -1240,7 +1241,7 @@ body.adminLayerOpen{ overflow:hidden; }
 }
 .confirmModalCard .confirmBody h3{
   color:#292521;
-  font-family:'Inter',sans-serif;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   font-size:21px;
   font-weight:800;
 }
@@ -1275,11 +1276,11 @@ body.adminLayerOpen{ overflow:hidden; }
 }
 .successCheckmark svg{ width:32px; height:32px; }
 .orderSuccessCard h3{
-  font-family:'Inter',sans-serif; font-size:22px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:22px; font-weight:800;
   color:#292521;
 }
 .orderSuccessCard p{
-  margin-top:9px; font-family:'Inter',sans-serif;
+  margin-top:9px; font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   font-size:13.5px; line-height:1.55; color:#756f69;
 }
 .orderSuccessDoneBtn{

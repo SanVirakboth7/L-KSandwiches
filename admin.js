@@ -45,10 +45,11 @@ let ordersRealtimeChannel = null;
 
 const CATEGORY_SETTING_KEY = 'menu_categories';
 const DEFAULT_CATEGORIES = [
-  { slug: 'sandwich', name: 'Sandwich', customerLabel: 'សាំងវិច' },
-  { slug: 'rice', name: 'Rice', customerLabel: 'បាយ' },
-  { slug: 'dessert', name: 'Dessert', customerLabel: 'បង្អែម' },
-  { slug: 'drink', name: 'Drink', customerLabel: 'ភេសជ្ជៈ' }
+  { slug: 'sandwich', id: 'LK-S', name: 'Sandwich', customerLabel: 'សាំងវិច' },
+  { slug: 'rice', id: 'LK-R', name: 'Rice', customerLabel: 'បាយ' },
+  { slug: 'dessert', id: 'LK-D', name: 'Dessert', customerLabel: 'បង្អែម' },
+  { slug: 'drink', id: 'LK-DR', name: 'Drink', customerLabel: 'ភេសជ្ជៈ' },
+  { slug: 'salad', id: 'LK-SA', name: 'Salad', customerLabel: 'សាឡាដ' }
 ];
 let categories = DEFAULT_CATEGORIES.map(category => ({ ...category }));
 
@@ -171,7 +172,7 @@ function updateDashboardStats() {
 }
 
 document.getElementById('quickAddItem')?.addEventListener('click', () => {
-  addModalOverlay.classList.add('open');
+  openAddProductModal();
 });
 document.getElementById('quickCreateCategory')?.addEventListener('click', () => {
   switchPage('categories');
@@ -761,10 +762,12 @@ function normalizeCategoryList(value) {
   return value.flatMap(item => {
     const slug = String(item?.slug || '').trim().toLowerCase();
     const name = String(item?.name || '').trim();
+    const id = String(item?.id || '').trim().toUpperCase();
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || !name || seen.has(slug)) return [];
     seen.add(slug);
     return [{
       slug,
+      ...(id ? { id } : {}),
       name,
       customerLabel: String(item?.customerLabel || name).trim() || name,
       hidden: Boolean(item?.hidden)
@@ -776,7 +779,11 @@ function mergeProductCategories(savedCategories) {
   const merged = DEFAULT_CATEGORIES.map(category => ({ ...category }));
   savedCategories.forEach(category => {
     const existingIndex = merged.findIndex(item => item.slug === category.slug);
-    if (existingIndex >= 0) merged[existingIndex] = { ...merged[existingIndex], ...category };
+    if (existingIndex >= 0) {
+      const defaultId = merged[existingIndex].id;
+      merged[existingIndex] = { ...merged[existingIndex], ...category };
+      if (defaultId) merged[existingIndex].id = defaultId;
+    }
     else merged.push({ ...category });
   });
   const seen = new Set(merged.map(category => category.slug));
@@ -886,7 +893,7 @@ const NO_ENTRY_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 function rowHTML(p) {
   const priceValue = (p.price || '').replace(/^\$/, '');
   return `
-    <div class="productRow" data-id="${p.id}">
+    <div class="productRow" data-id="${escapeAttr(p.id)}">
       <div class="rowImg" data-role="imgTrigger">
         <img src="${p.image_url}" alt="${escapeAttr(p.name)}">
         <div class="imgOverlay">View photo</div>
@@ -898,8 +905,8 @@ function rowHTML(p) {
         </div>
 
         <div class="rowMeta">
-          <span class="rowId">${p.id}</span>
-          <span class="catTag">${p.category}</span>
+          <span class="rowId">${escapeHTML(p.id)}</span>
+          <span class="catTag">${escapeHTML(p.category)}</span>
           ${p.is_out_of_stock ? '<span class="stockTag">Out of Stock</span>' : ''}
           <span class="savedTick" data-role="savedTick">Saved ✓</span>
         </div>
@@ -1019,8 +1026,16 @@ const photoModalId = document.getElementById('photoModalId');
 const photoModalUploading = document.getElementById('photoModalUploading');
 const photoModalFileInput = document.getElementById('photoModalFileInput');
 const photoChangeBtn = document.getElementById('photoChangeBtn');
+const photoEditBtn = document.getElementById('photoEditBtn');
 const photoDeleteBtn = document.getElementById('photoDeleteBtn');
 const photoModalClose = document.getElementById('photoModalClose');
+const photoModalView = document.getElementById('photoModalView');
+const photoCropEditor = document.getElementById('photoCropEditor');
+const photoCropCanvas = document.getElementById('photoCropCanvas');
+const photoCropZoom = document.getElementById('photoCropZoom');
+const photoCropCancelBtn = document.getElementById('photoCropCancelBtn');
+const photoCropSaveBtn = document.getElementById('photoCropSaveBtn');
+const photoCropHint = photoCropEditor?.querySelector('.photoCropHint');
 const slideshowModalOverlay = document.getElementById('slideshowModalOverlay');
 const slideshowModalClose = document.getElementById('slideshowModalClose');
 
@@ -1035,7 +1050,9 @@ slideshowModalOverlay?.addEventListener('click', (e) => {
 });
 
 const photoModalReady = !!(photoModalOverlay && photoModalImg && photoModalId &&
-  photoModalUploading && photoModalFileInput && photoChangeBtn && photoDeleteBtn && photoModalClose);
+  photoModalUploading && photoModalFileInput && photoChangeBtn && photoEditBtn && photoDeleteBtn &&
+  photoModalClose && photoModalView && photoCropEditor && photoCropCanvas && photoCropZoom &&
+  photoCropCancelBtn && photoCropSaveBtn);
 
 if (!photoModalReady) {
   console.warn('[L&K admin] Photo lightbox elements not found in admin.html.');
@@ -1048,13 +1065,141 @@ function openPhotoModal(id) {
   currentPhotoProductId = id;
   photoModalImg.src = product.image_url;
   photoModalId.textContent = id;
+  closePhotoCropEditor();
   photoModalOverlay.classList.add('open');
 }
 
 function closePhotoModal() {
   if (!photoModalReady) return;
   photoModalOverlay.classList.remove('open');
+  closePhotoCropEditor();
   currentPhotoProductId = null;
+}
+
+const photoCropState = {
+  image: null,
+  zoom: 1,
+  offsetX: 0,
+  offsetY: 0,
+  drag: null,
+  objectUrl: '',
+  loadToken: 0
+};
+
+function releasePhotoCropObjectUrl() {
+  if (!photoCropState.objectUrl) return;
+  URL.revokeObjectURL(photoCropState.objectUrl);
+  photoCropState.objectUrl = '';
+}
+
+function closePhotoCropEditor() {
+  if (!photoModalView || !photoCropEditor) return;
+  photoModalView.hidden = false;
+  photoCropEditor.hidden = true;
+  photoCropState.loadToken += 1;
+  photoCropState.image = null;
+  photoCropState.drag = null;
+  releasePhotoCropObjectUrl();
+  if (photoModalFileInput) photoModalFileInput.value = '';
+}
+
+function clampPhotoCropOffsets() {
+  const image = photoCropState.image;
+  if (!image) return;
+  const baseScale = Math.max(photoCropCanvas.width / image.naturalWidth, photoCropCanvas.height / image.naturalHeight);
+  const scale = baseScale * photoCropState.zoom;
+  const maxX = Math.max(0, (image.naturalWidth * scale - photoCropCanvas.width) / 2);
+  const maxY = Math.max(0, (image.naturalHeight * scale - photoCropCanvas.height) / 2);
+  photoCropState.offsetX = Math.max(-maxX, Math.min(maxX, photoCropState.offsetX));
+  photoCropState.offsetY = Math.max(-maxY, Math.min(maxY, photoCropState.offsetY));
+}
+
+function drawPhotoCrop() {
+  const image = photoCropState.image;
+  if (!image) return;
+  clampPhotoCropOffsets();
+  const context = photoCropCanvas.getContext('2d');
+  const baseScale = Math.max(photoCropCanvas.width / image.naturalWidth, photoCropCanvas.height / image.naturalHeight);
+  const scale = baseScale * photoCropState.zoom;
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  const x = (photoCropCanvas.width - width) / 2 + photoCropState.offsetX;
+  const y = (photoCropCanvas.height - height) / 2 + photoCropState.offsetY;
+  context.clearRect(0, 0, photoCropCanvas.width, photoCropCanvas.height);
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, photoCropCanvas.width, photoCropCanvas.height);
+  context.drawImage(image, x, y, width, height);
+}
+
+function openPhotoCropEditor(source, { objectUrl = '' } = {}) {
+  if (!photoModalReady || !source) return;
+  releasePhotoCropObjectUrl();
+  photoCropState.objectUrl = objectUrl;
+  photoCropState.image = null;
+  photoCropState.zoom = 1;
+  photoCropState.offsetX = 0;
+  photoCropState.offsetY = 0;
+  photoCropZoom.value = '1';
+  photoModalView.hidden = true;
+  photoCropEditor.hidden = false;
+  if (photoCropHint) photoCropHint.textContent = 'Loading photo…';
+
+  const loadToken = ++photoCropState.loadToken;
+  const image = new Image();
+  if (/^https?:/i.test(source)) image.crossOrigin = 'anonymous';
+  image.onload = () => {
+    if (loadToken !== photoCropState.loadToken) return;
+    photoCropState.image = image;
+    if (photoCropHint) photoCropHint.textContent = 'Drag to reposition';
+    drawPhotoCrop();
+  };
+  image.onerror = () => {
+    if (loadToken !== photoCropState.loadToken) return;
+    closePhotoCropEditor();
+    toast('Could not open this photo for cropping', true);
+  };
+  image.src = source;
+}
+
+async function uploadProductPhoto(file) {
+  const id = currentPhotoProductId;
+  if (!file || !id) return false;
+  photoModalUploading.style.display = 'flex';
+
+  const typeExtensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+  const fileExtension = file.name?.split('.').pop()?.toLowerCase();
+  const ext = fileExtension || typeExtensions[file.type] || 'jpg';
+  const path = `${id}-${Date.now()}.${ext}`;
+  const uploadOptions = { upsert: true, cacheControl: '3600' };
+  if (file.type) uploadOptions.contentType = file.type;
+
+  const { error: uploadError } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(path, file, uploadOptions);
+
+  if (uploadError) {
+    photoModalUploading.style.display = 'none';
+    toast('Upload failed: ' + uploadError.message, true);
+    return false;
+  }
+
+  const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  const publicUrl = publicUrlData.publicUrl;
+  const { error: updateError } = await supabase.from('products').update({ image_url: publicUrl }).eq('id', id);
+  photoModalUploading.style.display = 'none';
+
+  if (updateError) {
+    toast('Saved photo but failed to link it: ' + updateError.message, true);
+    return false;
+  }
+
+  photoModalImg.src = publicUrl;
+  const local = products.find(product => product.id === id);
+  if (local) local.image_url = publicUrl;
+  const cardImg = document.querySelector(`.productRow[data-id="${cssEscape(id)}"] .rowImg img`);
+  if (cardImg) cardImg.src = publicUrl;
+  toast(`${id} photo updated`);
+  return true;
 }
 
 if (photoModalReady) {
@@ -1068,46 +1213,72 @@ if (photoModalReady) {
     photoModalFileInput.click();
   });
 
-  photoModalFileInput.addEventListener('change', async () => {
+  photoEditBtn.addEventListener('click', () => {
+    if (!currentPhotoProductId || !photoModalImg.src) return;
+    openPhotoCropEditor(photoModalImg.src);
+  });
+
+  photoModalFileInput.addEventListener('change', () => {
     const file = photoModalFileInput.files[0];
-    const id = currentPhotoProductId;
-    if (!file || !id) return;
+    if (!file || !currentPhotoProductId) return;
+    const objectUrl = URL.createObjectURL(file);
+    openPhotoCropEditor(objectUrl, { objectUrl });
+  });
 
-    photoModalUploading.style.display = 'flex';
+  photoCropZoom.addEventListener('input', () => {
+    photoCropState.zoom = Number(photoCropZoom.value) || 1;
+    drawPhotoCrop();
+  });
 
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-    const path = `${id}-${Date.now()}.${ext}`;
+  photoCropCanvas.addEventListener('pointerdown', event => {
+    if (!photoCropState.image) return;
+    photoCropCanvas.setPointerCapture(event.pointerId);
+    photoCropState.drag = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      offsetX: photoCropState.offsetX,
+      offsetY: photoCropState.offsetY
+    };
+  });
 
-    const { error: uploadError } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(path, file, { upsert: true, cacheControl: '3600' });
+  photoCropCanvas.addEventListener('pointermove', event => {
+    const drag = photoCropState.drag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const rect = photoCropCanvas.getBoundingClientRect();
+    const ratio = photoCropCanvas.width / rect.width;
+    photoCropState.offsetX = drag.offsetX + (event.clientX - drag.startX) * ratio;
+    photoCropState.offsetY = drag.offsetY + (event.clientY - drag.startY) * ratio;
+    drawPhotoCrop();
+  });
 
-    if (uploadError) {
-      photoModalUploading.style.display = 'none';
-      toast('Upload failed: ' + uploadError.message, true);
-      return;
+  const stopPhotoCropDrag = event => {
+    if (photoCropState.drag?.pointerId === event.pointerId) photoCropState.drag = null;
+  };
+  photoCropCanvas.addEventListener('pointerup', stopPhotoCropDrag);
+  photoCropCanvas.addEventListener('pointercancel', stopPhotoCropDrag);
+
+  photoCropCancelBtn.addEventListener('click', closePhotoCropEditor);
+  photoCropSaveBtn.addEventListener('click', async () => {
+    if (!photoCropState.image || !currentPhotoProductId) return;
+    photoCropSaveBtn.disabled = true;
+    photoCropSaveBtn.textContent = 'Saving…';
+    try {
+      const croppedBlob = await new Promise((resolve, reject) => {
+        try {
+          photoCropCanvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('The crop could not be created.')), 'image/jpeg', 0.9);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      closePhotoCropEditor();
+      await uploadProductPhoto(croppedBlob);
+    } catch (error) {
+      toast('Could not save crop. Try choosing the photo again.', true);
+    } finally {
+      photoCropSaveBtn.disabled = false;
+      photoCropSaveBtn.textContent = 'Save Crop';
     }
-
-    const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-    const publicUrl = publicUrlData.publicUrl;
-
-    const { error: updateError } = await supabase.from('products').update({ image_url: publicUrl }).eq('id', id);
-    photoModalUploading.style.display = 'none';
-    photoModalFileInput.value = '';
-
-    if (updateError) {
-      toast('Saved photo but failed to link it: ' + updateError.message, true);
-      return;
-    }
-
-    photoModalImg.src = publicUrl;
-    const local = products.find(p => p.id === id);
-    if (local) local.image_url = publicUrl;
-
-    const cardImg = document.querySelector(`.productRow[data-id="${cssEscape(id)}"] .rowImg img`);
-    if (cardImg) cardImg.src = publicUrl;
-
-    toast(`${id} photo updated`);
   });
 
   photoDeleteBtn.addEventListener('click', async () => {
@@ -1225,6 +1396,7 @@ document.getElementById('catFilter')?.addEventListener('click', event => {
 
 /* ---------- create category ---------- */
 const categoryForm = document.getElementById('categoryForm');
+const newCategoryId = document.getElementById('newCategoryId');
 const newCategoryName = document.getElementById('newCategoryName');
 const saveCategoryBtn = document.getElementById('saveCategoryBtn');
 const categoryManagerList = document.getElementById('categoryManagerList');
@@ -1249,6 +1421,27 @@ function createUniqueCategorySlug(title) {
   }
   return slug;
 }
+
+const CATEGORY_ID_PREFIX = 'LK-';
+
+function normalizeCategoryId(value) {
+  const suffix = String(value || '')
+    .trim()
+    .replace(/^LK[\s-]*/i, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .toUpperCase();
+  return suffix ? `${CATEGORY_ID_PREFIX}${suffix}` : '';
+}
+
+function seedCategoryIdPrefix() {
+  if (!newCategoryId || newCategoryId.value.trim()) return;
+  newCategoryId.value = CATEGORY_ID_PREFIX;
+  newCategoryId.setSelectionRange(CATEGORY_ID_PREFIX.length, CATEGORY_ID_PREFIX.length);
+}
+
+newCategoryId?.addEventListener('focus', seedCategoryIdPrefix);
+newCategoryId?.addEventListener('click', seedCategoryIdPrefix);
 
 function isDefaultCategory(slug) {
   return DEFAULT_CATEGORIES.some(category => category.slug === slug);
@@ -1275,6 +1468,7 @@ function renderCategoryManager() {
         <label class="categoryManagerField">
           <span>Category title</span>
           <input type="text" data-category-field="title" value="${escapeAttr(category.customerLabel || category.name)}" maxlength="60" aria-label="Category title for ${escapeAttr(category.customerLabel || category.name)}">
+          <span class="categoryManagerId">ID: <strong>${escapeHTML(category.id || 'Not set')}</strong></span>
         </label>
         <div class="categoryManagerActions">
           <button type="button" class="categoryManagerBtn save" data-category-action="save">Save</button>
@@ -1340,7 +1534,12 @@ categoryManagerList?.addEventListener('click', async event => {
 
 categoryForm?.addEventListener('submit', async event => {
   event.preventDefault();
+  const categoryId = normalizeCategoryId(newCategoryId?.value);
   const name = newCategoryName.value.trim();
+  if (!categoryId) {
+    toast('Enter the characters after LK-', true);
+    return;
+  }
   if (!name) {
     toast('Enter a category title', true);
     return;
@@ -1349,10 +1548,14 @@ categoryForm?.addEventListener('submit', async event => {
     toast('That category title already exists', true);
     return;
   }
+  if (categories.some(category => String(category.id || '').toLocaleUpperCase() === categoryId.toLocaleUpperCase())) {
+    toast(`${categoryId} already exists`, true);
+    return;
+  }
   const slug = createUniqueCategorySlug(name);
 
   const previousCategories = categories.map(category => ({ ...category }));
-  categories.push({ slug, name, customerLabel: name, hidden: false });
+  categories.push({ slug, id: categoryId, name, customerLabel: name, hidden: false });
   if (saveCategoryBtn) {
     saveCategoryBtn.disabled = true;
     saveCategoryBtn.textContent = 'Creating…';
@@ -1373,7 +1576,10 @@ categoryForm?.addEventListener('submit', async event => {
   activeCategory = 'all';
   renderCategoryControls();
   const productCategorySelect = document.getElementById('newCategory');
-  if (productCategorySelect) productCategorySelect.value = slug;
+  if (productCategorySelect) {
+    productCategorySelect.value = slug;
+    syncNewProductIdFromCategory({ force: true });
+  }
   updateCategoryCounts();
   render();
   categoryForm.reset();
@@ -1382,7 +1588,31 @@ categoryForm?.addEventListener('submit', async event => {
 
 /* ---------- add product ---------- */
 const addModalOverlay = document.getElementById('addModalOverlay');
-document.getElementById('addProductBtn').addEventListener('click', () => addModalOverlay.classList.add('open'));
+const newProductIdInput = document.getElementById('newId');
+const newProductCategorySelect = document.getElementById('newCategory');
+let lastAutoFilledProductId = '';
+
+function syncNewProductIdFromCategory({ force = false } = {}) {
+  if (!newProductIdInput || !newProductCategorySelect) return;
+  const category = categories.find(item => item.slug === newProductCategorySelect.value);
+  const categoryId = String(category?.id || '').trim().toUpperCase();
+  const currentId = newProductIdInput.value.trim();
+  if (!force && currentId && currentId !== lastAutoFilledProductId) return;
+
+  newProductIdInput.value = categoryId;
+  lastAutoFilledProductId = categoryId;
+  if (categoryId) {
+    newProductIdInput.setSelectionRange(categoryId.length, categoryId.length);
+  }
+}
+
+function openAddProductModal() {
+  addModalOverlay.classList.add('open');
+  syncNewProductIdFromCategory();
+}
+
+newProductCategorySelect?.addEventListener('change', () => syncNewProductIdFromCategory({ force: true }));
+document.getElementById('addProductBtn').addEventListener('click', openAddProductModal);
 document.getElementById('cancelAdd').addEventListener('click', () => addModalOverlay.classList.remove('open'));
 addModalOverlay.addEventListener('click', (e) => { if (e.target === addModalOverlay) addModalOverlay.classList.remove('open'); });
 

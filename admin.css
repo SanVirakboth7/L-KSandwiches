@@ -16,13 +16,13 @@
 *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
 html{ touch-action: manipulation; }
 body{
-  font-family:'Inter', sans-serif;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   background:#fff;
   color: var(--ink);
   min-height:100vh;
   touch-action: manipulation;
 }
-h1,h2,h3{ font-family:'Inter', sans-serif; }
+h1,h2,h3{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
 button{ -webkit-tap-highlight-color: transparent; }
 button:focus{ outline:none; }
 button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; }
@@ -96,7 +96,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .inputGroup:focus-within .inputIcon{ color: var(--brand-brown); opacity:.9; }
 
 .loginCard input{
-  font-family:'Inter',sans-serif; font-size:16px;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:16px;
   width:100%;
   padding:13px 14px 13px 42px; border-radius:14px; border:1.5px solid var(--line);
   background: var(--paper); color: var(--ink); outline:none;
@@ -164,12 +164,12 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .dashLogo img{ width:100%; height:100%; object-fit:cover; display:block; }
 .dashTitleBlock{ display:flex; flex-direction:column; min-width:0; }
 .dashKicker{
-  color:var(--ink-soft); font-family:'Inter',sans-serif;
+  color:var(--ink-soft); font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   font-size:9px; font-weight:800; letter-spacing:.8px;
   line-height:1.1; text-transform:uppercase;
 }
 #pageTitle{
-  margin-top:2px; color:var(--ink); font-family:'Fraunces',serif;
+  margin-top:2px; color:var(--ink); font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif;
   font-size:18px; font-weight:700; line-height:1.1;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
@@ -179,7 +179,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   display:inline-flex; align-items:center; justify-content:center; gap:5px;
   border:1px solid var(--line); border-radius:999px;
   background:var(--paper); color:var(--ink);
-  font-family:'Inter',sans-serif; font-size:11px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11px; font-weight:800;
   cursor:pointer; white-space:nowrap;
   transition:background .15s ease, transform .15s ease, border-color .15s ease;
 }
@@ -188,13 +188,13 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .customerSiteBtn:active{ transform:scale(.97); }
 
 .ghostBtn{
-  font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:12.5px; font-weight:600;
   padding:9px 14px; border-radius:999px; border:1px solid var(--line);
   background: var(--paper); color:var(--ink); cursor:pointer; text-decoration:none;
   display:inline-flex; align-items:center; justify-content:center; white-space:nowrap;
 }
 .primaryBtn{
-  font-family:'Inter',sans-serif; font-size:13px; font-weight:700;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:13px; font-weight:700;
   padding:9px 16px; border-radius:999px; border:none;
   background: var(--brand-brown);
   color:#fff; cursor:pointer;
@@ -248,14 +248,14 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .clearFiltersBtn{
   border:0; background:transparent; color:var(--brand-brown); cursor:pointer;
-  font:700 11px 'Inter',sans-serif; padding:3px 5px;
+  font:700 11px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; padding:3px 5px;
 }
 .clearFiltersBtn[hidden]{ display:none; }
 .filterOption{
   width:100%; min-height:42px; padding:7px 9px;
   display:grid; grid-template-columns:28px 1fr 20px; align-items:center; gap:8px;
   border:0; border-radius:11px; background:transparent; color:var(--ink);
-  font:700 12.5px 'Inter',sans-serif; text-align:left; cursor:pointer;
+  font:700 12.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; text-align:left; cursor:pointer;
 }
 .filterOption:hover{ background:var(--paper); }
 .filterOption.active{ background:rgba(138,90,63,.10); color:var(--brand-brown); }
@@ -268,17 +268,17 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .filterOption.active .filterOptionCheck{ opacity:1; }
 
 .catFilter{
-  display:flex; align-items:center; gap:7px; overflow-x:auto;
-  padding:1px 0 2px; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  display:flex; align-items:center; gap:8px; overflow-x:auto;
+  padding:4px 0; scrollbar-width:none; -webkit-overflow-scrolling:touch;
   scroll-snap-type:x proximity; touch-action:pan-x;
 }
 .catFilter::-webkit-scrollbar{ display:none; }
 .catBtn{
-  flex:0 0 auto; min-height:34px; padding:7px 13px;
+  flex:0 0 auto; min-height:0; padding:6px 12px;
   display:inline-flex; align-items:center; justify-content:center; gap:6px;
   border:1px solid var(--line); border-radius:999px;
   background:var(--paper); color:var(--ink); cursor:pointer;
-  font:700 12px 'Inter',sans-serif; white-space:nowrap;
+  font:600 14px 'Khmer OS Sans','Noto Sans Khmer','Inter',sans-serif; white-space:nowrap;
   scroll-snap-align:start;
 }
 .catDot{ width:6px; height:6px; border-radius:50%; background:var(--brand-brown); flex-shrink:0; }
@@ -299,7 +299,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .loadingRow{ color:var(--ink-soft); font-size:14px; padding:20px 0; }
 
 .resultsCount{
-  font-family:'Inter', sans-serif; font-size:12px; color:var(--ink-soft);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:12px; color:var(--ink-soft);
   margin:0 2px 12px; opacity:.85;
 }
 
@@ -323,7 +323,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   gap:12px; margin-bottom:20px;
 }
 .greetingDate{
-  font-family:'Inter', sans-serif; font-size:11.5px; color:var(--ink-soft);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11.5px; color:var(--ink-soft);
   opacity:.75; white-space:nowrap; padding-bottom:3px;
 }
 
@@ -347,7 +347,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .statIconCrust{ background: rgba(138,90,63,.18); color: var(--brand-brown-dark); }
 .statIconTomato{ background: rgba(43,33,24,.12); color: var(--ink); }
 .statValue{
-  font-family:'Inter', sans-serif; font-size:20px; font-weight:700;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:20px; font-weight:700;
   color:var(--ink); line-height:1.1;
 }
 .statLabel{
@@ -366,7 +366,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   background: var(--white); border:1px solid var(--line); border-radius:16px;
   padding:14px 16px; cursor:pointer; width:100%; text-align:left;
   box-shadow: 0 1px 3px rgba(43,33,24,.05);
-  font-family:'Inter',sans-serif; color:var(--ink);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; color:var(--ink);
 }
 .quickActionCard:active{ background: var(--paper-200); }
 .quickActionIcon{
@@ -394,11 +394,11 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left;
 }
 .ordersPeriodTitle > span{
-  color:var(--ink-soft); font:750 8.5px 'Inter',sans-serif;
+  color:var(--ink-soft); font:750 8.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   text-transform:uppercase; letter-spacing:.65px;
 }
 .ordersPeriodTitle strong{
-  color:var(--ink-dark); font:750 13px 'Inter',sans-serif;
+  color:var(--ink-dark); font:750 13px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .ordersToolbarActions{
@@ -427,13 +427,13 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .ordersFilterMenu.open{ display:block; }
 .ordersFilterMenu > p{
   padding:5px 7px 7px; color:var(--ink-soft);
-  font:750 9px 'Inter',sans-serif; text-transform:uppercase; letter-spacing:.55px;
+  font:750 9px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; text-transform:uppercase; letter-spacing:.55px;
 }
 .ordersFilterOption{
   width:100%; min-height:38px; padding:0 10px;
   display:flex; align-items:center; justify-content:space-between;
   border:0; border-radius:10px; background:transparent; color:var(--ink-dark);
-  font:700 12px 'Inter',sans-serif; cursor:pointer;
+  font:700 12px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; cursor:pointer;
 }
 .ordersFilterOption:hover{ background:#f5f5f5; }
 .ordersFilterOption.active{ background:rgba(138,90,63,.10); color:var(--brand-brown); }
@@ -447,7 +447,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   position:relative; min-width:0; min-height:62px; padding:8px 2px;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
   border:0; border-radius:17px; background:transparent; color:#a09b98; cursor:pointer;
-  font-family:'Inter',sans-serif;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
 }
 .ordersDayBtn span{ font-size:10.5px; font-weight:650; }
 .ordersDayBtn strong{ color:#6a6663; font-size:16px; font-weight:650; }
@@ -497,7 +497,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .adminOrderIdentity{ min-width:0; display:flex; flex-direction:column; gap:2px; }
 .adminOrderEyebrow,.adminOrderSectionLabel{
-  color:var(--ink-soft); font:700 8.5px 'Inter',sans-serif;
+  color:var(--ink-soft); font:700 8.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   text-transform:uppercase; letter-spacing:.6px;
 }
 .adminOrderNumber{ font-size:15px; font-weight:800; color:var(--ink-dark); }
@@ -515,7 +515,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .adminOrderCustomer strong{ min-width:0; color:var(--ink-dark); font-size:14px; line-height:1.25; overflow-wrap:anywhere; }
 .adminOrderPhone{
   display:inline-flex; align-items:center; gap:5px; margin-top:3px;
-  color:var(--brand-brown); font:750 12px 'Inter',sans-serif; text-decoration:none;
+  color:var(--brand-brown); font:750 12px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; text-decoration:none;
 }
 .adminOrderPhoneIcon{ display:flex; align-items:center; justify-content:center; }
 .adminOrderPhoneIcon svg{ width:12px; height:12px; }
@@ -547,7 +547,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   width:100%; min-height:36px; margin-top:9px; padding:9px 0 0;
   display:grid; grid-template-columns:minmax(0,1fr) auto 16px; align-items:center; gap:7px;
   border:0; border-top:1px solid rgba(43,33,24,.09); background:transparent; color:var(--ink-dark);
-  font:750 11px 'Inter',sans-serif; text-align:left; cursor:pointer;
+  font:750 11px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; text-align:left; cursor:pointer;
 }
 .adminOrderItemsToggle strong{
   min-width:22px; height:20px; padding:0 6px; border-radius:999px;
@@ -574,15 +574,15 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .adminOrderItemImage img{ width:100%; height:100%; display:block; object-fit:cover; }
 .adminOrderItemBody{ min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
 .adminOrderItemName{
-  color:var(--ink-dark); font-family:'Noto Sans Khmer','Inter',sans-serif;
+  color:var(--ink-dark); font-family:'Khmer OS Sans','Noto Sans Khmer','Inter',sans-serif;
   font-weight:700; overflow-wrap:anywhere;
 }
 .adminOrderItemId{
-  color:var(--ink-soft); font:650 8.5px 'Inter',sans-serif; white-space:nowrap;
+  color:var(--ink-soft); font:650 8.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; white-space:nowrap;
 }
 .adminOrderItemMeta{
   width:100%; margin-top:2px; display:flex; align-items:center; justify-content:space-between; gap:8px;
-  color:var(--ink-soft); font:650 9.5px 'Inter',sans-serif;
+  color:var(--ink-soft); font:650 9.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
 }
 .adminOrderItemMeta strong{ color:var(--ink-dark); font-size:11.5px; font-variant-numeric:tabular-nums; }
 .adminOrderNoItems{ color:var(--ink-soft); font-size:11px; }
@@ -640,19 +640,19 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .rowImg:hover .imgOverlay{ opacity:1; }
 
-.rowFields{ display:flex; flex-direction:column; justify-content:space-between; gap:4px; min-width:0; }
+.rowFields{ display:flex; flex-direction:column; justify-content:flex-start; gap:0; min-width:0; }
 
 .rowTopLine{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:2px; }
 .nameInput{
   flex:1; min-width:0;
-  font-family:'Inter', sans-serif; font-weight:700; font-size:17px; color:var(--ink);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:17px; color:var(--ink);
   border:none; background:transparent; outline:none; padding:4px 0;
   border-bottom:1px solid transparent;
 }
 .nameInput:focus{ border-bottom-color: var(--brand-brown); }
 .nameInput::placeholder{ color: rgba(43,33,24,.3); font-weight:600; }
 .rowMeta{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:2px 0; }
-.rowId{ font-family:'Inter', sans-serif; font-size:11px; color:var(--ink-soft); }
+.rowId{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11px; color:var(--ink-soft); }
 .catTag{
   font-size:9.5px; font-weight:700; letter-spacing:.3px; text-transform:uppercase;
   background: var(--paper); color:var(--ink-soft); padding:3px 8px; border-radius:999px;
@@ -662,7 +662,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 
 .rowBottomLine{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
-  margin-top:8px; flex-wrap:wrap;
+  margin-top:6px; flex-wrap:nowrap;
 }
 
 .priceWrap{
@@ -670,9 +670,9 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   background: var(--paper); border-radius:10px; padding:6px 11px;
   border:1px solid var(--line);
 }
-.priceSign{ font-family:'Inter', sans-serif; font-size:17px; color: var(--ink-dark); }
+.priceSign{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:17px; color: var(--ink-dark); }
 .priceInput{
-  width:70px; font-family:'Inter', sans-serif;font-size:17px; color: var(--ink-dark);
+  width:70px; font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;font-size:17px; color: var(--ink-dark);
   border:none; background:transparent; outline:none;
 }
 .priceInput::placeholder{ color: rgba(111,70,48,.4); }
@@ -738,10 +738,10 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .settingsAvatar{
   width:48px; height:48px; border-radius:50%; flex-shrink:0;
   background: var(--brand-brown);
-  color:#fff; font-family:'Inter',sans-serif; font-weight:700; font-size:14px;
+  color:#fff; font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:14px;
   display:flex; align-items:center; justify-content:center;
 }
-.settingsAccountName{ font-family:'Inter',sans-serif; font-weight:700; font-size:15px; color:var(--ink); }
+.settingsAccountName{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:15px; color:var(--ink); }
 .settingsAccountEmail{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; word-break:break-all; }
 
 .qrCard{
@@ -754,7 +754,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   width:260px; height:260px; max-width:100%; border-radius:14px; border:1px solid var(--line); padding:10px; background:#fff;
 }
 .qrUrl{
-  font-family:'Inter', sans-serif; font-size:11.5px; color:var(--ink-soft);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11.5px; color:var(--ink-soft);
   word-break:break-all; max-width:320px;
 }
 
@@ -765,7 +765,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   display:flex; align-items:center; gap:12px;
   background: var(--white); border:1px solid var(--line); border-radius:16px;
   padding:14px 16px; cursor:pointer; width:100%;
-  font-family:'Inter',sans-serif; font-size:14.5px; font-weight:600; color:var(--ink);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:14.5px; font-weight:600; color:var(--ink);
   box-shadow: 0 2px 10px rgba(43,33,24,.04);
 }
 .settingsRow:active{ background: var(--paper-200); }
@@ -847,7 +847,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .modalCard h2{ font-size:19px; margin-bottom:14px; }
 .modalCard label{ font-size:12px; font-weight:600; color:var(--ink-soft); margin-top:12px; margin-bottom:5px; }
 .modalCard input, .modalCard textarea, .modalCard select{
-  font-family:'Inter',sans-serif; font-size:16px;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:16px;
   padding:11px 12px; border-radius:10px; border:1px solid var(--line);
   background: var(--paper); outline:none;
 }
@@ -869,7 +869,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .categoryBackBtn svg{ width:18px; height:18px; }
 .categoryBackBtn:active{ transform:scale(.96); background:rgba(43,33,24,.05); }
-.categoryCreateCard, .categoryManager{
+.categoryCreateCard{
   background:#fff; border:1px solid rgba(43,33,24,.12); border-radius:20px;
   padding:18px; box-shadow:0 4px 18px rgba(43,33,24,.045);
 }
@@ -892,15 +892,18 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .categoryField input, .categoryManagerField input{
   width:100%; min-width:0; height:44px; padding:0 12px; border:1px solid rgba(43,33,24,.14);
   border-radius:12px; background:rgba(43,33,24,.035); color:var(--ink-dark); outline:none;
-  font:600 14px 'Inter',sans-serif; transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;
+  font:600 14px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;
 }
-.categoryField input, .categoryManagerField input{ font-family:'Noto Sans Khmer','Inter',sans-serif; }
+.categoryField input, .categoryManagerField input{ font-family:'Khmer OS Sans','Noto Sans Khmer','Inter',sans-serif; }
 .categoryField input:focus, .categoryManagerField input:focus{
   border-color:var(--brand-brown); background:#fff; box-shadow:0 0 0 3px rgba(138,90,63,.10);
 }
 .categoryField .fieldHelp{ margin:0 2px; }
 .categoryFormActions{ display:flex; justify-content:flex-end; gap:9px; margin-top:16px; }
-.categoryManager{ margin-top:14px; }
+.categoryManager{
+  margin-top:20px; padding:0 2px;
+  background:transparent; border:0; border-radius:0; box-shadow:none;
+}
 .categoryManagerHead{ align-items:flex-end; }
 .categoryManagerHead > span{ color:var(--ink-soft); font-size:10.5px; }
 .categoryManagerList{ display:flex; flex-direction:column; gap:10px; }
@@ -910,14 +913,24 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .categoryManagerRow{
   display:grid; grid-template-columns:1fr; align-items:end; gap:10px;
-  padding:13px; border:1px solid rgba(43,33,24,.10); border-radius:16px; background:rgba(43,33,24,.025);
+  padding:13px 0 15px; border:0; border-bottom:1px solid rgba(43,33,24,.11);
+  border-radius:0; background:transparent;
 }
+.categoryManagerRow:last-child{ border-bottom:0; }
 .categoryManagerField{ display:flex; min-width:0; flex-direction:column; gap:5px; }
-.categoryManagerField input{ height:38px; font-size:12.5px; border-radius:10px; }
+.categoryManagerField > span{ font-size:11.5px; }
+.categoryManagerField input{
+  height:46px; padding:0 14px; font-size:16px; font-weight:600;
+  border-radius:12px; background:#fff;
+}
+.categoryManagerField > .categoryManagerId{
+  margin:1px 2px 0; color:var(--ink-soft); font-size:10.5px; font-weight:500;
+}
+.categoryManagerId strong{ color:var(--ink-dark); font-weight:700; letter-spacing:.2px; }
 .categoryManagerActions{ grid-column:1 / -1; display:flex; justify-content:flex-end; gap:7px; padding-top:1px; }
 .categoryManagerBtn{
   min-height:30px; padding:6px 9px; border-radius:999px; cursor:pointer;
-  font:700 10.5px 'Inter',sans-serif; white-space:nowrap;
+  font:700 10.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; white-space:nowrap;
   border:1px solid var(--line); background:var(--white); color:var(--ink);
 }
 .categoryManagerBtn.save{ background:var(--brand-brown); color:#fff; border-color:var(--brand-brown); }
@@ -931,7 +944,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 
 .dangerBtn{
-  font-family:'Inter',sans-serif; font-size:13px; font-weight:700;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:13px; font-weight:700;
   padding:10px 16px; border-radius:999px; border:1px solid rgba(43,33,24,.25);
   background: rgba(43,33,24,.08); color: var(--ink); cursor:pointer;
 }
@@ -958,9 +971,27 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   display:flex; align-items:center; justify-content:center;
   font-weight:700; color:var(--ink); font-size:14px;
 }
-.photoModalId{ font-family:'Inter', sans-serif; font-size:12px; color:var(--ink-soft); text-align:center; padding:14px 20px 0; }
-.photoModalActions{ display:flex; gap:10px; padding:14px 20px 22px; }
-.photoModalActions button{ flex:1; }
+.photoModalId{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:12px; color:var(--ink-soft); text-align:center; padding:14px 20px 0; }
+.photoModalActions{ display:grid; grid-template-columns:1fr 1fr; gap:9px; padding:14px 20px 22px; }
+.photoModalActions .dangerBtn{ grid-column:1 / -1; }
+.photoCropEditor[hidden], .photoModalView[hidden]{ display:none; }
+.photoCropViewport{
+  position:relative; width:100%; aspect-ratio:1; overflow:hidden;
+  border-radius:20px 20px 0 0; background:#eee;
+}
+.photoCropViewport canvas{
+  width:100%; height:100%; display:block; touch-action:none; cursor:grab;
+}
+.photoCropViewport canvas:active{ cursor:grabbing; }
+.photoCropHint{
+  position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
+  padding:6px 10px; border-radius:999px; pointer-events:none;
+  background:rgba(0,0,0,.58); color:#fff; font-size:10.5px; font-weight:700; white-space:nowrap;
+}
+.photoCropControls{ padding:16px 20px 22px; }
+.photoCropControls label{ display:flex; align-items:center; gap:12px; color:var(--ink); font-size:12px; font-weight:700; }
+.photoCropControls input[type="range"]{ flex:1; accent-color:var(--brand-brown); }
+.photoCropActions{ display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:16px; }
 
 @media (max-width:480px){
   .productRow{ grid-template-columns:110px 1fr; gap:12px; padding:12px; }
@@ -999,7 +1030,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   border:1.5px dashed rgba(43,33,24,.24); background:var(--paper);
   color:var(--brand-brown); cursor:pointer;
   display:flex; align-items:center; justify-content:center; gap:8px;
-  font-family:'Inter',sans-serif; font-size:13px; font-weight:800;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:13px; font-weight:800;
   transition:background .15s ease,border-color .15s ease,transform .15s ease;
 }
 .heroAddSlideBtn svg{ width:21px; height:21px; }
@@ -1015,7 +1046,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   .dashHeader{ padding-inline:10px; }
   .dashHeaderActions{ gap:6px; }
   .customerSiteBtn{ padding:0 10px; }
-  .rowBottomLine{ align-items:flex-start; }
+  .rowBottomLine{ align-items:flex-start; flex-wrap:wrap; }
   .priceWrap{ order:1; }
   .rowActionsRight{ order:2; margin-left:0; }
 }

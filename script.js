@@ -224,6 +224,7 @@ function getCustomerFields() {
     name         : document.getElementById('custName')?.value.trim() || '',
     phone        : document.getElementById('custPhone')?.value.trim() || '',
     address      : document.getElementById('custAddress')?.value.trim() || '',
+    locationUrl  : selectedDeliveryLocationUrl || '',
     date         : document.getElementById('custDate')?.value || '',
     time         : document.getElementById('custTime')?.value || ''
   };
@@ -368,7 +369,7 @@ function buildQuoteText() {
   text += `Name: ${name || '—'}\n`;
   text += `Phone Number: ${phone || '—'}\n`;
   if (orderType === 'delivery') {
-    text += `Address: ${address || '—'}\n`;
+    text += `Address: ${address || ''}\n`;
   }
   text += `Date: ${date ? formatDate(date) : '—'}\n`;
   text += `Time: ${time ? formatTime(time) : '—'}\n`;
@@ -434,9 +435,9 @@ function renderCartModal() {
 function updateSendButtonState() {
   const sendBtn = document.getElementById('sendOrderBtn');
   if (!sendBtn) return;
-  const { orderType, paymentMethod, name, phone, address, date } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, locationUrl, date } = getCustomerFields();
   const items = cartEntries();
-  const addressOk = orderType === 'delivery' ? !!address : true;
+  const addressOk = orderType === 'delivery' ? !!(address || locationUrl) : true;
   const complete = items.length > 0 && orderType && paymentMethod && name && phone && addressOk && date;
   sendBtn.disabled = !complete;
 }
@@ -461,7 +462,7 @@ function buildConfirmSummaryHTML() {
   }).join('');
 
   const addressRow = orderType === 'delivery'
-    ? `<div class="confirmDetailRow"><span>Address</span><span>${escapeHTML(address || '—')}</span></div>`
+    ? `<div class="confirmDetailRow"><span>Address</span><span>${address ? escapeHTML(address) : ''}</span></div>`
     : '';
 
   return `
@@ -498,7 +499,7 @@ function buildReceiptHTML() {
   }).join('');
 
   const addressRow = orderType === 'delivery'
-    ? `<div class="receiptRow"><span>Address</span><span>${escapeHTML(address || '—')}</span></div>`
+    ? `<div class="receiptRow"><span>Address</span><span>${address ? escapeHTML(address) : ''}</span></div>`
     : '';
 
   return `
@@ -614,10 +615,10 @@ function clearPayWayReturnParams() {
 }
 
 function buildPayWayOrderPayload() {
-  const { orderType, name, phone, address, date, time } = getCustomerFields();
+  const { orderType, name, phone, address, locationUrl, date, time } = getCustomerFields();
   return {
     orderType,
-    customer: { name, phone, address },
+    customer: { name, phone, address: address || locationUrl },
     schedule: { date, time },
     items: cartEntries().map(([id, quantity]) => ({ id, quantity }))
   };
@@ -735,7 +736,7 @@ function newClientOrderId() {
 }
 
 function buildOrderRecord(paymentVerifiedTranId = '', telegramSent = false) {
-  const { orderType, paymentMethod, name, phone, address, date, time } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, locationUrl, date, time } = getCustomerFields();
   const items = cartEntries().flatMap(([id, quantity]) => {
     const product = allProducts.find(item => item.id === id);
     if (!product) return [];
@@ -754,7 +755,7 @@ function buildOrderRecord(paymentVerifiedTranId = '', telegramSent = false) {
     client_order_id: newClientOrderId(),
     customer_name: name,
     customer_phone: phone,
-    delivery_address: orderType === 'delivery' ? address : '',
+    delivery_address: orderType === 'delivery' ? (address || locationUrl) : '',
     order_type: orderType,
     payment_method: paymentMethod,
     payment_status: paymentMethod === 'aba' ? 'paid' : 'cash_due',
@@ -1347,6 +1348,8 @@ const custTimeInput = document.getElementById('custTime');
 const orderTypeToggle = document.getElementById('orderTypeToggle');
 const paymentMethodToggle = document.getElementById('paymentMethodToggle');
 let addressBeforeEdit = '';
+let locationBeforeEdit = '';
+let selectedDeliveryLocationUrl = '';
 let addressLocationMap = null;
 let addressLocationMarker = null;
 let addressLocationAccuracyCircle = null;
@@ -1441,7 +1444,8 @@ function showAddressLocationPreview(latitude, longitude, accuracy = 0) {
 }
 
 function syncAddressLocationPreview() {
-  const coordinates = getAddressCoordinates(custAddressInput?.value);
+  const coordinates = getAddressCoordinates(selectedDeliveryLocationUrl)
+    || getAddressCoordinates(custAddressInput?.value);
   if (coordinates) {
     showAddressLocationPreview(coordinates.latitude, coordinates.longitude);
   } else if (addressLocationPreview) {
@@ -1452,8 +1456,10 @@ function syncAddressLocationPreview() {
 function syncDeliveryAddressResult() {
   if (!deliveryAddressResult) return;
   const address = custAddressInput?.value.trim() || '';
-  deliveryAddressResult.textContent = displayAddressValue(address) || 'Add your delivery address';
-  deliveryAddressResult.classList.toggle('empty', !address);
+  const hasPinnedLocation = Boolean(selectedDeliveryLocationUrl);
+  deliveryAddressResult.textContent = displayAddressValue(address)
+    || (hasPinnedLocation ? 'Pinned location selected' : 'Add your delivery address');
+  deliveryAddressResult.classList.toggle('empty', !address && !hasPinnedLocation);
 }
 
 function setLocationStatus(message = '', type = '') {
@@ -1466,6 +1472,7 @@ function setLocationStatus(message = '', type = '') {
 function openAddressEditor() {
   if (!addressEditorOverlay || !custAddressInput) return;
   addressBeforeEdit = custAddressInput.value;
+  locationBeforeEdit = selectedDeliveryLocationUrl;
   setLocationStatus();
   addressEditorOverlay.classList.add('open');
   addressEditorOverlay.setAttribute('aria-hidden', 'false');
@@ -1474,7 +1481,10 @@ function openAddressEditor() {
 }
 
 function closeAddressEditor({ restore = false } = {}) {
-  if (restore && custAddressInput) custAddressInput.value = addressBeforeEdit;
+  if (restore) {
+    if (custAddressInput) custAddressInput.value = addressBeforeEdit;
+    selectedDeliveryLocationUrl = locationBeforeEdit;
+  }
   addressEditorOverlay?.classList.remove('open');
   addressEditorOverlay?.setAttribute('aria-hidden', 'true');
   setLocationStatus();
@@ -1504,9 +1514,7 @@ function useCurrentDeliveryLocation() {
     position => {
       const latitude = position.coords.latitude.toFixed(6);
       const longitude = position.coords.longitude.toFixed(6);
-      if (custAddressInput) {
-        custAddressInput.value = `https://www.google.com/maps?q=${latitude},${longitude}`;
-      }
+      selectedDeliveryLocationUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
       showAddressLocationPreview(Number(latitude), Number(longitude), position.coords.accuracy || 0);
       setLocationStatus('Current location added. Save to use it for delivery.', 'success');
       if (useLocationBtn) useLocationBtn.disabled = false;
@@ -1545,7 +1553,10 @@ function prefillCustomerFields() {
   setPaymentMethod(saved.paymentMethod || 'cash');
   if (custNameInput) custNameInput.value = saved.name || '';
   if (custPhoneInput) custPhoneInput.value = saved.phone || '';
-  if (custAddressInput) custAddressInput.value = saved.address || '';
+  const savedAddress = String(saved.address || '').trim();
+  const legacyMapUrl = getAddressCoordinates(savedAddress) ? savedAddress : '';
+  selectedDeliveryLocationUrl = String(saved.locationUrl || legacyMapUrl || '').trim();
+  if (custAddressInput) custAddressInput.value = legacyMapUrl ? '' : savedAddress;
   if (custDateInput) custDateInput.value = saved.date || '';
   if (custTimeInput) custTimeInput.value = saved.time || '';
   syncDeliveryAddressResult();
@@ -1623,7 +1634,7 @@ if (mapEl && window.L) {
         </div>
         <div style="
           position:absolute;bottom:-4px;right:-4px;width:18px;height:18px;border-radius:50%;
-          background:#2b2118;color:#fff;font:700 10px 'Inter',sans-serif;
+          background:#2b2118;color:#fff;font:700 10px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
           display:flex;align-items:center;justify-content:center;
           border:2px solid #fff;
         ">${n}</div>
@@ -1640,7 +1651,7 @@ if (mapEl && window.L) {
   markers = locations.map((loc, i) => {
     const m = L.marker([loc.lat, loc.lng], { icon: makeIcon(i + 1) }).addTo(map);
     m.bindPopup(`
-      <div style="font-family:'Inter',sans-serif;min-width:165px;padding:2px 0;">
+      <div style="font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;min-width:165px;padding:2px 0;">
         <div style="font-weight:700;font-size:13px;color:#2b2118;margin-bottom:3px;">${loc.name}</div>
         <div style="font-size:11px;color:#6b5f52;margin-bottom:10px;line-height:1.4;">${loc.address}</div>
         <a href="${loc.url}" target="_blank" rel="noopener"
