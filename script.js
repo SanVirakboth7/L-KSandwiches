@@ -422,8 +422,10 @@ function renderCartModal() {
   const subtotal = cartTotal();
   const subtotalEl = document.getElementById('cpSubtotal');
   const totalEl = document.getElementById('cartModalTotal');
+  const totalRielEl = document.getElementById('cartModalRiel');
   if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
   if (totalEl) totalEl.textContent = '$' + subtotal.toFixed(2);
+  if (totalRielEl) totalRielEl.textContent = formatRiel(subtotal);
 
   updateSendButtonState();
 }
@@ -706,7 +708,7 @@ async function handlePayWayReturn() {
     }
 
     prefillCustomerFields();
-    setPaymentMethod('aba');
+    setPaymentMethod('aba', { allowDisabled: true });
     renderCartModal();
     verifiedPayWayTransactionId = tranId;
     updateSendButtonState();
@@ -1069,14 +1071,21 @@ function renderCategoryUI() {
   if (dynamicSections) dynamicSections.innerHTML = '';
 
   DEFAULT_CATEGORIES.forEach(category => {
-    const isHidden = menuCategories.find(item => item.slug === category.slug)?.hidden === true;
+    const linkedCategory = menuCategories.find(item => item.slug === category.slug) || category;
+    const isHidden = linkedCategory.hidden === true;
+    const customerLabel = linkedCategory.customerLabel || linkedCategory.name || category.customerLabel;
     const cfg = CATEGORY_MAP[category.slug];
     const grid = cfg ? document.getElementById(cfg.gridId) : null;
     const section = grid?.previousElementSibling;
     const chip = section?.id ? chipRow?.querySelector(`[data-target="${section.id}"]`) : null;
+    const sectionTitle = section?.querySelector('h3');
     if (section) section.style.display = isHidden ? 'none' : '';
     if (grid) grid.style.display = isHidden ? 'none' : '';
-    if (chip) chip.style.display = isHidden ? 'none' : '';
+    if (sectionTitle) sectionTitle.textContent = customerLabel;
+    if (chip) {
+      chip.style.display = isHidden ? 'none' : '';
+      chip.innerHTML = `<span class="dot"></span>${escapeHTML(customerLabel)}`;
+    }
   });
 
   menuCategories.filter(category => !category.hidden).forEach(category => {
@@ -1330,11 +1339,17 @@ const addressCancelBtn = document.getElementById('addressCancelBtn');
 const addressSaveBtn = document.getElementById('addressSaveBtn');
 const useLocationBtn = document.getElementById('useLocationBtn');
 const locationStatus = document.getElementById('locationStatus');
+const addressLocationPreview = document.getElementById('addressLocationPreview');
+const addressLocationMapEl = document.getElementById('addressLocationMap');
+const addressLocationAccuracy = document.getElementById('addressLocationAccuracy');
 const custDateInput = document.getElementById('custDate');
 const custTimeInput = document.getElementById('custTime');
 const orderTypeToggle = document.getElementById('orderTypeToggle');
 const paymentMethodToggle = document.getElementById('paymentMethodToggle');
 let addressBeforeEdit = '';
+let addressLocationMap = null;
+let addressLocationMarker = null;
+let addressLocationAccuracyCircle = null;
 
 // Don't let a customer pick a date in the past.
 if (custDateInput) custDateInput.min = new Date().toISOString().split('T')[0];
@@ -1359,11 +1374,14 @@ if (orderTypeToggle) {
   });
 }
 
-function setPaymentMethod(method) {
+function setPaymentMethod(method, { allowDisabled = false } = {}) {
   if (!paymentMethodToggle) return;
-  paymentMethodToggle.dataset.selected = method;
-  paymentMethodToggle.querySelectorAll('.pmBtn').forEach(btn => {
-    const isActive = btn.dataset.payment === method;
+  const paymentButtons = [...paymentMethodToggle.querySelectorAll('.pmBtn')];
+  const requestedButton = paymentButtons.find(btn => btn.dataset.payment === method);
+  const selectedMethod = requestedButton && (!requestedButton.disabled || allowDisabled) ? method : 'cash';
+  paymentMethodToggle.dataset.selected = selectedMethod;
+  paymentButtons.forEach(btn => {
+    const isActive = btn.dataset.payment === selectedMethod;
     btn.classList.toggle('active', isActive);
     btn.setAttribute('aria-pressed', String(isActive));
   });
@@ -1383,6 +1401,52 @@ function displayAddressValue(address) {
   const locationMatch = String(address || '').match(/[?&]q=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
   if (locationMatch) return `Current location (${locationMatch[1]}, ${locationMatch[2]})`;
   return String(address || '').trim();
+}
+
+function getAddressCoordinates(address) {
+  const match = String(address || '').match(/[?&]q=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+  if (!match) return null;
+  const latitude = Number(match[1]);
+  const longitude = Number(match[2]);
+  return Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude } : null;
+}
+
+function showAddressLocationPreview(latitude, longitude, accuracy = 0) {
+  if (!addressLocationPreview || !addressLocationMapEl || !window.L) return;
+  addressLocationPreview.hidden = false;
+
+  if (!addressLocationMap) {
+    addressLocationMap = L.map(addressLocationMapEl, {
+      zoomControl: true,
+      scrollWheelZoom: false,
+      attributionControl: false
+    });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(addressLocationMap);
+  }
+
+  const point = [latitude, longitude];
+  if (!addressLocationMarker) addressLocationMarker = L.marker(point).addTo(addressLocationMap);
+  else addressLocationMarker.setLatLng(point);
+
+  if (addressLocationAccuracyCircle) addressLocationAccuracyCircle.remove();
+  addressLocationAccuracyCircle = accuracy > 0
+    ? L.circle(point, { radius: accuracy, color: '#723c10', weight: 1, fillColor: '#723c10', fillOpacity: .08 }).addTo(addressLocationMap)
+    : null;
+
+  addressLocationMap.setView(point, 17, { animate: false });
+  if (addressLocationAccuracy) {
+    addressLocationAccuracy.textContent = accuracy > 0 ? `± ${Math.round(accuracy)} m` : '';
+  }
+  window.setTimeout(() => addressLocationMap?.invalidateSize(), 80);
+}
+
+function syncAddressLocationPreview() {
+  const coordinates = getAddressCoordinates(custAddressInput?.value);
+  if (coordinates) {
+    showAddressLocationPreview(coordinates.latitude, coordinates.longitude);
+  } else if (addressLocationPreview) {
+    addressLocationPreview.hidden = true;
+  }
 }
 
 function syncDeliveryAddressResult() {
@@ -1405,6 +1469,7 @@ function openAddressEditor() {
   setLocationStatus();
   addressEditorOverlay.classList.add('open');
   addressEditorOverlay.setAttribute('aria-hidden', 'false');
+  syncAddressLocationPreview();
   window.setTimeout(() => custAddressInput.focus(), 100);
 }
 
@@ -1442,6 +1507,7 @@ function useCurrentDeliveryLocation() {
       if (custAddressInput) {
         custAddressInput.value = `https://www.google.com/maps?q=${latitude},${longitude}`;
       }
+      showAddressLocationPreview(Number(latitude), Number(longitude), position.coords.accuracy || 0);
       setLocationStatus('Current location added. Save to use it for delivery.', 'success');
       if (useLocationBtn) useLocationBtn.disabled = false;
     },
@@ -1463,6 +1529,7 @@ addressEditorClose?.addEventListener('click', () => closeAddressEditor({ restore
 addressCancelBtn?.addEventListener('click', () => closeAddressEditor({ restore: true }));
 addressSaveBtn?.addEventListener('click', saveEditedAddress);
 useLocationBtn?.addEventListener('click', useCurrentDeliveryLocation);
+custAddressInput?.addEventListener('input', syncAddressLocationPreview);
 addressEditorOverlay?.addEventListener('click', event => {
   if (event.target === addressEditorOverlay) closeAddressEditor({ restore: true });
 });
@@ -1475,7 +1542,7 @@ document.addEventListener('keydown', event => {
 function prefillCustomerFields() {
   const saved = loadCustomer();
   setOrderType(saved.orderType || 'pickup');
-  setPaymentMethod(saved.paymentMethod || 'aba');
+  setPaymentMethod(saved.paymentMethod || 'cash');
   if (custNameInput) custNameInput.value = saved.name || '';
   if (custPhoneInput) custPhoneInput.value = saved.phone || '';
   if (custAddressInput) custAddressInput.value = saved.address || '';

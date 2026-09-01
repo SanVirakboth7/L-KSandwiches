@@ -265,13 +265,13 @@
             <h3>Payment Method</h3>
           </div>
           <div class="paymentMethodToggle" id="paymentMethodToggle">
-            <button type="button" class="pmBtn" data-payment="aba">
+            <button type="button" class="pmBtn" data-payment="aba" disabled aria-disabled="true">
               <span class="paymentOptionIcon paymentOptionAba">
                 <img class="abaLogo" src="img/aba-pay.png" alt="" aria-hidden="true">
               </span>
               <span class="paymentOptionCopy">
                 <span class="paymentOptionTitle">ABA Pay</span>
-                <span class="paymentOptionSubtitle">Pay securely with ABA</span>
+                <span class="paymentOptionSubtitle">Temporarily unavailable</span>
               </span>
               <span class="paymentOptionRadio" aria-hidden="true"></span>
             </button>
@@ -290,7 +290,13 @@
       </div>
 
       <div class="cartPageTotals">
-        <div class="totalsRow totalsGrand"><span>Total</span><span id="cartModalTotal">$0.00</span></div>
+        <div class="totalsRow totalsGrand">
+          <span>Total</span>
+          <span class="totalsGrandValue">
+            <strong id="cartModalTotal">$0.00</strong>
+            <small id="cartModalRiel">0 ៛</small>
+          </span>
+        </div>
       </div>
     </div>
 
@@ -318,6 +324,15 @@
           <span>Use my current location</span>
         </button>
         <p class="locationStatus" id="locationStatus" aria-live="polite"></p>
+
+        <div class="addressLocationPreview" id="addressLocationPreview" hidden>
+          <div class="addressLocationMap" id="addressLocationMap" aria-label="Map preview of selected delivery location"></div>
+          <div class="addressLocationCaption">
+            <span class="addressLocationDot" aria-hidden="true"></span>
+            <span>Your selected delivery pin</span>
+            <span id="addressLocationAccuracy"></span>
+          </div>
+        </div>
 
         <div class="addressEditorActions">
           <button type="button" class="addressCancelBtn" id="addressCancelBtn">Cancel</button>

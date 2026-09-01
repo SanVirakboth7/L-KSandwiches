@@ -120,10 +120,11 @@ const fabBtn = document.getElementById('addProductBtn');
 const pages = {
   dashboard: document.getElementById('page-dashboard'),
   menu: document.getElementById('page-menu'),
+  categories: document.getElementById('page-categories'),
   orders: document.getElementById('page-orders'),
   settings: document.getElementById('page-settings')
 };
-const PAGE_TITLES = { dashboard: 'Dashboard', menu: 'Menu', orders: 'Orders', settings: 'Settings' };
+const PAGE_TITLES = { dashboard: 'Dashboard', menu: 'Menu', categories: 'Categories', orders: 'Orders', settings: 'Settings' };
 
 function switchPage(name) {
   if (!pages[name]) return;
@@ -139,9 +140,10 @@ function switchPage(name) {
 
   if (pageTitleEl) pageTitleEl.textContent = PAGE_TITLES[name] || '';
   if (menuToolbar) menuToolbar.style.display = name === 'menu' ? 'flex' : 'none';
-  if (fabBtn) fabBtn.style.display = (name === 'settings' || name === 'orders') ? 'none' : 'flex';
+  if (fabBtn) fabBtn.style.display = (name === 'settings' || name === 'orders' || name === 'categories') ? 'none' : 'flex';
 
   if (name === 'dashboard') updateDashboardStats();
+  if (name === 'categories') renderCategoryManager();
   if (name === 'orders') loadOrders();
 
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
@@ -171,7 +173,11 @@ function updateDashboardStats() {
 document.getElementById('quickAddItem')?.addEventListener('click', () => {
   addModalOverlay.classList.add('open');
 });
-document.getElementById('quickCreateCategory')?.addEventListener('click', () => setCategoryModalOpen(true));
+document.getElementById('quickCreateCategory')?.addEventListener('click', () => {
+  switchPage('categories');
+  window.setTimeout(() => newCategoryName?.focus(), 120);
+});
+document.getElementById('categoriesBackBtn')?.addEventListener('click', () => switchPage('menu'));
 
 /* ---------- orders page ---------- */
 const ordersList = document.getElementById('ordersList');
@@ -813,11 +819,11 @@ function renderCategoryControls() {
   const catFilter = document.getElementById('catFilter');
   const newCategorySelect = document.getElementById('newCategory');
   if (catFilter) {
-    const controls = [{ slug: 'all', name: 'All' }, ...categories];
+    const controls = [{ slug: 'all', name: 'All', customerLabel: 'All' }, ...categories];
     catFilter.innerHTML = controls.map(category => `
       <button type="button" class="catBtn${activeCategory === category.slug ? ' active' : ''}" data-cat="${escapeAttr(category.slug)}">
         <span class="catDot" aria-hidden="true"></span>
-        <span class="catLabel">${escapeHTML(category.name)}</span>
+        <span class="catLabel">${escapeHTML(category.customerLabel || category.name)}</span>
       </button>`).join('');
     window.requestAnimationFrame(() => {
       catFilter.querySelector('.catBtn.active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -826,7 +832,7 @@ function renderCategoryControls() {
   if (newCategorySelect) {
     const selected = newCategorySelect.value;
     newCategorySelect.innerHTML = categories.map(category =>
-      `<option value="${escapeAttr(category.slug)}">${escapeHTML(category.name)}${category.hidden ? ' (Hidden)' : ''}</option>`
+      `<option value="${escapeAttr(category.slug)}">${escapeHTML(category.customerLabel || category.name)}${category.hidden ? ' (Hidden)' : ''}</option>`
     ).join('');
     if (categories.some(category => category.slug === selected)) newCategorySelect.value = selected;
   }
@@ -844,7 +850,7 @@ function updateCategoryCounts() {
     const category = categories.find(item => item.slug === cat);
     const label = cat === 'all'
       ? 'All'
-      : category?.name || titleFromSlug(cat) || cat;
+      : category?.customerLabel || category?.name || titleFromSlug(cat) || cat;
     const labelEl = button.querySelector('.catLabel');
     if (labelEl) labelEl.textContent = `${label} (${counts[cat] ?? 0})${category?.hidden ? ' · Hidden' : ''}`;
   });
@@ -1218,13 +1224,10 @@ document.getElementById('catFilter')?.addEventListener('click', event => {
 });
 
 /* ---------- create category ---------- */
-const categoryModalOverlay = document.getElementById('categoryModalOverlay');
 const categoryForm = document.getElementById('categoryForm');
 const newCategoryName = document.getElementById('newCategoryName');
-const newCategorySlug = document.getElementById('newCategorySlug');
 const saveCategoryBtn = document.getElementById('saveCategoryBtn');
 const categoryManagerList = document.getElementById('categoryManagerList');
-let categorySlugWasEdited = false;
 
 function slugifyCategory(value) {
   return String(value || '')
@@ -1234,6 +1237,17 @@ function slugifyCategory(value) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 32);
+}
+
+function createUniqueCategorySlug(title) {
+  const base = slugifyCategory(title) || `category-${Date.now().toString(36)}`;
+  let slug = base;
+  let suffix = 2;
+  while (categories.some(category => category.slug === slug)) {
+    slug = `${base.slice(0, Math.max(1, 32 - String(suffix).length - 1))}-${suffix}`;
+    suffix += 1;
+  }
+  return slug;
 }
 
 function isDefaultCategory(slug) {
@@ -1255,36 +1269,23 @@ function renderCategoryManager() {
   }
 
   categoryManagerList.innerHTML = categories.map(category => {
-    const productCount = products.filter(product => product.category === category.slug).length;
     const isDefault = isDefaultCategory(category.slug);
     return `
       <div class="categoryManagerRow" data-category-slug="${escapeAttr(category.slug)}">
-        <div class="categoryManagerInfo">
-          <span class="categoryManagerName">${escapeHTML(category.name)}</span>
-          <span class="categoryManagerMeta">${productCount} product${productCount === 1 ? '' : 's'}${isDefault ? ' · Existing' : ''}${category.hidden ? ' · Hidden from customers' : ''}</span>
+        <label class="categoryManagerField">
+          <span>Category title</span>
+          <input type="text" data-category-field="title" value="${escapeAttr(category.customerLabel || category.name)}" maxlength="60" aria-label="Category title for ${escapeAttr(category.customerLabel || category.name)}">
+        </label>
+        <div class="categoryManagerActions">
+          <button type="button" class="categoryManagerBtn save" data-category-action="save">Save</button>
+          <button type="button" class="categoryManagerBtn${category.hidden ? ' isHidden' : ''}" data-category-action="toggle">
+            ${category.hidden ? 'Show' : 'Hide'}
+          </button>
+          ${isDefault ? '' : '<button type="button" class="categoryManagerBtn delete" data-category-action="delete">Delete</button>'}
         </div>
-        <button type="button" class="categoryManagerBtn${category.hidden ? ' isHidden' : ''}" data-category-action="toggle">
-          ${category.hidden ? 'Show' : 'Hide'}
-        </button>
-        ${isDefault ? '' : '<button type="button" class="categoryManagerBtn delete" data-category-action="delete">Delete</button>'}
       </div>`;
   }).join('');
 }
-
-function setCategoryModalOpen(open) {
-  categoryModalOverlay?.classList.toggle('open', open);
-  if (open) {
-    categorySlugWasEdited = false;
-    window.setTimeout(() => newCategoryName?.focus(), 120);
-  } else {
-    categoryForm?.reset();
-  }
-}
-
-document.getElementById('cancelCategory')?.addEventListener('click', () => setCategoryModalOpen(false));
-categoryModalOverlay?.addEventListener('click', event => {
-  if (event.target === categoryModalOverlay) setCategoryModalOpen(false);
-});
 
 categoryManagerList?.addEventListener('click', async event => {
   const button = event.target.closest('[data-category-action]');
@@ -1297,7 +1298,15 @@ categoryManagerList?.addEventListener('click', async event => {
   if (action === 'delete' && isDefaultCategory(slug)) return;
   const previousCategories = categories.map(item => ({ ...item }));
 
-  if (action === 'delete') {
+  if (action === 'save') {
+    const title = row.querySelector('[data-category-field="title"]')?.value.trim();
+    if (!title) {
+      toast('Enter a category title', true);
+      return;
+    }
+    category.name = title;
+    category.customerLabel = title;
+  } else if (action === 'delete') {
     const productCount = products.filter(product => product.category === slug).length;
     if (productCount > 0) {
       toast(`Move or delete the ${productCount} product${productCount === 1 ? '' : 's'} in ${category.name} first`, true);
@@ -1316,37 +1325,31 @@ categoryManagerList?.addEventListener('click', async event => {
   const { error } = await persistCategories();
   if (error) {
     categories = previousCategories;
-    toast(`Could not ${action === 'delete' ? 'delete' : 'update'} category: ${error.message}`, true);
+    toast(`Could not ${action === 'delete' ? 'delete' : 'save'} category: ${error.message}`, true);
   } else {
     toast(action === 'delete'
       ? `${category.name} category deleted`
-      : `${category.name} is now ${category.hidden ? 'hidden' : 'visible'}`);
+      : action === 'save'
+        ? `${category.name} titles saved`
+        : `${category.name} is now ${category.hidden ? 'hidden' : 'visible'}`);
   }
   renderCategoryControls();
   updateCategoryCounts();
   render();
 });
 
-newCategoryName?.addEventListener('input', () => {
-  if (!categorySlugWasEdited && newCategorySlug) newCategorySlug.value = slugifyCategory(newCategoryName.value);
-});
-newCategorySlug?.addEventListener('input', () => {
-  categorySlugWasEdited = true;
-  newCategorySlug.value = slugifyCategory(newCategorySlug.value);
-});
-
 categoryForm?.addEventListener('submit', async event => {
   event.preventDefault();
   const name = newCategoryName.value.trim();
-  const slug = slugifyCategory(newCategorySlug.value);
-  if (!name || !slug) {
-    toast('Enter a category name and a valid category key', true);
+  if (!name) {
+    toast('Enter a category title', true);
     return;
   }
-  if (categories.some(category => category.slug === slug)) {
-    toast('That category already exists', true);
+  if (categories.some(category => (category.customerLabel || category.name).toLocaleLowerCase() === name.toLocaleLowerCase())) {
+    toast('That category title already exists', true);
     return;
   }
+  const slug = createUniqueCategorySlug(name);
 
   const previousCategories = categories.map(category => ({ ...category }));
   categories.push({ slug, name, customerLabel: name, hidden: false });
@@ -1373,7 +1376,7 @@ categoryForm?.addEventListener('submit', async event => {
   if (productCategorySelect) productCategorySelect.value = slug;
   updateCategoryCounts();
   render();
-  setCategoryModalOpen(false);
+  categoryForm.reset();
   toast(`${name} category created`);
 });
 
