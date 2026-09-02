@@ -329,9 +329,12 @@
     padding:4px 9px; border-radius:999px; border:1px solid rgba(193,68,45,.3);
   }
 
-  /* Add-to-basket row inside the product detail modal sits below the
-     description instead of floating over the image. */
-  .modalAddWrap{ position:static; margin-top:16px; display:flex; }
+  /* Float the detail control across the image/body boundary, matching
+     the placement used on the outside product grid. */
+  .modalAddWrap{
+    position:relative; z-index:5; width:max-content;
+    margin:-22px 10px -22px auto; display:flex;
+  }
   .modalAddWrap .addBtn{ width:44px; height:44px; }
   .modalAddWrap .addBtn svg{ width:19px; height:19px; }
   .modalAddWrap .stepper{ padding:6px 10px; gap:12px; }
@@ -428,8 +431,8 @@
     cursor:pointer;
   }
   .modalClose svg{ width:14px; height:14px; }
-  .modalBody{ padding:22px 22px 26px; }
-  .modalBody .mId{ font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:14px; font-weight:700; color:var(--ink-soft); }
+  .modalBody{ padding:20px 22px 26px; }
+  .modalBody .mId{ padding-right:48px; font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:14px; font-weight:700; color:var(--ink-soft); }
   .modalBody .mName{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:22px; font-weight:700; color:var(--ink); margin-top:3px; }
   .modalBody .mPrice{
     font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; font-weight:700; font-size:19px;

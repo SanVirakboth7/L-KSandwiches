@@ -189,6 +189,7 @@ const ordersPeriodMode = document.getElementById('ordersPeriodMode');
 const ordersPeriodLabel = document.getElementById('ordersPeriodLabel');
 const ordersPrevPeriod = document.getElementById('ordersPrevPeriod');
 const ordersNextPeriod = document.getElementById('ordersNextPeriod');
+const ordersDatePicker = document.getElementById('ordersDatePicker');
 const ordersFilterBtn = document.getElementById('ordersFilterBtn');
 const ordersFilterMenu = document.getElementById('ordersFilterMenu');
 let selectedOrderDate = localDateInputValue();
@@ -295,6 +296,7 @@ function syncOrderDateControls() {
   if (ordersFilterBtn) ordersFilterBtn.classList.toggle('hasActiveFilter', activeOrderPeriod !== 'day');
   if (ordersPrevPeriod) ordersPrevPeriod.disabled = activeOrderPeriod === 'all';
   if (ordersNextPeriod) ordersNextPeriod.disabled = activeOrderPeriod === 'all';
+  if (ordersDatePicker) ordersDatePicker.value = selectedOrderDate;
   document.querySelectorAll('[data-order-period]').forEach(button => {
     button.classList.toggle('active', button.dataset.orderPeriod === activeOrderPeriod);
   });
@@ -323,6 +325,13 @@ function safeOrderItems(value) {
   return Array.isArray(value) ? value.filter(item => item && typeof item === 'object') : [];
 }
 
+const ADMIN_KHR_PER_USD = 4000;
+
+function formatAdminRiel(usdAmount) {
+  const riel = Math.round(Number(usdAmount || 0) * ADMIN_KHR_PER_USD);
+  return `${riel.toLocaleString('en-US')} ៛`;
+}
+
 function orderAddressHTML(order) {
   if (order.order_type !== 'delivery') return '';
   const address = String(order.delivery_address || '—');
@@ -341,6 +350,7 @@ function orderAddressHTML(order) {
 
 function orderCardHTML(order) {
   const items = safeOrderItems(order.items);
+  const orderTotal = Number(order.total || 0);
   const itemsHTML = items.map(item => {
     const catalogProduct = products.find(product => String(product.id) === String(item.id));
     const snapshotImage = String(item.image_url || '');
@@ -425,7 +435,13 @@ function orderCardHTML(order) {
 
       <div class="adminOrderItems" id="${escapeAttr(itemsPanelId)}" hidden>
         ${itemsHTML || '<p class="adminOrderNoItems">No item details</p>'}
-        <div class="adminOrderTotal"><span>Total</span><strong>$${Number(order.total || 0).toFixed(2)}</strong></div>
+        <div class="adminOrderTotal">
+          <span>Total</span>
+          <span class="adminOrderTotalValues">
+            <strong>$${orderTotal.toFixed(2)}</strong>
+            <small>${formatAdminRiel(orderTotal)}</small>
+          </span>
+        </div>
       </div>
 
       ${order.payment_transaction_id ? `<p class="adminOrderTransaction">ABA transaction: ${escapeHTML(String(order.payment_transaction_id))}</p>` : ''}
@@ -486,6 +502,14 @@ ordersList?.addEventListener('click', event => {
 });
 ordersPrevPeriod?.addEventListener('click', () => moveOrderPeriod(-1));
 ordersNextPeriod?.addEventListener('click', () => moveOrderPeriod(1));
+ordersDatePicker?.addEventListener('change', () => {
+  if (!ordersDatePicker.value) return;
+  selectedOrderDate = ordersDatePicker.value;
+  activeOrderPeriod = 'day';
+  setOrdersFilterOpen(false);
+  syncOrderDateControls();
+  loadOrders();
+});
 ordersWeekStrip?.addEventListener('click', event => {
   const button = event.target.closest('[data-order-date]');
   if (!button) return;

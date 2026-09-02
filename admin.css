@@ -391,7 +391,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   min-height:34px; display:flex; align-items:center; justify-content:space-between; gap:12px;
 }
 .ordersPeriodTitle{
-  min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left;
+  min-width:0; margin-left:5px; display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left;
 }
 .ordersPeriodTitle > span{
   color:var(--ink-soft); font:750 8.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
@@ -404,13 +404,18 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .ordersToolbarActions{
   display:flex; align-items:center; gap:5px; flex-shrink:0;
 }
-.ordersNavBtn,.ordersFilterBtn{
+.ordersNavBtn,.ordersCalendarBtn,.ordersFilterBtn{
   width:34px; height:34px; border:0; border-radius:11px;
   display:flex; align-items:center; justify-content:center;
   background:#f4f4f4; color:var(--ink-dark); cursor:pointer;
 }
-.ordersNavBtn svg,.ordersFilterBtn svg{ width:16px; height:16px; }
+.ordersNavBtn svg,.ordersCalendarBtn svg,.ordersFilterBtn svg{ width:16px; height:16px; }
 .ordersNavBtn:disabled{ opacity:.32; cursor:default; }
+.ordersCalendarBtn{ position:relative; flex:0 0 34px; overflow:hidden; }
+.ordersDatePickerInput{
+  position:absolute; inset:0; width:100%; height:100%; opacity:0;
+  border:0; cursor:pointer;
+}
 .ordersPeriodFilter{ position:relative; }
 .ordersFilterBtn{ position:relative; background:var(--ink-dark); color:#fff; }
 .ordersFilterDot{
@@ -475,7 +480,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 
 .ordersList{
   display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
-  gap:14px;
+  row-gap:20px; column-gap:14px;
 }
 .ordersEmpty{
   grid-column:1/-1; padding:34px 18px;
@@ -529,7 +534,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .adminOrderChipPrimary{ background:rgba(138,90,63,.12); color:var(--brand-brown); }
 .adminOrderFulfillment{
   margin:12px 16px 0; padding:10px 11px; border-radius:12px;
-  background:rgba(43,33,24,.035);
+  background:transparent;
 }
 .orderDetailRow{
   display:flex; align-items:flex-start; gap:8px; margin-top:0;
@@ -595,7 +600,15 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   margin-top:3px; padding:11px 2px 8px; border-top:1px solid rgba(43,33,24,.09);
   font-size:13px; font-weight:800;
 }
-.adminOrderTotal strong{ color:var(--ink-dark); font-size:20px; font-variant-numeric:tabular-nums; }
+.adminOrderTotalValues{
+  display:flex; flex-direction:column; align-items:flex-end; gap:1px;
+  font-variant-numeric:tabular-nums;
+}
+.adminOrderTotalValues strong{ color:var(--ink-dark); font-size:20px; line-height:1.05; }
+.adminOrderTotalValues small{
+  color:var(--ink-soft);
+  font:700 10.5px/1.25 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+}
 
 @media (max-width:600px){
   .ordersToolbar{ padding:11px 9px 10px; border-radius:22px; }
@@ -608,7 +621,8 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 @media (max-width:370px){
   .ordersPeriodTitle strong{ max-width:105px; }
   .ordersToolbarActions{ gap:3px; }
-  .ordersNavBtn,.ordersFilterBtn{ width:31px; height:31px; }
+  .ordersNavBtn,.ordersCalendarBtn,.ordersFilterBtn{ width:31px; height:31px; }
+  .ordersCalendarBtn{ flex-basis:31px; }
   .ordersWeekStrip{ gap:1px; }
   .ordersDayBtn{ min-height:54px; padding-inline:1px; }
   .adminOrderHead{ align-items:flex-start; }
@@ -651,13 +665,18 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .nameInput:focus{ border-bottom-color: var(--brand-brown); }
 .nameInput::placeholder{ color: rgba(43,33,24,.3); font-weight:600; }
-.rowMeta{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:2px 0; }
+.rowMeta{ position:relative; display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:2px 0; }
 .rowId{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11px; color:var(--ink-soft); }
 .catTag{
   font-size:9.5px; font-weight:700; letter-spacing:.3px; text-transform:uppercase;
   background: var(--paper); color:var(--ink-soft); padding:3px 8px; border-radius:999px;
 }
-.savedTick{ font-size:11px; color:var(--brand-brown); font-weight:700; opacity:0; transition:opacity .2s ease; }
+.savedTick{
+  position:absolute; right:0; bottom:calc(100% + 3px); pointer-events:none;
+  padding:2px 6px; border-radius:999px; background:#fff;
+  font-size:10px; color:var(--brand-brown); font-weight:700;
+  opacity:0; transition:opacity .2s ease;
+}
 .savedTick.show{ opacity:1; }
 
 .rowBottomLine{
@@ -705,7 +724,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   border:1px solid rgba(43,33,24,.14); transition: background .15s ease, color .15s ease;
 }
 .stockBtn.active{
-  background: rgba(43,33,24,.10); color: var(--ink); border-color: rgba(43,33,24,.25);
+  background:rgba(193,68,45,.10); color:var(--tomato-500); border-color:rgba(193,68,45,.34);
 }
 
 .stockTag{
