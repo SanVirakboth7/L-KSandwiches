@@ -44,6 +44,7 @@ let orders = [];
 let ordersRealtimeChannel = null;
 
 const CATEGORY_SETTING_KEY = 'menu_categories';
+const ACCEPTING_ORDERS_SETTING_KEY = 'accepting_orders';
 const DEFAULT_CATEGORIES = [
   { slug: 'sandwich', id: 'LK-S', name: 'Sandwich', customerLabel: 'សាំងវិច' },
   { slug: 'rice', id: 'LK-R', name: 'Rice', customerLabel: 'បាយ' },
@@ -76,6 +77,7 @@ function showDashboard() {
   loadProducts();
   setupSettingsPage();
   loadHeroSettings();
+  loadAcceptingOrdersSetting();
   setGreeting();
   subscribeToOrderChanges();
   switchPage('dashboard');
@@ -142,9 +144,15 @@ function switchPage(name) {
   if (menuToolbar) menuToolbar.style.display = name === 'menu' ? 'flex' : 'none';
   if (fabBtn) fabBtn.style.display = (name === 'settings' || name === 'orders') ? 'none' : 'flex';
 
-  if (name === 'dashboard') updateDashboardStats();
+  if (name === 'dashboard') {
+    updateDashboardStats();
+    loadTodayOrderStats();
+  }
   if (name === 'menu') renderCategoryManager();
-  if (name === 'orders') loadOrders();
+  if (name === 'orders') {
+    syncOrderDateControls();
+    loadOrders();
+  }
 
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
 }
@@ -168,6 +176,97 @@ function updateDashboardStats() {
   if (elCats) elCats.textContent = categoriesUsed;
   if (elFeatured) elFeatured.textContent = featured;
   if (elOutOfStock) elOutOfStock.textContent = outOfStock;
+}
+
+const acceptOrdersToggle = document.getElementById('acceptOrdersToggle');
+const acceptOrdersStatus = document.getElementById('acceptOrdersStatus');
+const orderAvailabilityCard = document.getElementById('orderAvailabilityCard');
+const performanceItemsCard = document.getElementById('performanceItemsCard');
+const performanceAvailabilityLabel = document.getElementById('performanceAvailabilityLabel');
+
+function renderAcceptingOrdersSetting(isAccepting) {
+  if (acceptOrdersToggle) acceptOrdersToggle.checked = isAccepting;
+  if (acceptOrdersStatus) acceptOrdersStatus.textContent = isAccepting
+    ? 'Customers can place orders'
+    : 'Currently closed';
+  orderAvailabilityCard?.classList.toggle('closed', !isAccepting);
+  performanceItemsCard?.classList.toggle('closed', !isAccepting);
+  if (performanceAvailabilityLabel) performanceAvailabilityLabel.textContent = isAccepting ? 'Open' : 'Closed';
+}
+
+async function loadAcceptingOrdersSetting() {
+  if (acceptOrdersToggle) acceptOrdersToggle.disabled = true;
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', ACCEPTING_ORDERS_SETTING_KEY)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[L&K admin] Could not load order availability:', error.message);
+    if (acceptOrdersStatus) acceptOrdersStatus.textContent = 'Availability unavailable';
+    return;
+  }
+
+  renderAcceptingOrdersSetting(String(data?.value ?? 'true').toLowerCase() !== 'false');
+  if (acceptOrdersToggle) acceptOrdersToggle.disabled = false;
+}
+
+acceptOrdersToggle?.addEventListener('change', async () => {
+  const nextValue = acceptOrdersToggle.checked;
+  acceptOrdersToggle.disabled = true;
+  renderAcceptingOrdersSetting(nextValue);
+
+  const { error } = await supabase.from('site_settings').upsert({
+    key: ACCEPTING_ORDERS_SETTING_KEY,
+    value: String(nextValue)
+  }, { onConflict: 'key' });
+
+  if (error) {
+    renderAcceptingOrdersSetting(!nextValue);
+    toast('Could not update order availability: ' + error.message, true);
+  } else {
+    toast(nextValue ? 'Customer orders are open' : 'Customer orders are paused');
+  }
+  acceptOrdersToggle.disabled = false;
+});
+
+async function loadTodayOrderStats() {
+  const salesEl = document.getElementById('statTodaySales');
+  const salesAmountEl = document.getElementById('statTodaySalesAmount');
+  const salesRielEl = document.getElementById('statTodaySalesRiel');
+  const itemsEl = document.getElementById('statTodayItems');
+  const ordersFootEl = document.getElementById('statTodayOrdersFoot');
+  if (!salesEl || !salesAmountEl || !itemsEl) return;
+
+  const { start, end } = orderPeriodBounds(localDateInputValue());
+  const { data, error } = await supabase
+    .from('orders')
+    .select('total,status,item_count')
+    .gte('created_at', start)
+    .lt('created_at', end);
+
+  if (error) {
+    console.warn('[L&K admin] Could not load today summary:', error.message);
+    salesAmountEl.textContent = '—';
+    if (salesRielEl) salesRielEl.textContent = '';
+    itemsEl.textContent = '—';
+    if (ordersFootEl) ordersFootEl.textContent = 'Orders unavailable';
+    return;
+  }
+
+  const todayOrders = data || [];
+  const completedSalesOrders = todayOrders.filter(order => order.status !== 'cancelled');
+  const sales = completedSalesOrders
+    .reduce((sum, order) => sum + Number(order.total || 0), 0);
+  const itemsSold = completedSalesOrders
+    .reduce((sum, order) => sum + Number(order.item_count || 0), 0);
+  salesAmountEl.textContent = sales.toFixed(2);
+  if (salesRielEl) salesRielEl.textContent = formatAdminRiel(sales);
+  itemsEl.textContent = String(itemsSold);
+  if (ordersFootEl) {
+    ordersFootEl.textContent = `${completedSalesOrders.length} order${completedSalesOrders.length === 1 ? '' : 's'}`;
+  }
 }
 
 document.getElementById('quickAddItem')?.addEventListener('click', () => {
@@ -224,6 +323,12 @@ function shiftLocalDate(date, dayCount) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + dayCount);
 }
 
+function startOfOrderWeek(date) {
+  const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  result.setDate(result.getDate() - ((result.getDay() + 6) % 7));
+  return result;
+}
+
 function orderDayButtonHTML(date) {
   const today = localDateInputValue();
   const value = localDateInputValue(date);
@@ -244,10 +349,11 @@ function orderDayRangeHTML(startDate, count) {
 function renderOrdersWeekStrip() {
   if (!ordersWeekStrip) return;
   const anchor = localDateFromInput(selectedOrderDate);
-  const rangeStart = shiftLocalDate(anchor, -30);
-  ordersWeekStrip.innerHTML = orderDayRangeHTML(rangeStart, 61);
+  const weekStart = startOfOrderWeek(anchor);
+  const rangeStart = shiftLocalDate(weekStart, -28);
+  ordersWeekStrip.innerHTML = orderDayRangeHTML(rangeStart, 85);
   window.requestAnimationFrame(() => {
-    ordersWeekStrip.querySelector('.ordersDayBtn.active')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+    ordersWeekStrip.querySelector(`[data-order-date="${localDateInputValue(weekStart)}"]`)?.scrollIntoView({ block: 'nearest', inline: 'start' });
   });
 }
 
@@ -321,6 +427,7 @@ function orderAddressHTML(order) {
 function orderCardHTML(order) {
   const items = safeOrderItems(order.items);
   const orderTotal = Number(order.total || 0);
+  const orderNotes = String(order.customer_notes || '').trim();
   const itemsHTML = items.map(item => {
     const catalogProduct = products.find(product => String(product.id) === String(item.id));
     const snapshotImage = String(item.image_url || '');
@@ -396,6 +503,10 @@ function orderCardHTML(order) {
           <span>${escapeHTML(formatOrderSchedule(order.scheduled_date, order.scheduled_time))}</span>
         </div>
         ${orderAddressHTML(order)}
+        ${orderNotes ? `<div class="adminOrderNotes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg>
+          <span>${escapeHTML(orderNotes)}</span>
+        </div>` : ''}
         <button type="button" class="adminOrderItemsToggle" data-order-items-toggle aria-expanded="false" aria-controls="${escapeAttr(itemsPanelId)}">
           <span class="adminOrderItemsToggleLabel">View more</span>
           <strong>${Number(order.item_count) || 0}</strong>
@@ -497,6 +608,11 @@ function subscribeToOrderChanges() {
     .channel('admin-order-records')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
       if (currentPage === 'orders') loadOrders();
+      loadTodayOrderStats();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, payload => {
+      const settingKey = payload.new?.key || payload.old?.key || '';
+      if (settingKey === ACCEPTING_ORDERS_SETTING_KEY) loadAcceptingOrdersSetting();
     })
     .subscribe();
 }

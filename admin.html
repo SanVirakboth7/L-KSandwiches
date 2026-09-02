@@ -109,13 +109,37 @@
 
 <!-- ============ DASHBOARD PAGE ============ -->
     <section class="page active" id="page-dashboard">
-      <div class="dashGreetingRow">
-        <div class="greetingCol">
-          <h2 class="greetingTitle" id="greetingTitle">Good morning</h2>
-        </div>
+      <div class="dashboardSectionHead">
+        <h3 class="dashboardSectionTitle">Sales Performance</h3>
         <p class="greetingDate" id="greetingDate"></p>
       </div>
+      <div class="salesPerformanceGrid">
+        <article class="performanceCard performanceItemsCard" id="performanceItemsCard">
+          <div class="performanceCardHead">
+            <span class="performanceStatusPill">
+              <span class="performanceStatusDot" aria-hidden="true"></span>
+              <span id="performanceAvailabilityLabel">Open</span>
+            </span>
+          </div>
+          <div class="performanceMetric">
+            <strong id="statTodayItems">—</strong>
+            <span>Items sold today</span>
+          </div>
+        </article>
 
+        <article class="performanceCard performanceSalesCard">
+          <div class="performanceCardHead performanceSalesHead">
+            <span class="performanceTitle">Today's<br>earnings</span>
+          </div>
+          <div class="performanceMetric performanceMoneyMetric">
+            <small id="statTodaySalesRiel"></small>
+            <strong id="statTodaySales"><span id="statTodaySalesAmount">—</span><span class="statTodaySalesCurrency">$</span></strong>
+            <span id="statTodayOrdersFoot">0 orders</span>
+          </div>
+        </article>
+      </div>
+
+      <h3 class="sectionLabel dashboardMenuOverview">Menu Overview</h3>
       <div class="statGrid">
         <div class="statCard">
           <div class="statIcon statIconGold">
@@ -212,15 +236,22 @@
 
     <!-- ============ SETTINGS PAGE ============ -->
     <section class="page" id="page-settings">
-      <div class="settingsAccount">
-        <div class="settingsAvatar">L&amp;K</div>
-        <div>
-          <p class="settingsAccountName">Admin Account</p>
-          <p class="settingsAccountEmail" id="settingsEmail">—</p>
-        </div>
-         </div>
+      <h3 class="sectionLabel settingsAvailabilityLabel">Order Availability</h3>
+      <section class="orderAvailabilityCard" id="orderAvailabilityCard" aria-labelledby="orderAvailabilityTitle">
+        <span class="orderAvailabilityIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16l-1.5-5h-13L4 10Z"/><path d="M5 10v9h14v-9M9 19v-5h6v5"/></svg>
+        </span>
+        <span class="orderAvailabilityCopy">
+          <strong id="orderAvailabilityTitle">Accept Orders</strong>
+          <small id="acceptOrdersStatus">Checking availability…</small>
+        </span>
+        <label class="availabilitySwitch" aria-label="Accept customer orders">
+          <input type="checkbox" id="acceptOrdersToggle" disabled>
+          <span class="availabilitySwitchTrack" aria-hidden="true"></span>
+        </label>
+      </section>
       
-      <h3 class="sectionLabel">Your Public Menu</h3>
+      <h3 class="sectionLabel">Scan QR to Access the Menu</h3>
       <div class="qrCard">
         <img id="qrImg" src="" alt="QR code linking to the public menu" width="260" height="260">
         <button type="button" class="ghostBtn" id="copyLinkBtn">Copy Link</button>

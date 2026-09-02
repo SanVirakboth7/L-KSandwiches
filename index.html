@@ -60,6 +60,16 @@
     </button>
   </div>
 </div>
+  <div class="ordersClosedBanner" id="ordersClosedBanner" role="status" aria-live="polite" hidden>
+    <span class="ordersClosedIcon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <span class="ordersClosedStatusDot"></span>
+    </span>
+    <span class="ordersClosedCopy">
+      <strong>Currently closed</strong>
+      <small>Online ordering is paused. Please check back soon.</small>
+    </span>
+  </div>
   </header>
 
   <div class="heroWrap">
@@ -265,6 +275,17 @@
         <section class="checkoutSection">
           <div class="checkoutSectionTitle">
             <span class="checkoutStep">4</span>
+            <h3>Order Notes <span class="checkoutOptional">(optional)</span></h3>
+          </div>
+          <div class="custField">
+            <textarea id="custNotes" class="custInput custNotesInput" maxlength="500" rows="3"></textarea>
+            <small class="custFieldHint">Up to 500 characters</small>
+          </div>
+        </section>
+
+        <section class="checkoutSection">
+          <div class="checkoutSectionTitle">
+            <span class="checkoutStep">5</span>
             <h3>Payment Method</h3>
           </div>
           <div class="paymentMethodToggle" id="paymentMethodToggle">

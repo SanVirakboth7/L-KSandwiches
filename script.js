@@ -157,6 +157,10 @@ const TELEGRAM_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/clever-processor`;
 const TELEGRAM_ORDER_SENDING_ENABLED = false;
 const PAYWAY_PENDING_KEY = 'lk_payway_pending';
 const ORDER_RECORD_PENDING_KEY = 'lk_pending_order_records';
+const ACCEPTING_ORDERS_SETTING_KEY = 'accepting_orders';
+let acceptingOrders = true;
+let orderAvailabilityLoaded = false;
+let orderSubmissionInProgress = false;
 
 let allProducts = [];
 let menuCategories = DEFAULT_CATEGORIES.map(category => ({ ...category }));
@@ -226,7 +230,8 @@ function getCustomerFields() {
     address      : document.getElementById('custAddress')?.value.trim() || '',
     locationUrl  : selectedDeliveryLocationUrl || '',
     date         : document.getElementById('custDate')?.value || '',
-    time         : document.getElementById('custTime')?.value || ''
+    time         : document.getElementById('custTime')?.value || '',
+    notes        : document.getElementById('custNotes')?.value.trim() || ''
   };
 }
 function formatDate(iso) {
@@ -360,7 +365,7 @@ function updateCartBar() {
 
 function buildQuoteText() {
   const entries = cartEntries();
-  const { orderType, paymentMethod, name, phone, address, date, time } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, date, time, notes } = getCustomerFields();
   const total = cartTotal();
 
   const divider = "────────────────";
@@ -374,6 +379,7 @@ function buildQuoteText() {
   text += `Date: ${date ? formatDate(date) : '—'}\n`;
   text += `Time: ${time ? formatTime(time) : '—'}\n`;
   text += `Payment Method: ${paymentMethodLabel(paymentMethod)}\n`;
+  if (notes) text += `Order Notes: ${notes}\n`;
   if (verifiedPayWayTransactionId) text += `ABA Transaction: ${verifiedPayWayTransactionId}\n`;
   text += `${divider}\n`;
   text += `Items\n\n`;
@@ -435,11 +441,56 @@ function renderCartModal() {
 function updateSendButtonState() {
   const sendBtn = document.getElementById('sendOrderBtn');
   if (!sendBtn) return;
+  if (orderSubmissionInProgress) {
+    sendBtn.disabled = true;
+    return;
+  }
+  if (!orderAvailabilityLoaded) {
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Checking availability…';
+    return;
+  }
+  if (!acceptingOrders) {
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Currently closed';
+    return;
+  }
   const { orderType, paymentMethod, name, phone, address, locationUrl, date } = getCustomerFields();
   const items = cartEntries();
   const addressOk = orderType === 'delivery' ? !!(address || locationUrl) : true;
   const complete = items.length > 0 && orderType && paymentMethod && name && phone && addressOk && date;
   sendBtn.disabled = !complete;
+  sendBtn.textContent = 'Send Order';
+}
+
+function applyOrderAvailability(isAccepting) {
+  acceptingOrders = isAccepting;
+  orderAvailabilityLoaded = true;
+  const banner = document.getElementById('ordersClosedBanner');
+  if (banner) banner.hidden = isAccepting;
+  updateSendButtonState();
+  requestAnimationFrame(setHeaderHeight);
+  if (!isAccepting && document.getElementById('confirmOverlay')?.classList.contains('open')) {
+    closeConfirmModal();
+  }
+}
+
+async function loadOrderAvailability() {
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', ACCEPTING_ORDERS_SETTING_KEY)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[L&K] Could not load order availability:', error.message);
+    applyOrderAvailability(true);
+    return true;
+  }
+
+  const isAccepting = String(data?.value ?? 'true').toLowerCase() !== 'false';
+  applyOrderAvailability(isAccepting);
+  return isAccepting;
 }
 
 /* Builds a readable receipt-style HTML summary for the confirm modal,
@@ -447,7 +498,7 @@ function updateSendButtonState() {
    message itself (buildQuoteText handles that one). */
 function buildConfirmSummaryHTML() {
   const entries = cartEntries();
-  const { orderType, paymentMethod, name, phone, address, date, time } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, date, time, notes } = getCustomerFields();
 
   const itemsHTML = entries.map(([id, qty]) => {
     const p = allProducts.find(pp => pp.id === id);
@@ -473,6 +524,7 @@ function buildConfirmSummaryHTML() {
     <div class="confirmDetailRow"><span>Date</span><span>${date ? escapeHTML(formatDate(date)) : '—'}</span></div>
     <div class="confirmDetailRow"><span>Time</span><span>${time ? escapeHTML(formatTime(time)) : '—'}</span></div>
     <div class="confirmDetailRow"><span>Payment Method</span><span>${paymentMethodLabel(paymentMethod)}</span></div>
+    ${notes ? `<div class="confirmDetailRow"><span>Order Notes</span><span>${escapeHTML(notes)}</span></div>` : ''}
     ${verifiedPayWayTransactionId ? `<div class="confirmDetailRow"><span>ABA Transaction</span><span>${escapeHTML(verifiedPayWayTransactionId)}</span></div>` : ''}
     <div class="confirmDivider"></div>
     ${itemsHTML}
@@ -483,7 +535,7 @@ function buildConfirmSummaryHTML() {
 
 function buildReceiptHTML() {
   const entries = cartEntries();
-  const { orderType, paymentMethod, name, phone, address, date, time } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, date, time, notes } = getCustomerFields();
   const total = cartTotal();
 
   const itemsHTML = entries.map(([id, qty]) => {
@@ -515,6 +567,7 @@ function buildReceiptHTML() {
       <div class="receiptRow"><span>Date</span><span>${date ? escapeHTML(formatDate(date)) : '—'}</span></div>
       <div class="receiptRow"><span>Time</span><span>${time ? escapeHTML(formatTime(time)) : '—'}</span></div>
       <div class="receiptRow"><span>Payment Method</span><span>${paymentMethodLabel(paymentMethod)}</span></div>
+      ${notes ? `<div class="receiptRow"><span>Order Notes</span><span>${escapeHTML(notes)}</span></div>` : ''}
       ${verifiedPayWayTransactionId ? `<div class="receiptRow"><span>ABA Transaction</span><span>${escapeHTML(verifiedPayWayTransactionId)}</span></div>` : ''}
       <div class="receiptDivider"></div>
       <div class="receiptItemsTitle">Order Items</div>
@@ -615,11 +668,12 @@ function clearPayWayReturnParams() {
 }
 
 function buildPayWayOrderPayload() {
-  const { orderType, name, phone, address, locationUrl, date, time } = getCustomerFields();
+  const { orderType, name, phone, address, locationUrl, date, time, notes } = getCustomerFields();
   return {
     orderType,
     customer: { name, phone, address: address || locationUrl },
     schedule: { date, time },
+    notes,
     items: cartEntries().map(([id, quantity]) => ({ id, quantity }))
   };
 }
@@ -736,7 +790,7 @@ function newClientOrderId() {
 }
 
 function buildOrderRecord(paymentVerifiedTranId = '', telegramSent = false) {
-  const { orderType, paymentMethod, name, phone, address, locationUrl, date, time } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, locationUrl, date, time, notes } = getCustomerFields();
   const items = cartEntries().flatMap(([id, quantity]) => {
     const product = allProducts.find(item => item.id === id);
     if (!product) return [];
@@ -762,6 +816,7 @@ function buildOrderRecord(paymentVerifiedTranId = '', telegramSent = false) {
     payment_transaction_id: paymentMethod === 'aba' ? paymentVerifiedTranId : null,
     scheduled_date: date,
     scheduled_time: time,
+    customer_notes: notes,
     items,
     item_count: items.reduce((sum, item) => sum + item.quantity, 0),
     total: Number(cartTotal().toFixed(2)),
@@ -818,9 +873,23 @@ async function flushPendingOrderRecords() {
 async function submitOrder({ paymentVerifiedTranId = '' } = {}) {
   const sendBtn = document.getElementById('sendOrderBtn');
   const confirmSendBtn = document.getElementById('confirmSendBtn');
-  if (!sendBtn || sendBtn.disabled) return;
+  if (!sendBtn || sendBtn.disabled || orderSubmissionInProgress) return;
+
+  orderSubmissionInProgress = true;
+  sendBtn.disabled = true;
+  if (confirmSendBtn) confirmSendBtn.disabled = true;
+
+  const isAccepting = await loadOrderAvailability();
+  if (!isAccepting) {
+    orderSubmissionInProgress = false;
+    closeConfirmModal();
+    updateSendButtonState();
+    if (confirmSendBtn) confirmSendBtn.disabled = false;
+    return;
+  }
 
   if (getCustomerFields().paymentMethod === 'aba' && !paymentVerifiedTranId) {
+    orderSubmissionInProgress = false;
     await startPayWayCheckout();
     return;
   }
@@ -872,6 +941,9 @@ async function submitOrder({ paymentVerifiedTranId = '' } = {}) {
     try {
       await insertOrderRecord(orderRecord);
     } catch (recordError) {
+      if (recordError?.code === '42501' || /row-level security/i.test(String(recordError?.message || ''))) {
+        throw recordError;
+      }
       queueOrderRecord(orderRecord);
       console.warn('[L&K] The admin order record was queued for retry:', recordError.message || recordError);
     }
@@ -889,15 +961,15 @@ async function submitOrder({ paymentVerifiedTranId = '' } = {}) {
       closeCartPage();
       pendingReceiptImage = null;
       verifiedPayWayTransactionId = '';
-      sendBtn.textContent = originalLabel;
-      sendBtn.disabled = false;
+      orderSubmissionInProgress = false;
+      updateSendButtonState();
       if (confirmSendBtn) { confirmSendBtn.textContent = originalConfirmLabel; confirmSendBtn.disabled = false; }
     }, 1200);
   } catch (err) {
     console.error('[L&K] Failed to save order:', err);
     alert('Could not save your order. Please check your connection and try again.');
-    sendBtn.textContent = originalLabel;
-    sendBtn.disabled = false;
+    orderSubmissionInProgress = false;
+    updateSendButtonState();
     if (confirmSendBtn) { confirmSendBtn.textContent = originalConfirmLabel; confirmSendBtn.disabled = false; }
   }
 }
@@ -1345,6 +1417,7 @@ const addressLocationMapEl = document.getElementById('addressLocationMap');
 const addressLocationAccuracy = document.getElementById('addressLocationAccuracy');
 const custDateInput = document.getElementById('custDate');
 const custTimeInput = document.getElementById('custTime');
+const custNotesInput = document.getElementById('custNotes');
 const orderTypeToggle = document.getElementById('orderTypeToggle');
 const paymentMethodToggle = document.getElementById('paymentMethodToggle');
 let addressBeforeEdit = '';
@@ -1634,10 +1707,11 @@ function prefillCustomerFields() {
   if (custAddressInput) custAddressInput.value = legacyMapUrl ? '' : savedAddress;
   if (custDateInput) custDateInput.value = saved.date || '';
   if (custTimeInput) custTimeInput.value = saved.time || '';
+  if (custNotesInput) custNotesInput.value = saved.notes || '';
   syncDeliveryAddressResult();
 }
 
-[custNameInput, custPhoneInput, custDateInput, custTimeInput].forEach(input => {
+[custNameInput, custPhoneInput, custDateInput, custTimeInput, custNotesInput].forEach(input => {
   if (!input) return;
   input.addEventListener('input', () => {
     saveCustomer(getCustomerFields());
@@ -1798,6 +1872,7 @@ async function loadHeroImages() {
 /* ---------- go ---------- */
 const productsReady = loadProducts();
 loadHeroImages();
+loadOrderAvailability();
 updateCartBar();
 updateSendButtonState();
 flushPendingOrderRecords();
@@ -1821,6 +1896,8 @@ supabase
       initCardClicks();
     } else if (/^hero_[1-9]\d*$/.test(settingKey)) {
       await loadHeroImages();
+    } else if (settingKey === ACCEPTING_ORDERS_SETTING_KEY) {
+      await loadOrderAvailability();
     }
   })
   .subscribe();
