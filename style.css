@@ -333,13 +333,13 @@
      the placement used on the outside product grid. */
   .modalAddWrap{
     position:relative; z-index:5; width:max-content;
-    margin:-22px 10px -22px auto; display:flex;
+    margin:-20px 10px -20px auto; display:flex;
   }
-  .modalAddWrap .addBtn{ width:44px; height:44px; }
-  .modalAddWrap .addBtn svg{ width:19px; height:19px; }
-  .modalAddWrap .stepper{ padding:6px 10px; gap:12px; }
-  .modalAddWrap .stepBtn{ width:28px; height:28px; font-size:16px; }
-  .modalAddWrap .stepQty{ font-size:15px; }
+  .modalAddWrap .addBtn{ width:40px; height:40px; }
+  .modalAddWrap .addBtn svg{ width:18px; height:18px; }
+  .modalAddWrap .stepper{ padding:5px 8px; gap:9px; }
+  .modalAddWrap .stepBtn{ width:26px; height:26px; font-size:15px; }
+  .modalAddWrap .stepQty{ font-size:14px; }
 
   .locationsWrap{ padding:12px 16px 20px; display:flex; flex-direction:column; gap:12px; }
 
