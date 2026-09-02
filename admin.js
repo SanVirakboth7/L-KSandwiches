@@ -121,11 +121,10 @@ const fabBtn = document.getElementById('addProductBtn');
 const pages = {
   dashboard: document.getElementById('page-dashboard'),
   menu: document.getElementById('page-menu'),
-  categories: document.getElementById('page-categories'),
   orders: document.getElementById('page-orders'),
   settings: document.getElementById('page-settings')
 };
-const PAGE_TITLES = { dashboard: 'Dashboard', menu: 'Menu', categories: 'Categories', orders: 'Orders', settings: 'Settings' };
+const PAGE_TITLES = { dashboard: 'Dashboard', menu: 'Menu', orders: 'Orders', settings: 'Settings' };
 
 function switchPage(name) {
   if (!pages[name]) return;
@@ -141,10 +140,10 @@ function switchPage(name) {
 
   if (pageTitleEl) pageTitleEl.textContent = PAGE_TITLES[name] || '';
   if (menuToolbar) menuToolbar.style.display = name === 'menu' ? 'flex' : 'none';
-  if (fabBtn) fabBtn.style.display = (name === 'settings' || name === 'orders' || name === 'categories') ? 'none' : 'flex';
+  if (fabBtn) fabBtn.style.display = (name === 'settings' || name === 'orders') ? 'none' : 'flex';
 
   if (name === 'dashboard') updateDashboardStats();
-  if (name === 'categories') renderCategoryManager();
+  if (name === 'menu') renderCategoryManager();
   if (name === 'orders') loadOrders();
 
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
@@ -175,10 +174,8 @@ document.getElementById('quickAddItem')?.addEventListener('click', () => {
   openAddProductModal();
 });
 document.getElementById('quickCreateCategory')?.addEventListener('click', () => {
-  switchPage('categories');
-  window.setTimeout(() => newCategoryName?.focus(), 120);
+  openCategoryModal();
 });
-document.getElementById('categoriesBackBtn')?.addEventListener('click', () => switchPage('menu'));
 
 /* ---------- orders page ---------- */
 const ordersList = document.getElementById('ordersList');
@@ -706,11 +703,9 @@ async function setupSettingsPage() {
 
   const publicUrl = getPublicSiteUrl();
   const qrImg = document.getElementById('qrImg');
-  const qrUrlEl = document.getElementById('qrUrl');
   if (qrImg) {
     qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=8&data=${encodeURIComponent(publicUrl)}`;
   }
-  if (qrUrlEl) qrUrlEl.textContent = publicUrl;
 }
 
 document.getElementById('settingsViewSite')?.addEventListener('click', () => {
@@ -890,6 +885,8 @@ function updateCategoryCounts() {
 function render() {
   const listEl = document.getElementById('productList');
   if (!listEl) return;
+
+  renderCategoryManager();
 
   const filtered = products.filter(p => {
   const matchesCat = activeCategory === 'all' || p.category === activeCategory;
@@ -1424,6 +1421,32 @@ const newCategoryId = document.getElementById('newCategoryId');
 const newCategoryName = document.getElementById('newCategoryName');
 const saveCategoryBtn = document.getElementById('saveCategoryBtn');
 const categoryManagerList = document.getElementById('categoryManagerList');
+const categoryModalOverlay = document.getElementById('categoryModalOverlay');
+const categoryModalClose = document.getElementById('categoryModalClose');
+const cancelCategoryModal = document.getElementById('cancelCategoryModal');
+
+function openCategoryModal() {
+  if (!categoryModalOverlay) return;
+  categoryModalOverlay.classList.add('open');
+  categoryModalOverlay.setAttribute('aria-hidden', 'false');
+  window.setTimeout(() => newCategoryName?.focus(), 120);
+}
+
+function closeCategoryModal({ reset = false } = {}) {
+  if (!categoryModalOverlay) return;
+  categoryModalOverlay.classList.remove('open');
+  categoryModalOverlay.setAttribute('aria-hidden', 'true');
+  if (reset) categoryForm?.reset();
+}
+
+categoryModalClose?.addEventListener('click', () => closeCategoryModal());
+cancelCategoryModal?.addEventListener('click', () => closeCategoryModal());
+categoryModalOverlay?.addEventListener('click', event => {
+  if (event.target === categoryModalOverlay) closeCategoryModal();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && categoryModalOverlay?.classList.contains('open')) closeCategoryModal();
+});
 
 function slugifyCategory(value) {
   return String(value || '')
@@ -1480,26 +1503,28 @@ async function persistCategories() {
 
 function renderCategoryManager() {
   if (!categoryManagerList) return;
-  if (!categories.length) {
-    categoryManagerList.innerHTML = '<p class="categoryManagerEmpty">No categories yet.</p>';
+  const visibleCategory = categories.find(category => category.slug === activeCategory);
+  if (!visibleCategory) {
+    categoryManagerList.hidden = true;
+    categoryManagerList.innerHTML = '';
     return;
   }
 
-  categoryManagerList.innerHTML = categories.map(category => {
+  categoryManagerList.hidden = false;
+  categoryManagerList.innerHTML = [visibleCategory].map(category => {
     const isDefault = isDefaultCategory(category.slug);
     return `
       <div class="categoryManagerRow" data-category-slug="${escapeAttr(category.slug)}">
         <label class="categoryManagerField">
-          <span>Category title</span>
-          <input type="text" data-category-field="title" value="${escapeAttr(category.customerLabel || category.name)}" maxlength="60" aria-label="Category title for ${escapeAttr(category.customerLabel || category.name)}">
           <span class="categoryManagerId">ID: <strong>${escapeHTML(category.id || 'Not set')}</strong></span>
+          <input type="text" data-category-field="title" value="${escapeAttr(category.customerLabel || category.name)}" maxlength="60" aria-label="Category title for ${escapeAttr(category.customerLabel || category.name)}">
         </label>
         <div class="categoryManagerActions">
           <button type="button" class="categoryManagerBtn save" data-category-action="save">Save</button>
           <button type="button" class="categoryManagerBtn${category.hidden ? ' isHidden' : ''}" data-category-action="toggle">
             ${category.hidden ? 'Show' : 'Hide'}
           </button>
-          ${isDefault ? '' : '<button type="button" class="categoryManagerBtn delete" data-category-action="delete">Delete</button>'}
+          ${isDefault ? '' : `<button type="button" class="categoryManagerBtn delete" data-category-action="delete" aria-label="Delete ${escapeAttr(category.customerLabel || category.name)}" title="Delete category">${TRASH_ICON}</button>`}
         </div>
       </div>`;
   }).join('');
@@ -1597,7 +1622,7 @@ categoryForm?.addEventListener('submit', async event => {
     return;
   }
 
-  activeCategory = 'all';
+  activeCategory = slug;
   renderCategoryControls();
   const productCategorySelect = document.getElementById('newCategory');
   if (productCategorySelect) {
@@ -1607,6 +1632,8 @@ categoryForm?.addEventListener('submit', async event => {
   updateCategoryCounts();
   render();
   categoryForm.reset();
+  closeCategoryModal();
+  switchPage('menu');
   toast(`${name} category created`);
 });
 

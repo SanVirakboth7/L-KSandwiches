@@ -13,6 +13,9 @@
     --header-h: 172px; /* fallback; script.js overwrites this with the real measured height */
   }
   *{box-sizing:border-box; margin:0; padding:0;}
+  button,input,select,textarea,option{
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+  }
 
   html{
     -webkit-tap-highlight-color:transparent;
@@ -360,6 +363,9 @@
   }
   .mapBadge svg{ width:11px; height:11px; fill:var(--crust-500); }
   #map{ width:100%; height:220px; }
+  #map .leaflet-tile-pane{
+    filter:grayscale(.88) saturate(.24) brightness(1.04) contrast(.92);
+  }
   .leaflet-popup-content-wrapper{ border-radius:14px !important; box-shadow:0 12px 30px rgba(43,33,24,.22) !important; }
   .leaflet-popup-tip{ display:none; }
 
@@ -599,6 +605,12 @@
   flex-shrink:0;
   border-radius:3px;
 }
+.pmBtn .cashLogo{
+  width:40px;
+  height:30px;
+  object-fit:contain;
+  flex-shrink:0;
+}
 .otBtn.active{
   background:var(--cart-accent);
   color:#fff;
@@ -790,7 +802,35 @@
   background:#f8f6f4;
 }
 .addressLocationPreview[hidden]{ display:none; }
-.addressLocationMap{ width:100%; height:180px; background:#ece9e5; }
+.addressLocationMap{
+  display:block; width:100%; height:190px; border:0; background:#ece9e5;
+  touch-action:none;
+}
+.addressLocationMap .leaflet-tile-pane{
+  filter:grayscale(.72) sepia(.34) hue-rotate(338deg) saturate(.72) brightness(1.06) contrast(.9);
+}
+.addressLocationMap .leaflet-control-zoom{
+  overflow:hidden; border:1px solid rgba(138,90,63,.18); border-radius:9px;
+  box-shadow:0 3px 10px rgba(43,33,24,.12);
+}
+.addressLocationMap .leaflet-control-zoom a{
+  color:var(--address-accent); background:rgba(255,255,255,.94); border-color:var(--address-line);
+}
+.addressLocationMap .leaflet-control-attribution{
+  padding:1px 4px; background:rgba(255,255,255,.84);
+  font:500 8px/1.35 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+}
+.addressLocationMap .addressAccuracyCircle{
+  filter:drop-shadow(0 0 7px rgba(138,90,63,.58));
+}
+.addressLocationMap .addressSelectedMarker{
+  filter:drop-shadow(0 2px 5px rgba(43,33,24,.4));
+}
+.addressLocationMap[hidden]{ display:none; }
+#map .leaflet-control-attribution{
+  padding:1px 4px; background:rgba(255,255,255,.84);
+  font:500 8px/1.35 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+}
 .addressLocationCaption{
   min-height:36px; padding:8px 11px; display:flex; align-items:center; gap:7px;
   color:var(--address-text); font:700 10.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
@@ -830,6 +870,15 @@
 }
 .custInput::placeholder{ color:#918a84; }
 .custInput:focus{ border-color:var(--cart-accent); box-shadow:0 0 0 2px var(--cart-accent-soft); }
+.custDateInputWrap{ position:relative; display:block; min-width:0; }
+.custDateInputWrap .custInput{ padding-right:42px; }
+.custDateIcon{
+  position:absolute; top:50%; right:13px; width:19px; height:19px;
+  color:var(--cart-text); pointer-events:none; transform:translateY(-50%);
+}
+.custDateInputWrap input[type="date"]::-webkit-calendar-picker-indicator{
+  position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer;
+}
 
 .cartPageTotals{
   padding:14px;

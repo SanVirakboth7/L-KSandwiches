@@ -224,7 +224,6 @@ function getCustomerFields() {
     name         : document.getElementById('custName')?.value.trim() || '',
     phone        : document.getElementById('custPhone')?.value.trim() || '',
     address      : document.getElementById('custAddress')?.value.trim() || '',
-    locationUrl  : selectedDeliveryLocationUrl || '',
     date         : document.getElementById('custDate')?.value || '',
     time         : document.getElementById('custTime')?.value || ''
   };
@@ -369,7 +368,7 @@ function buildQuoteText() {
   text += `Name: ${name || '—'}\n`;
   text += `Phone Number: ${phone || '—'}\n`;
   if (orderType === 'delivery') {
-    text += `Address: ${address || ''}\n`;
+    text += `Address: ${address || '—'}\n`;
   }
   text += `Date: ${date ? formatDate(date) : '—'}\n`;
   text += `Time: ${time ? formatTime(time) : '—'}\n`;
@@ -423,10 +422,8 @@ function renderCartModal() {
   const subtotal = cartTotal();
   const subtotalEl = document.getElementById('cpSubtotal');
   const totalEl = document.getElementById('cartModalTotal');
-  const totalRielEl = document.getElementById('cartModalRiel');
   if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
   if (totalEl) totalEl.textContent = '$' + subtotal.toFixed(2);
-  if (totalRielEl) totalRielEl.textContent = formatRiel(subtotal);
 
   updateSendButtonState();
 }
@@ -435,9 +432,9 @@ function renderCartModal() {
 function updateSendButtonState() {
   const sendBtn = document.getElementById('sendOrderBtn');
   if (!sendBtn) return;
-  const { orderType, paymentMethod, name, phone, address, locationUrl, date } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, date } = getCustomerFields();
   const items = cartEntries();
-  const addressOk = orderType === 'delivery' ? !!(address || locationUrl) : true;
+  const addressOk = orderType === 'delivery' ? !!address : true;
   const complete = items.length > 0 && orderType && paymentMethod && name && phone && addressOk && date;
   sendBtn.disabled = !complete;
 }
@@ -462,7 +459,7 @@ function buildConfirmSummaryHTML() {
   }).join('');
 
   const addressRow = orderType === 'delivery'
-    ? `<div class="confirmDetailRow"><span>Address</span><span>${address ? escapeHTML(address) : ''}</span></div>`
+    ? `<div class="confirmDetailRow"><span>Address</span><span>${escapeHTML(address || '—')}</span></div>`
     : '';
 
   return `
@@ -499,7 +496,7 @@ function buildReceiptHTML() {
   }).join('');
 
   const addressRow = orderType === 'delivery'
-    ? `<div class="receiptRow"><span>Address</span><span>${address ? escapeHTML(address) : ''}</span></div>`
+    ? `<div class="receiptRow"><span>Address</span><span>${escapeHTML(address || '—')}</span></div>`
     : '';
 
   return `
@@ -615,10 +612,10 @@ function clearPayWayReturnParams() {
 }
 
 function buildPayWayOrderPayload() {
-  const { orderType, name, phone, address, locationUrl, date, time } = getCustomerFields();
+  const { orderType, name, phone, address, date, time } = getCustomerFields();
   return {
     orderType,
-    customer: { name, phone, address: address || locationUrl },
+    customer: { name, phone, address },
     schedule: { date, time },
     items: cartEntries().map(([id, quantity]) => ({ id, quantity }))
   };
@@ -709,7 +706,7 @@ async function handlePayWayReturn() {
     }
 
     prefillCustomerFields();
-    setPaymentMethod('aba', { allowDisabled: true });
+    setPaymentMethod('aba');
     renderCartModal();
     verifiedPayWayTransactionId = tranId;
     updateSendButtonState();
@@ -736,7 +733,7 @@ function newClientOrderId() {
 }
 
 function buildOrderRecord(paymentVerifiedTranId = '', telegramSent = false) {
-  const { orderType, paymentMethod, name, phone, address, locationUrl, date, time } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, date, time } = getCustomerFields();
   const items = cartEntries().flatMap(([id, quantity]) => {
     const product = allProducts.find(item => item.id === id);
     if (!product) return [];
@@ -744,7 +741,6 @@ function buildOrderRecord(paymentVerifiedTranId = '', telegramSent = false) {
     return [{
       id: product.id,
       name: product.name,
-      image_url: product.image_url || '',
       quantity,
       unit_price: unitPrice,
       line_total: Number((unitPrice * quantity).toFixed(2))
@@ -755,7 +751,7 @@ function buildOrderRecord(paymentVerifiedTranId = '', telegramSent = false) {
     client_order_id: newClientOrderId(),
     customer_name: name,
     customer_phone: phone,
-    delivery_address: orderType === 'delivery' ? (address || locationUrl) : '',
+    delivery_address: orderType === 'delivery' ? address : '',
     order_type: orderType,
     payment_method: paymentMethod,
     payment_status: paymentMethod === 'aba' ? 'paid' : 'cash_due',
@@ -1072,21 +1068,14 @@ function renderCategoryUI() {
   if (dynamicSections) dynamicSections.innerHTML = '';
 
   DEFAULT_CATEGORIES.forEach(category => {
-    const linkedCategory = menuCategories.find(item => item.slug === category.slug) || category;
-    const isHidden = linkedCategory.hidden === true;
-    const customerLabel = linkedCategory.customerLabel || linkedCategory.name || category.customerLabel;
+    const isHidden = menuCategories.find(item => item.slug === category.slug)?.hidden === true;
     const cfg = CATEGORY_MAP[category.slug];
     const grid = cfg ? document.getElementById(cfg.gridId) : null;
     const section = grid?.previousElementSibling;
     const chip = section?.id ? chipRow?.querySelector(`[data-target="${section.id}"]`) : null;
-    const sectionTitle = section?.querySelector('h3');
     if (section) section.style.display = isHidden ? 'none' : '';
     if (grid) grid.style.display = isHidden ? 'none' : '';
-    if (sectionTitle) sectionTitle.textContent = customerLabel;
-    if (chip) {
-      chip.style.display = isHidden ? 'none' : '';
-      chip.innerHTML = `<span class="dot"></span>${escapeHTML(customerLabel)}`;
-    }
+    if (chip) chip.style.display = isHidden ? 'none' : '';
   });
 
   menuCategories.filter(category => !category.hidden).forEach(category => {
@@ -1340,20 +1329,11 @@ const addressCancelBtn = document.getElementById('addressCancelBtn');
 const addressSaveBtn = document.getElementById('addressSaveBtn');
 const useLocationBtn = document.getElementById('useLocationBtn');
 const locationStatus = document.getElementById('locationStatus');
-const addressLocationPreview = document.getElementById('addressLocationPreview');
-const addressLocationMapEl = document.getElementById('addressLocationMap');
-const addressLocationAccuracy = document.getElementById('addressLocationAccuracy');
 const custDateInput = document.getElementById('custDate');
 const custTimeInput = document.getElementById('custTime');
 const orderTypeToggle = document.getElementById('orderTypeToggle');
 const paymentMethodToggle = document.getElementById('paymentMethodToggle');
 let addressBeforeEdit = '';
-let locationBeforeEdit = '';
-let selectedDeliveryLocationUrl = '';
-let pendingAddressMapLocation = null;
-let addressPreviewMap = null;
-let addressPreviewMarker = null;
-let addressPreviewAccuracyCircle = null;
 
 // Don't let a customer pick a date in the past.
 if (custDateInput) custDateInput.min = new Date().toISOString().split('T')[0];
@@ -1378,14 +1358,11 @@ if (orderTypeToggle) {
   });
 }
 
-function setPaymentMethod(method, { allowDisabled = false } = {}) {
+function setPaymentMethod(method) {
   if (!paymentMethodToggle) return;
-  const paymentButtons = [...paymentMethodToggle.querySelectorAll('.pmBtn')];
-  const requestedButton = paymentButtons.find(btn => btn.dataset.payment === method);
-  const selectedMethod = requestedButton && (!requestedButton.disabled || allowDisabled) ? method : 'cash';
-  paymentMethodToggle.dataset.selected = selectedMethod;
-  paymentButtons.forEach(btn => {
-    const isActive = btn.dataset.payment === selectedMethod;
+  paymentMethodToggle.dataset.selected = method;
+  paymentMethodToggle.querySelectorAll('.pmBtn').forEach(btn => {
+    const isActive = btn.dataset.payment === method;
     btn.classList.toggle('active', isActive);
     btn.setAttribute('aria-pressed', String(isActive));
   });
@@ -1407,129 +1384,11 @@ function displayAddressValue(address) {
   return String(address || '').trim();
 }
 
-function getAddressCoordinates(address) {
-  const match = String(address || '').match(/[?&]q=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
-  if (!match) return null;
-  const latitude = Number(match[1]);
-  const longitude = Number(match[2]);
-  return Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude } : null;
-}
-
-const OPENSTREETMAP_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-const OPENSTREETMAP_TILE_OPTIONS = {
-  maxZoom: 19,
-  crossOrigin: true,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
-};
-
-function addOpenStreetMapTiles(mapInstance) {
-  mapInstance.attributionControl?.setPrefix(false);
-  return L.tileLayer(OPENSTREETMAP_TILE_URL, OPENSTREETMAP_TILE_OPTIONS).addTo(mapInstance);
-}
-
-function showAddressLocationPreview(latitude, longitude, accuracy = 0) {
-  if (!addressLocationPreview || !addressLocationMapEl) return;
-  const latitudeNumber = Number(latitude);
-  const longitudeNumber = Number(longitude);
-  if (!Number.isFinite(latitudeNumber) || !Number.isFinite(longitudeNumber)) return;
-
-  addressLocationPreview.hidden = false;
-  pendingAddressMapLocation = {
-    latitude: latitudeNumber,
-    longitude: longitudeNumber,
-    accuracy: Math.max(0, Number(accuracy) || 0)
-  };
-  addressLocationMapEl.hidden = false;
-  requestAnimationFrame(loadAddressMapPreview);
-
-  if (addressLocationAccuracy) {
-    addressLocationAccuracy.textContent = accuracy > 0 ? `± ${Math.round(accuracy)} m` : '';
-  }
-}
-
-function syncAddressLocationPreview() {
-  const coordinates = getAddressCoordinates(selectedDeliveryLocationUrl)
-    || getAddressCoordinates(custAddressInput?.value);
-  if (coordinates) {
-    showAddressLocationPreview(coordinates.latitude, coordinates.longitude);
-  } else if (addressLocationPreview) {
-    addressLocationPreview.hidden = true;
-    pendingAddressMapLocation = null;
-    if (addressLocationMapEl) addressLocationMapEl.hidden = true;
-  }
-}
-
-function updateAddressMapLayers() {
-  if (!addressPreviewMap || !pendingAddressMapLocation || !window.L) return;
-  const { latitude, longitude, accuracy } = pendingAddressMapLocation;
-  const point = L.latLng(latitude, longitude);
-  const displayedAccuracy = Math.max(accuracy || 0, 35);
-
-  // Leaflet needs an initial center before vector layers can be projected.
-  // Establish it first, then replace this view with the fitted accuracy bounds below.
-  addressPreviewMap.setView(point, 17, { animate: false });
-
-  if (!addressPreviewAccuracyCircle) {
-    addressPreviewAccuracyCircle = L.circle(point, {
-      radius: displayedAccuracy,
-      color: '#8a5a3f',
-      weight: 2,
-      opacity: .82,
-      fillColor: '#b9825f',
-      fillOpacity: .2,
-      className: 'addressAccuracyCircle'
-    }).addTo(addressPreviewMap);
-  } else {
-    addressPreviewAccuracyCircle.setLatLng(point).setRadius(displayedAccuracy);
-  }
-
-  if (!addressPreviewMarker) {
-    addressPreviewMarker = L.circleMarker(point, {
-      radius: 7,
-      color: '#fff',
-      weight: 3,
-      fillColor: '#723c10',
-      fillOpacity: 1,
-      className: 'addressSelectedMarker'
-    }).addTo(addressPreviewMap);
-  } else {
-    addressPreviewMarker.setLatLng(point);
-  }
-
-  const accuracyBounds = addressPreviewAccuracyCircle.getBounds();
-  addressPreviewMap.fitBounds(accuracyBounds, { padding: [44, 44], maxZoom: 17, animate: false });
-  requestAnimationFrame(() => addressPreviewMap?.invalidateSize({ pan: false }));
-}
-
-function loadAddressMapPreview() {
-  if (!pendingAddressMapLocation || !addressLocationMapEl || !window.L) return;
-  addressLocationMapEl.hidden = false;
-
-  if (!addressPreviewMap) {
-    addressPreviewMap = L.map(addressLocationMapEl, {
-      zoom: 16,
-      zoomControl: true,
-      dragging: true,
-      touchZoom: true,
-      scrollWheelZoom: true,
-      doubleClickZoom: true,
-      keyboard: true,
-      attributionControl: true
-    });
-    addOpenStreetMapTiles(addressPreviewMap);
-  }
-
-  updateAddressMapLayers();
-  window.setTimeout(() => addressPreviewMap?.invalidateSize({ pan: false }), 120);
-}
-
 function syncDeliveryAddressResult() {
   if (!deliveryAddressResult) return;
   const address = custAddressInput?.value.trim() || '';
-  const hasPinnedLocation = Boolean(selectedDeliveryLocationUrl);
-  deliveryAddressResult.textContent = displayAddressValue(address)
-    || (hasPinnedLocation ? 'Pinned location selected' : 'Add your delivery address');
-  deliveryAddressResult.classList.toggle('empty', !address && !hasPinnedLocation);
+  deliveryAddressResult.textContent = displayAddressValue(address) || 'Add your delivery address';
+  deliveryAddressResult.classList.toggle('empty', !address);
 }
 
 function setLocationStatus(message = '', type = '') {
@@ -1542,19 +1401,14 @@ function setLocationStatus(message = '', type = '') {
 function openAddressEditor() {
   if (!addressEditorOverlay || !custAddressInput) return;
   addressBeforeEdit = custAddressInput.value;
-  locationBeforeEdit = selectedDeliveryLocationUrl;
   setLocationStatus();
   addressEditorOverlay.classList.add('open');
   addressEditorOverlay.setAttribute('aria-hidden', 'false');
-  syncAddressLocationPreview();
   window.setTimeout(() => custAddressInput.focus(), 100);
 }
 
 function closeAddressEditor({ restore = false } = {}) {
-  if (restore) {
-    if (custAddressInput) custAddressInput.value = addressBeforeEdit;
-    selectedDeliveryLocationUrl = locationBeforeEdit;
-  }
+  if (restore && custAddressInput) custAddressInput.value = addressBeforeEdit;
   addressEditorOverlay?.classList.remove('open');
   addressEditorOverlay?.setAttribute('aria-hidden', 'true');
   setLocationStatus();
@@ -1565,10 +1419,6 @@ function closeAddressEditor({ restore = false } = {}) {
 function saveEditedAddress() {
   if (!custAddressInput) return;
   custAddressInput.value = custAddressInput.value.trim();
-  if (getAddressCoordinates(custAddressInput.value)) {
-    selectedDeliveryLocationUrl = custAddressInput.value;
-    custAddressInput.value = '';
-  }
   saveCustomer(getCustomerFields());
   updateSendButtonState();
   syncDeliveryAddressResult();
@@ -1588,9 +1438,9 @@ function useCurrentDeliveryLocation() {
     position => {
       const latitude = position.coords.latitude.toFixed(6);
       const longitude = position.coords.longitude.toFixed(6);
-      selectedDeliveryLocationUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-      if (getAddressCoordinates(custAddressInput?.value)) custAddressInput.value = '';
-      showAddressLocationPreview(Number(latitude), Number(longitude), position.coords.accuracy || 0);
+      if (custAddressInput) {
+        custAddressInput.value = `https://www.google.com/maps?q=${latitude},${longitude}`;
+      }
       setLocationStatus('Current location added. Save to use it for delivery.', 'success');
       if (useLocationBtn) useLocationBtn.disabled = false;
     },
@@ -1612,7 +1462,6 @@ addressEditorClose?.addEventListener('click', () => closeAddressEditor({ restore
 addressCancelBtn?.addEventListener('click', () => closeAddressEditor({ restore: true }));
 addressSaveBtn?.addEventListener('click', saveEditedAddress);
 useLocationBtn?.addEventListener('click', useCurrentDeliveryLocation);
-custAddressInput?.addEventListener('input', syncAddressLocationPreview);
 addressEditorOverlay?.addEventListener('click', event => {
   if (event.target === addressEditorOverlay) closeAddressEditor({ restore: true });
 });
@@ -1625,13 +1474,10 @@ document.addEventListener('keydown', event => {
 function prefillCustomerFields() {
   const saved = loadCustomer();
   setOrderType(saved.orderType || 'pickup');
-  setPaymentMethod(saved.paymentMethod || 'cash');
+  setPaymentMethod(saved.paymentMethod || 'aba');
   if (custNameInput) custNameInput.value = saved.name || '';
   if (custPhoneInput) custPhoneInput.value = saved.phone || '';
-  const savedAddress = String(saved.address || '').trim();
-  const legacyMapUrl = getAddressCoordinates(savedAddress) ? savedAddress : '';
-  selectedDeliveryLocationUrl = String(saved.locationUrl || legacyMapUrl || '').trim();
-  if (custAddressInput) custAddressInput.value = legacyMapUrl ? '' : savedAddress;
+  if (custAddressInput) custAddressInput.value = saved.address || '';
   if (custDateInput) custDateInput.value = saved.date || '';
   if (custTimeInput) custTimeInput.value = saved.time || '';
   syncDeliveryAddressResult();
@@ -1690,10 +1536,10 @@ if (mapEl && window.L) {
     zoom: 13,
     zoomControl: true,
     scrollWheelZoom: false,
-    attributionControl: true
+    attributionControl: false
   });
 
-  addOpenStreetMapTiles(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
   // Logo-based marker: a circular badge showing the shop logo, with a small
   // numbered chip in the corner so branches stay distinguishable.
@@ -1709,7 +1555,7 @@ if (mapEl && window.L) {
         </div>
         <div style="
           position:absolute;bottom:-4px;right:-4px;width:18px;height:18px;border-radius:50%;
-          background:#2b2118;color:#fff;font:700 10px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+          background:#2b2118;color:#fff;font:700 10px 'Inter',sans-serif;
           display:flex;align-items:center;justify-content:center;
           border:2px solid #fff;
         ">${n}</div>
@@ -1726,7 +1572,7 @@ if (mapEl && window.L) {
   markers = locations.map((loc, i) => {
     const m = L.marker([loc.lat, loc.lng], { icon: makeIcon(i + 1) }).addTo(map);
     m.bindPopup(`
-      <div style="font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;min-width:165px;padding:2px 0;">
+      <div style="font-family:'Inter',sans-serif;min-width:165px;padding:2px 0;">
         <div style="font-weight:700;font-size:13px;color:#2b2118;margin-bottom:3px;">${loc.name}</div>
         <div style="font-size:11px;color:#6b5f52;margin-bottom:10px;line-height:1.4;">${loc.address}</div>
         <a href="${loc.url}" target="_blank" rel="noopener"
