@@ -630,7 +630,6 @@ function subscribeToOrderChanges() {
 const pushNotificationBtn = document.getElementById('pushNotificationBtn');
 const pushNotificationStatus = document.getElementById('pushNotificationStatus');
 const notificationSettingsCard = document.getElementById('notificationSettingsCard');
-const notificationInstallHint = document.getElementById('notificationInstallHint');
 const ordersNavBadge = document.getElementById('ordersNavBadge');
 
 function isIosDevice() {
@@ -716,13 +715,12 @@ function handleIncomingOrder(order = {}) {
 function renderPushNotificationState(state, detail = '') {
   if (!pushNotificationBtn || !pushNotificationStatus) return;
   notificationSettingsCard?.classList.toggle('enabled', state === 'enabled');
-  notificationInstallHint.hidden = state !== 'install';
-  pushNotificationBtn.disabled = state === 'working' || state === 'unsupported' || state === 'blocked';
+  pushNotificationBtn.disabled = state === 'working' || state === 'unsupported' || state === 'unavailable' || state === 'blocked';
 
   const states = {
     enabled: ['On', 'Alerts will arrive even when this app is closed'],
     disabled: ['Enable', 'Get a sound, vibration and badge for new orders'],
-    install: ['How to install', 'Add this admin page to your Home Screen first'],
+    unavailable: ['Unavailable', 'Push alerts are unavailable on this device'],
     blocked: ['Blocked', 'Allow notifications in your phone settings'],
     unsupported: ['Unavailable', 'This browser does not support Web Push'],
     working: ['Please wait…', detail || 'Updating this device…'],
@@ -740,7 +738,7 @@ async function initPushNotifications() {
     return;
   }
   if (isIosDevice() && !isStandaloneWebApp()) {
-    renderPushNotificationState('install');
+    renderPushNotificationState('unavailable');
     return;
   }
   if (Notification.permission === 'denied') {
@@ -779,9 +777,7 @@ async function savePushSubscription(subscription) {
 
 async function enablePushNotifications() {
   if (isIosDevice() && !isStandaloneWebApp()) {
-    notificationInstallHint.hidden = false;
-    toast('Safari: Share → Add to Home Screen → Open as Web App');
-    return;
+    return renderPushNotificationState('unavailable');
   }
   if (!supportsWebPush()) return renderPushNotificationState('unsupported');
   renderPushNotificationState('working', 'Waiting for notification permission…');
