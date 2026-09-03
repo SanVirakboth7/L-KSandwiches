@@ -11,7 +11,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
-<link rel="stylesheet" href="admin.css">
+<meta name="theme-color" content="#8a5a3f">
+<link rel="manifest" href="assets/manifest/admin-app.webmanifest">
+<link rel="stylesheet" href="assets/css/admin-dashboard.css">
 </head>
 <body>
   <!-- ---------- LOGIN SCREEN ---------- -->
@@ -250,6 +252,21 @@
           <span class="availabilitySwitchTrack" aria-hidden="true"></span>
         </label>
       </section>
+
+      <h3 class="sectionLabel">Order Alerts</h3>
+      <section class="notificationSettingsCard" id="notificationSettingsCard" aria-labelledby="pushNotificationTitle">
+        <span class="notificationSettingsIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+        </span>
+        <span class="notificationSettingsCopy">
+          <strong id="pushNotificationTitle">New order notifications</strong>
+          <small id="pushNotificationStatus" aria-live="polite">Checking this device…</small>
+        </span>
+        <button type="button" class="notificationSettingsBtn" id="pushNotificationBtn">Enable</button>
+      </section>
+      <p class="notificationInstallHint" id="notificationInstallHint" hidden>
+        On iPhone: open this page in Safari, tap Share, then Add to Home Screen.
+      </p>
       
       <h3 class="sectionLabel">Scan QR to Access the Menu</h3>
       <div class="qrCard">
@@ -290,16 +307,17 @@
 
   <nav class="bottomNav" id="bottomNav">
     <button class="navBtn active" data-page="dashboard" aria-label="Home" title="Home">
-      <img src="img/honme.svg" alt="" aria-hidden="true">
+      <img src="img/home.svg" alt="" aria-hidden="true">
     </button>
     <button class="navBtn" data-page="menu" aria-label="Menu" title="Menu">
       <img src="img/menu.svg" alt="" aria-hidden="true">
     </button>
     <button class="navBtn" data-page="orders" aria-label="Orders" title="Orders">
-      <img src="img/order.svg" alt="" aria-hidden="true">
+      <img src="img/orders.svg" alt="" aria-hidden="true">
+      <span class="navBadge" id="ordersNavBadge" aria-label="0 unread orders" hidden></span>
     </button>
     <button class="navBtn" data-page="settings" aria-label="Settings" title="Settings">
-      <img src="img/setting.svg" alt="" aria-hidden="true">
+      <img src="img/settings.svg" alt="" aria-hidden="true">
     </button>
   </nav>
 
@@ -431,6 +449,6 @@
   </div>
   </div>
 
-<script type="module" src="admin.js"></script>
+<script type="module" src="assets/js/admin-dashboard.js"></script>
 </body>
 </html>

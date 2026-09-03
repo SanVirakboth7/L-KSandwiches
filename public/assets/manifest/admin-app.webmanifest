@@ -1,0 +1,25 @@
+{
+  "id": "/admin.html",
+  "name": "L&K Sandwiches Admin",
+  "short_name": "L&K Admin",
+  "description": "Manage L&K Sandwiches orders and menu.",
+  "start_url": "/admin.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8a5a3f",
+  "icons": [
+    {
+      "src": "/img/logo.png",
+      "sizes": "1645x1645",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/logo.png",
+      "sizes": "1645x1645",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

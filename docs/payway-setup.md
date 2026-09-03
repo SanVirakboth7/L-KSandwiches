@@ -26,7 +26,7 @@ For local sandbox testing, create a `.dev.vars` file (it is ignored by Git):
 ```dotenv
 PAYWAY_MERCHANT_ID="your-sandbox-merchant-id"
 PAYWAY_API_KEY="your-sandbox-api-key"
-SUPABASE_ANON_KEY="the-anon-key-from-supabase-config.js"
+SUPABASE_ANON_KEY="the-anon-key-from-public/assets/js/supabase-client.js"
 ```
 
 ## 3. Test and deploy

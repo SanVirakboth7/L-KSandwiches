@@ -1,11 +1,5 @@
-.git/
-.vscode/
-.wrangler/
-node_modules/
-worker.js
-wrangler.jsonc
-worker-configuration.d.ts
-.dev.vars
-.env*
-*.md
-*.sql
+# Wrangler publishes only ./public, so private project files are outside the
+# asset directory. These rules cover accidental development artifacts added
+# inside public later.
+.DS_Store
+*.map

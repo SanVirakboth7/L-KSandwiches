@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET } from "./supabase-config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET, VAPID_PUBLIC_KEY } from "./supabase-client.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -42,6 +42,11 @@ let filterBestseller = false;
 let filterOutOfStock = false;
 let orders = [];
 let ordersRealtimeChannel = null;
+let pushServiceWorkerRegistration = null;
+let orderAlertAudioContext = null;
+
+const PUSH_SUBSCRIPTION_TABLE = 'push_subscriptions';
+const ORDER_UNREAD_STORAGE_KEY = 'lk-admin-unread-orders';
 
 const CATEGORY_SETTING_KEY = 'menu_categories';
 const ACCEPTING_ORDERS_SETTING_KEY = 'accepting_orders';
@@ -78,9 +83,10 @@ function showDashboard() {
   setupSettingsPage();
   loadHeroSettings();
   loadAcceptingOrdersSetting();
+  initPushNotifications();
   setGreeting();
   subscribeToOrderChanges();
-  switchPage('dashboard');
+  switchPage(window.location.hash === '#orders' ? 'orders' : 'dashboard');
 }
 
 loginForm.addEventListener('submit', async (e) => {
@@ -109,6 +115,7 @@ async function logout() {
     await supabase.removeChannel(ordersRealtimeChannel);
     ordersRealtimeChannel = null;
   }
+  await removePushSubscription({ silent: true });
   await supabase.auth.signOut();
   if (window.parent !== window) {
     window.parent.postMessage({ type: 'lk-admin-signed-out' }, window.location.origin);
@@ -150,6 +157,7 @@ function switchPage(name) {
   }
   if (name === 'menu') renderCategoryManager();
   if (name === 'orders') {
+    clearOrderUnreadBadge();
     syncOrderDateControls();
     loadOrders();
   }
@@ -606,7 +614,8 @@ function subscribeToOrderChanges() {
   if (ordersRealtimeChannel) return;
   ordersRealtimeChannel = supabase
     .channel('admin-order-records')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
+      if (payload.eventType === 'INSERT') handleIncomingOrder(payload.new);
       if (currentPage === 'orders') loadOrders();
       loadTodayOrderStats();
     })
@@ -616,6 +625,232 @@ function subscribeToOrderChanges() {
     })
     .subscribe();
 }
+
+/* ---------- app-like new-order alerts ---------- */
+const pushNotificationBtn = document.getElementById('pushNotificationBtn');
+const pushNotificationStatus = document.getElementById('pushNotificationStatus');
+const notificationSettingsCard = document.getElementById('notificationSettingsCard');
+const notificationInstallHint = document.getElementById('notificationInstallHint');
+const ordersNavBadge = document.getElementById('ordersNavBadge');
+
+function isIosDevice() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function isStandaloneWebApp() {
+  return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+}
+
+function supportsWebPush() {
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+
+function urlBase64ToUint8Array(value) {
+  const padding = '='.repeat((4 - value.length % 4) % 4);
+  const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from(raw, character => character.charCodeAt(0));
+}
+
+function currentUnreadOrderCount() {
+  const value = Number.parseInt(localStorage.getItem(ORDER_UNREAD_STORAGE_KEY) || '0', 10);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+async function setOrderUnreadBadge(count) {
+  const safeCount = Math.max(0, Math.min(Number(count) || 0, 99));
+  localStorage.setItem(ORDER_UNREAD_STORAGE_KEY, String(safeCount));
+  if (ordersNavBadge) {
+    ordersNavBadge.hidden = safeCount === 0;
+    ordersNavBadge.textContent = safeCount > 9 ? '9+' : String(safeCount);
+    ordersNavBadge.setAttribute('aria-label', `${safeCount} unread order${safeCount === 1 ? '' : 's'}`);
+  }
+  try {
+    if (safeCount && 'setAppBadge' in navigator) await navigator.setAppBadge(safeCount);
+    if (!safeCount && 'clearAppBadge' in navigator) await navigator.clearAppBadge();
+  } catch {
+    // Badging is optional and may be blocked by the operating system.
+  }
+}
+
+function clearOrderUnreadBadge() {
+  setOrderUnreadBadge(0);
+}
+
+function unlockOrderAlertAudio() {
+  if (!('AudioContext' in window || 'webkitAudioContext' in window)) return;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  orderAlertAudioContext ||= new AudioContextClass();
+  if (orderAlertAudioContext.state === 'suspended') orderAlertAudioContext.resume().catch(() => {});
+}
+
+function playOrderAlert() {
+  try {
+    unlockOrderAlertAudio();
+    if (!orderAlertAudioContext || orderAlertAudioContext.state !== 'running') return;
+    const oscillator = orderAlertAudioContext.createOscillator();
+    const gain = orderAlertAudioContext.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(740, orderAlertAudioContext.currentTime);
+    oscillator.frequency.setValueAtTime(980, orderAlertAudioContext.currentTime + 0.13);
+    gain.gain.setValueAtTime(0.0001, orderAlertAudioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.18, orderAlertAudioContext.currentTime + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, orderAlertAudioContext.currentTime + 0.3);
+    oscillator.connect(gain).connect(orderAlertAudioContext.destination);
+    oscillator.start();
+    oscillator.stop(orderAlertAudioContext.currentTime + 0.31);
+  } catch {
+    // Sound is a progressive enhancement; the visible alert still works.
+  }
+}
+
+function handleIncomingOrder(order = {}) {
+  const number = order.order_number ? ` #${String(order.order_number).padStart(3, '0')}` : '';
+  toast(`New order${number}`);
+  playOrderAlert();
+  if ('vibrate' in navigator) navigator.vibrate([180, 90, 180]);
+  if (currentPage !== 'orders') setOrderUnreadBadge(currentUnreadOrderCount() + 1);
+}
+
+function renderPushNotificationState(state, detail = '') {
+  if (!pushNotificationBtn || !pushNotificationStatus) return;
+  notificationSettingsCard?.classList.toggle('enabled', state === 'enabled');
+  notificationInstallHint.hidden = state !== 'install';
+  pushNotificationBtn.disabled = state === 'working' || state === 'unsupported' || state === 'blocked';
+
+  const states = {
+    enabled: ['On', 'Alerts will arrive even when this app is closed'],
+    disabled: ['Enable', 'Get a sound, vibration and badge for new orders'],
+    install: ['How to install', 'Add this admin page to your Home Screen first'],
+    blocked: ['Blocked', 'Allow notifications in your phone settings'],
+    unsupported: ['Unavailable', 'This browser does not support Web Push'],
+    working: ['Please wait…', detail || 'Updating this device…'],
+    error: ['Try again', detail || 'Notifications could not be enabled']
+  };
+  const [label, message] = states[state] || states.disabled;
+  pushNotificationBtn.textContent = label;
+  pushNotificationStatus.textContent = message;
+}
+
+async function initPushNotifications() {
+  setOrderUnreadBadge(currentUnreadOrderCount());
+  if (!supportsWebPush()) {
+    renderPushNotificationState('unsupported');
+    return;
+  }
+  if (isIosDevice() && !isStandaloneWebApp()) {
+    renderPushNotificationState('install');
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    renderPushNotificationState('blocked');
+    return;
+  }
+
+  try {
+    await navigator.serviceWorker.register('/admin-service-worker.js');
+    pushServiceWorkerRegistration = await navigator.serviceWorker.ready;
+    const subscription = await pushServiceWorkerRegistration.pushManager.getSubscription();
+    renderPushNotificationState(subscription ? 'enabled' : 'disabled');
+  } catch (error) {
+    console.warn('[L&K admin] Push setup failed:', error);
+    renderPushNotificationState('error', 'Could not prepare notifications on this device');
+  }
+}
+
+async function savePushSubscription(subscription) {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw userError || new Error('Please sign in again.');
+  const serialized = subscription.toJSON();
+  if (!serialized.endpoint || !serialized.keys?.p256dh || !serialized.keys?.auth) {
+    throw new Error('The browser returned an incomplete push subscription.');
+  }
+
+  const { error } = await supabase.from(PUSH_SUBSCRIPTION_TABLE).upsert({
+    user_id: user.id,
+    endpoint: serialized.endpoint,
+    p256dh: serialized.keys.p256dh,
+    auth: serialized.keys.auth,
+    user_agent: navigator.userAgent.slice(0, 500)
+  }, { onConflict: 'endpoint' });
+  if (error) throw error;
+}
+
+async function enablePushNotifications() {
+  if (isIosDevice() && !isStandaloneWebApp()) {
+    notificationInstallHint.hidden = false;
+    toast('Safari: Share → Add to Home Screen → Open as Web App');
+    return;
+  }
+  if (!supportsWebPush()) return renderPushNotificationState('unsupported');
+  renderPushNotificationState('working', 'Waiting for notification permission…');
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      renderPushNotificationState(permission === 'denied' ? 'blocked' : 'disabled');
+      return;
+    }
+    if (!pushServiceWorkerRegistration) {
+      await navigator.serviceWorker.register('/admin-service-worker.js');
+      pushServiceWorkerRegistration = await navigator.serviceWorker.ready;
+    }
+    let subscription = await pushServiceWorkerRegistration.pushManager.getSubscription();
+    subscription ||= await pushServiceWorkerRegistration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    await savePushSubscription(subscription);
+    unlockOrderAlertAudio();
+    renderPushNotificationState('enabled');
+    toast('New order notifications are on');
+  } catch (error) {
+    console.error('[L&K admin] Could not enable push:', error);
+    renderPushNotificationState('error', error?.message || 'Could not enable notifications');
+    toast('Could not enable notifications: ' + (error?.message || 'Unknown error'), true);
+  }
+}
+
+async function removePushSubscription({ silent = false } = {}) {
+  if (!supportsWebPush()) return;
+  try {
+    pushServiceWorkerRegistration ||= await navigator.serviceWorker.getRegistration();
+    const subscription = await pushServiceWorkerRegistration?.pushManager.getSubscription();
+    if (!subscription) {
+      if (!silent) renderPushNotificationState('disabled');
+      return;
+    }
+    await supabase.from(PUSH_SUBSCRIPTION_TABLE).delete().eq('endpoint', subscription.endpoint);
+    await subscription.unsubscribe();
+    if (!silent) {
+      renderPushNotificationState('disabled');
+      toast('New order notifications are off');
+    }
+  } catch (error) {
+    if (!silent) {
+      renderPushNotificationState('error', error?.message || 'Could not turn notifications off');
+      toast('Could not turn notifications off', true);
+    }
+  }
+}
+
+pushNotificationBtn?.addEventListener('click', async () => {
+  if (isIosDevice() && !isStandaloneWebApp()) return enablePushNotifications();
+  const registration = pushServiceWorkerRegistration || await navigator.serviceWorker?.getRegistration();
+  const subscription = await registration?.pushManager.getSubscription();
+  if (subscription) await removePushSubscription();
+  else await enablePushNotifications();
+});
+
+navigator.serviceWorker?.addEventListener('message', event => {
+  if (event.data?.type === 'lk-open-orders') switchPage('orders');
+});
+
+window.addEventListener('hashchange', () => {
+  if (window.location.hash === '#orders' && dash.style.display !== 'none') switchPage('orders');
+});
+
+document.addEventListener('pointerdown', unlockOrderAlertAudio, { once: true });
 
 /* ---------- greeting ---------- */
 function setGreeting() {

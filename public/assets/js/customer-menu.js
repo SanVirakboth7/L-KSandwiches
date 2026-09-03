@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./supabase-config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./supabase-client.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -250,7 +250,7 @@ function paymentMethodLabel(method) {
   return '—';
 }
 /* ---------- keep content clear of the fixed header ----------
-   header is `position:fixed` (see style.css), so it's out of document
+   header is `position:fixed` (see customer-menu.css), so it's out of document
    flow. We measure its real rendered height (fonts/wrap can shift it a
    few px per device) and publish it as --header-h, which .heroWrap and
    .sectionHead read to know how much space to reserve/scroll-offset. */

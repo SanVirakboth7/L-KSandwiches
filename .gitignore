@@ -1,5 +1,6 @@
 .dev.vars
 .env*
+.push-secrets.local
 .wrangler/
 node_modules/
 worker-configuration.d.ts

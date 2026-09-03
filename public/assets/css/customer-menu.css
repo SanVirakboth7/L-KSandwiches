@@ -10,7 +10,7 @@
     --crust-500:#723c10;
     --tomato-500:#c1442d;
     --line:#e7ddcb;
-    --header-h: 172px; /* fallback; script.js overwrites this with the real measured height */
+    --header-h: 172px; /* fallback; customer-menu.js overwrites this with the real measured height */
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   button,input,select,textarea,option{
@@ -52,7 +52,7 @@
      toolbar during scroll on iOS WKWebView, causing it to visually detach.
      Fixed is anchored straight to the viewport so it can't drift. Content
      below is pushed down by the header's real measured height (see
-     script.js: setHeaderHeight -> --header-h). No backdrop-filter here on
+     customer-menu.js: setHeaderHeight -> --header-h). No backdrop-filter here on
      purpose: blur + fixed + fast scroll is a known WKWebView glitch trigger
      that drops frames and lets scrolled-past content flash above the header. */
   header{

@@ -1,0 +1,11 @@
+{
+  "name": "lnksandwiches",
+  "private": true,
+  "scripts": {
+    "check": "wrangler deploy --dry-run",
+    "deploy": "wrangler deploy --keep-vars"
+  },
+  "devDependencies": {
+    "wrangler": "4.128.0"
+  }
+}
