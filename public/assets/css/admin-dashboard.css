@@ -293,7 +293,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   scroll-snap-align:start;
 }
 .catDot{ width:6px; height:6px; border-radius:50%; background:var(--brand-brown); flex-shrink:0; }
-.catBtn.active{ background:var(--brand-brown); color:#fff; border-color:var(--brand-brown); }
+.catBtn.active{ background:var(--ink); color:#fff; border-color:var(--brand-brown); }
 .catBtn.active .catDot{ background:#fff; }
 
 .toast{
@@ -868,7 +868,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   border:1px solid rgba(43,33,24,.14); transition: background .15s ease, color .15s ease;
 }
 .bestBtn.active{
-  background: var(--brand-brown);
+  background: var(--ink);
   color:#fff; border-color:transparent;
 }
 
@@ -959,7 +959,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .qrCard .ghostBtn{
   width:100%; min-height:38px; margin:0; padding:9px 12px; border-radius:12px;
   display:inline-flex; align-items:center; justify-content:center; gap:7px;
-  color:#fff; background:var(--brand-brown); border-color:var(--brand-brown);
+  color:#fff; background:var(--ink); border-color:var(--brand-brown);
 }
 .qrCard .ghostBtn svg{ width:14px; height:14px; }
 
@@ -1164,7 +1164,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   border:1px solid var(--line); background:var(--white); color:var(--ink);
 }
 .categoryManagerBtn:not(.delete){ min-width:64px; font-size:12px; }
-.categoryManagerBtn.save{ background:var(--brand-brown); color:#fff; border-color:var(--brand-brown); }
+.categoryManagerBtn.save{ background:var(--ink); color:#fff; border-color:var(--brand-brown); }
 .categoryManagerBtn.isHidden{ background:var(--brand-brown); color:#fff; border-color:var(--brand-brown); }
 .categoryManagerBtn.delete{
   width:36px; padding:0; display:flex; align-items:center; justify-content:center; color:var(--brand-brown);
@@ -1178,7 +1178,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .menuCategoryManager .categoryManagerRow{ padding-top:0; padding-bottom:0; border-bottom:0; }
 .categoryCreateModalCard{ max-width:410px; }
 .categoryModalHeader{
-  display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:16px;
+  display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
 }
 .categoryModalHeader h2{ margin-top:2px; }
 .categoryModalClose{
