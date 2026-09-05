@@ -133,38 +133,41 @@
 
     <div class="branchList">
       <div class="branchRow" onclick="focusLocation(0)">
-        <div class="brNum">1</div>
+        <span class="brPin" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        </span>
         <div class="brInfo">
           <p class="brName">First Branch</p>
           <p class="brAddr">ABA Grand Phnom Penh Branch</p>
         </div>
-        <a class="brGo" href="https://maps.app.goo.gl/hN2KTEVes9xH4kVk7" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+        <a class="brGo" href="https://maps.app.goo.gl/hN2KTEVes9xH4kVk7" target="_blank" rel="noopener" aria-label="Open directions to First Branch" onclick="event.stopPropagation()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-          Go
         </a>
       </div>
 
       <div class="branchRow" onclick="focusLocation(1)">
-        <div class="brNum">2</div>
+        <span class="brPin" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        </span>
         <div class="brInfo">
           <p class="brName">Second Branch</p>
           <p class="brAddr">The Westline school, Russey Keo (598)</p>
         </div>
-        <a class="brGo" href="https://maps.app.goo.gl/Qfq4Wr57AxrwQB8g6" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+        <a class="brGo" href="https://maps.app.goo.gl/Qfq4Wr57AxrwQB8g6" target="_blank" rel="noopener" aria-label="Open directions to Second Branch" onclick="event.stopPropagation()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-          Go
         </a>
       </div>
 
       <div class="branchRow" onclick="focusLocation(2)">
-        <div class="brNum">3</div>
+        <span class="brPin" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        </span>
         <div class="brInfo">
           <p class="brName">Third Branch</p>
           <p class="brAddr">AEON Mall Sen Sok City (near Maybank)</p>
         </div>
-        <a class="brGo" href="https://www.google.com/maps?q=11.60352624486013,104.88559800552896" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+        <a class="brGo" href="https://www.google.com/maps?q=11.60352624486013,104.88559800552896" target="_blank" rel="noopener" aria-label="Open directions to Third Branch" onclick="event.stopPropagation()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-          Go
         </a>
       </div>
     </div>
@@ -396,12 +399,12 @@
   <div class="modalCard lastOrderCard" role="dialog" aria-modal="true" aria-labelledby="lastOrderTitle">
     <div class="lastOrderHead">
       <span>
-        <small>Last pre-order</small>
-        <h3 id="lastOrderTitle">Your Order</h3>
+        <small>Order history</small>
+        <h3 id="lastOrderTitle">Your Orders</h3>
       </span>
       <button type="button" class="lastOrderClose" id="lastOrderClose" aria-label="Close order preview">×</button>
     </div>
-    <div class="lastOrderPreview" id="lastOrderPreview" aria-label="Your last order summary"></div>
+    <div class="lastOrderHistoryList" id="lastOrderPreview" aria-label="Your previous order summaries"></div>
     <button type="button" class="sendOrderBtn lastOrderDoneBtn" id="lastOrderDoneBtn">Done</button>
   </div>
 </div>
@@ -439,7 +442,7 @@
       </span>
     </button>
   </div>
-  <button type="button" class="lastOrderBtn" id="lastOrderBtn" aria-label="View your last order" title="Your last order" hidden>
+  <button type="button" class="lastOrderBtn" id="lastOrderBtn" aria-label="View your order history" title="Your order history" hidden>
     <span class="lastOrderGlyph" aria-hidden="true"></span>
     <span class="lastOrderCount" id="lastOrderCount" aria-hidden="true">1</span>
   </button>

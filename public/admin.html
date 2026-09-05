@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="img/logo.png">
 <link rel="apple-touch-icon" sizes="180x180" href="img/logo.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
 <meta name="theme-color" content="#8a5a3f">
 <link rel="manifest" href="assets/manifest/admin-app.webmanifest">
@@ -251,14 +251,11 @@
     <section class="page" id="page-settings">
       <div class="settingsPageInner">
         <section class="settingsGroup" aria-labelledby="storeControlsTitle">
-          <header class="settingsGroupHead">
-            <span>
+          <div class="settingsControlList">
+            <header class="settingsControlHead">
               <span class="settingsGroupEyebrow">Live controls</span>
               <h3 id="storeControlsTitle">Store operations</h3>
-            </span>
-          </header>
-
-          <div class="settingsControlList">
+            </header>
             <section class="orderAvailabilityCard" id="orderAvailabilityCard" aria-labelledby="orderAvailabilityTitle">
               <span class="orderAvailabilityIcon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16l-1.5-5h-13L4 10Z"/><path d="M5 10v9h14v-9M9 19v-5h6v5"/></svg>
@@ -281,63 +278,45 @@
                 <strong id="pushNotificationTitle">New Order Alerts</strong>
                 <small id="pushNotificationStatus" aria-live="polite">Checking this device…</small>
               </span>
-              <button type="button" class="notificationSettingsBtn" id="pushNotificationBtn">Enable</button>
-            </section>
-          </div>
-        </section>
-
-        <section class="settingsGroup settingsMenuGroup" aria-labelledby="customerMenuSettingsTitle">
-          <header class="settingsGroupHead">
-            <span>
-              <span class="settingsGroupEyebrow">Share menu</span>
-              <h3 id="customerMenuSettingsTitle">Customer access</h3>
-            </span>
-          </header>
-          <div class="qrCard">
-            <div class="qrCardCode">
-              <img id="qrImg" src="" alt="QR code linking to the public menu" width="144" height="144">
-            </div>
-            <div class="qrCardCopy">
-              <span class="qrCardLabel">Public menu</span>
-              <strong>Scan QR to order</strong>
-              <p>Place this code where customers can scan it easily.</p>
-              <button type="button" class="ghostBtn" id="copyLinkBtn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
-                Copy Menu Link
+              <button type="button" class="notificationSettingsBtn" id="pushNotificationBtn" role="switch" aria-checked="false" aria-label="Turn on new order alerts">
+                <span class="availabilitySwitchTrack" aria-hidden="true"></span>
               </button>
-            </div>
-          </div>
-        </section>
+            </section>
 
-        <section class="settingsGroup settingsActionsGroup" aria-labelledby="menuManagementTitle">
-          <header class="settingsGroupHead">
-            <span>
-              <span class="settingsGroupEyebrow">Menu tools</span>
-              <h3 id="menuManagementTitle">Manage your menu</h3>
-            </span>
-          </header>
-          <div class="settingsList">
-            <button class="settingsRow" id="settingsEditSlideshow">
+            <div class="settingsList">
+              <button class="settingsRow" id="settingsEditSlideshow">
               <span class="settingsRowIcon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
               </span>
               <span class="settingsRowLabel"><strong>Edit Slideshow</strong><small>Update customer menu banners</small></span>
               <span class="settingsRowChevron" aria-hidden="true">›</span>
-            </button>
-            <button class="settingsRow" id="settingsViewSite">
-              <span class="settingsRowIcon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
-              </span>
-              <span class="settingsRowLabel"><strong>View Public Menu</strong><small>Preview what customers see</small></span>
-              <span class="settingsRowChevron" aria-hidden="true">›</span>
-            </button>
-            <button class="settingsRow settingsRowDanger" id="settingsLogout">
+              </button>
+              <button class="settingsRow settingsRowDanger" id="settingsLogout">
               <span class="settingsRowIcon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
               </span>
               <span class="settingsRowLabel"><strong>Log Out</strong><small>Sign out of this admin device</small></span>
               <span class="settingsRowChevron" aria-hidden="true">›</span>
-            </button>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="settingsMenuGroup" aria-label="Customer menu QR code">
+          <div class="qrCard">
+            <div class="qrCardCode">
+              <img id="qrImg" src="" alt="QR code linking to the public menu" width="144" height="144">
+            </div>
+            <div class="qrCardDetails">
+              <div class="qrCardTitle">
+                <strong>QR for customers</strong>
+                <small>Scan to open the menu</small>
+              </div>
+              <button type="button" class="ghostBtn" id="copyLinkBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+                Copy link
+              </button>
+            </div>
           </div>
         </section>
       </div>

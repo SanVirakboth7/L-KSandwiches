@@ -777,21 +777,22 @@ function handleIncomingOrder(order = {}) {
 
 function renderPushNotificationState(state, detail = '') {
   if (!pushNotificationBtn || !pushNotificationStatus) return;
-  notificationSettingsCard?.classList.toggle('enabled', state === 'enabled');
+  const isEnabled = state === 'enabled';
+  notificationSettingsCard?.classList.toggle('enabled', isEnabled);
   pushNotificationBtn.disabled = state === 'working' || state === 'unsupported' || state === 'unavailable' || state === 'blocked';
+  pushNotificationBtn.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
+  pushNotificationBtn.setAttribute('aria-label', isEnabled ? 'Turn off new order alerts' : 'Turn on new order alerts');
 
   const states = {
-    enabled: ['On', 'Alerts will arrive even when this app is closed'],
-    disabled: ['Enable', 'Get a sound, vibration and badge for new orders'],
-    unavailable: ['Unavailable', 'Push alerts are unavailable on this device'],
-    blocked: ['Blocked', 'Allow notifications in your phone settings'],
-    unsupported: ['Unavailable', 'This browser does not support Web Push'],
-    working: ['Please wait…', detail || 'Updating this device…'],
-    error: ['Try again', detail || 'Notifications could not be enabled']
+    enabled: 'Alerts will arrive even when this app is closed',
+    disabled: 'Get a sound, vibration and badge for new orders',
+    unavailable: 'Push alerts are unavailable on this device',
+    blocked: 'Allow notifications in your phone settings',
+    unsupported: 'This browser does not support Web Push',
+    working: detail || 'Updating this device…',
+    error: detail || 'Notifications could not be enabled'
   };
-  const [label, message] = states[state] || states.disabled;
-  pushNotificationBtn.textContent = label;
-  pushNotificationStatus.textContent = message;
+  pushNotificationStatus.textContent = states[state] || states.disabled;
 }
 
 async function initPushNotifications() {
@@ -1074,9 +1075,6 @@ async function setupSettingsPage() {
   }
 }
 
-document.getElementById('settingsViewSite')?.addEventListener('click', () => {
-  window.open('index.html', '_blank');
-});
 document.getElementById('customerSiteBtn')?.addEventListener('click', () => {
   if (window.parent !== window) {
     window.parent.postMessage({ type: 'lk-admin-exit' }, window.location.origin);

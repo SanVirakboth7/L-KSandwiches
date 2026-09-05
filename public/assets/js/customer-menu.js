@@ -158,6 +158,8 @@ const TELEGRAM_ORDER_SENDING_ENABLED = false;
 const PAYWAY_PENDING_KEY = 'lk_payway_pending';
 const ORDER_RECORD_PENDING_KEY = 'lk_pending_order_records';
 const LAST_ORDER_KEY = 'lk_last_preorder';
+const ORDER_HISTORY_KEY = 'lk_order_history';
+const ORDER_HISTORY_LIMIT = 50;
 const LOCAL_ORDER_COUNT_KEY = 'lk_order_count';
 const ACCEPTING_ORDERS_SETTING_KEY = 'accepting_orders';
 let acceptingOrders = true;
@@ -166,7 +168,8 @@ let orderSubmissionInProgress = false;
 
 let allProducts = [];
 let menuCategories = DEFAULT_CATEGORIES.map(category => ({ ...category }));
-let sectionObserver = null;
+let sectionNavFrame = 0;
+let activeSectionId = '';
 
 let storageAvailable = true;
 try {
@@ -636,7 +639,7 @@ function closeConfirmModal() {
   pendingReceiptImage = null;
 }
 
-function buildLastOrderPreviewHTML(orderRecord = {}) {
+function buildLastOrderPreviewHTML(orderRecord = {}, historyIndex = 0) {
   const items = Array.isArray(orderRecord.items) ? orderRecord.items : [];
   const total = Number(orderRecord.total || 0);
   const itemCount = Number(orderRecord.item_count || items.reduce((sum, item) => sum + Number(item.quantity || 0), 0));
@@ -644,6 +647,16 @@ function buildLastOrderPreviewHTML(orderRecord = {}) {
   const scheduleDate = orderRecord.scheduled_date ? formatDate(orderRecord.scheduled_date) : 'Date not selected';
   const scheduleTime = orderRecord.scheduled_time ? formatTime(orderRecord.scheduled_time) : '';
   const schedule = scheduleTime ? `${scheduleDate} · ${scheduleTime}` : scheduleDate;
+  const historyLabel = historyIndex === 0 ? 'Latest order' : 'Previous order';
+  let savedLabel = '';
+  if (orderRecord.history_saved_at) {
+    const savedAt = new Date(orderRecord.history_saved_at);
+    if (!Number.isNaN(savedAt.getTime())) {
+      savedLabel = savedAt.toLocaleString('en-US', {
+        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+      });
+    }
+  }
 
   const itemsHTML = items.map(item => {
     const quantity = Number(item.quantity || 0);
@@ -654,14 +667,18 @@ function buildLastOrderPreviewHTML(orderRecord = {}) {
         <span class="lastOrderItemQty">${quantity}×</span>
         <span class="lastOrderItemCopy">
           <strong>${escapeHTML(String(item.name || item.id || 'Item'))}</strong>
-          <small>$${unitPrice.toFixed(2)} each</small>
         </span>
         <strong class="lastOrderItemPrice">$${lineTotal.toFixed(2)}</strong>
       </div>`;
   }).join('');
 
   return `
-    <div class="lastOrderSchedule">
+    <article class="lastOrderPreview">
+      <div class="lastOrderEntryHead">
+        <strong>${historyLabel}</strong>
+        ${savedLabel ? `<span>${escapeHTML(savedLabel)}</span>` : ''}
+      </div>
+      <div class="lastOrderSchedule">
       <span class="lastOrderScheduleIcon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
       </span>
@@ -670,15 +687,16 @@ function buildLastOrderPreviewHTML(orderRecord = {}) {
         <strong>${escapeHTML(schedule)}</strong>
       </span>
       <span class="lastOrderItemCount">${itemCount} item${itemCount === 1 ? '' : 's'}</span>
-    </div>
-    <div class="lastOrderItems">${itemsHTML}</div>
-    <div class="lastOrderTotal">
-      <span>Total</span>
-      <span class="lastOrderTotalValues">
-        <strong>$${total.toFixed(2)}</strong>
-        <small>${formatRiel(total)}</small>
-      </span>
-    </div>`;
+      </div>
+      <div class="lastOrderItems">${itemsHTML}</div>
+      <div class="lastOrderTotal">
+        <span>Total</span>
+        <span class="lastOrderTotalValues">
+          <strong>$${total.toFixed(2)}</strong>
+          <small>${formatRiel(total)}</small>
+        </span>
+      </div>
+    </article>`;
 }
 
 function openOrderSuccessModal() {
@@ -704,10 +722,30 @@ function loadLastOrder() {
   }
 }
 
+function loadOrderHistory() {
+  if (!storageAvailable) return [];
+  try {
+    const history = JSON.parse(localStorage.getItem(ORDER_HISTORY_KEY) || '[]');
+    if (Array.isArray(history) && history.length) {
+      return history.filter(order => order && typeof order === 'object');
+    }
+  } catch (error) {
+    console.warn('[L&K] Could not load the saved order history.', error);
+  }
+  const previousLastOrder = loadLastOrder();
+  return previousLastOrder ? [previousLastOrder] : [];
+}
+
 function saveLastOrder(orderRecord) {
   if (!storageAvailable) return;
   try {
-    localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(orderRecord));
+    const historyEntry = { ...orderRecord, history_saved_at: new Date().toISOString() };
+    const previousHistory = loadOrderHistory().filter(order => (
+      !orderRecord.client_order_id || order.client_order_id !== orderRecord.client_order_id
+    ));
+    const nextHistory = [historyEntry, ...previousHistory].slice(0, ORDER_HISTORY_LIMIT);
+    localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(historyEntry));
+    localStorage.setItem(ORDER_HISTORY_KEY, JSON.stringify(nextHistory));
   } catch (error) {
     console.warn('[L&K] Could not save the last order preview.', error);
   }
@@ -738,20 +776,25 @@ function syncLastOrderButton() {
   const orderCount = loadLocalOrderCount();
   const badge = document.getElementById('lastOrderCount');
   if (badge) badge.textContent = orderCount > 99 ? '99+' : String(orderCount);
-  button.setAttribute('aria-label', `View your last order. ${orderCount} order${orderCount === 1 ? '' : 's'} placed on this device.`);
+  button.setAttribute('aria-label', `View your order history. ${orderCount} order${orderCount === 1 ? '' : 's'} placed on this device.`);
   button.title = `${orderCount} order${orderCount === 1 ? '' : 's'} placed`;
-  button.hidden = !loadLastOrder() || cartEntries().length > 0;
+  button.hidden = loadOrderHistory().length === 0 || cartEntries().length > 0;
 }
 
 function openLastOrderPreview() {
-  const orderRecord = loadLastOrder();
-  if (!orderRecord) {
+  const orderHistory = loadOrderHistory();
+  if (!orderHistory.length) {
     syncLastOrderButton();
     return;
   }
   const preview = document.getElementById('lastOrderPreview');
   const overlay = document.getElementById('lastOrderOverlay');
-  if (preview) preview.innerHTML = buildLastOrderPreviewHTML(orderRecord);
+  if (preview) {
+    preview.innerHTML = orderHistory
+      .map((orderRecord, historyIndex) => buildLastOrderPreviewHTML(orderRecord, historyIndex))
+      .join('');
+    preview.scrollTop = 0;
+  }
   overlay?.classList.add('open');
   overlay?.setAttribute('aria-hidden', 'false');
   window.setTimeout(() => document.getElementById('lastOrderDoneBtn')?.focus(), 120);
@@ -1305,7 +1348,7 @@ function renderCategoryUI() {
       `);
     }
   });
-  refreshSectionObserver();
+  refreshSectionTracking();
 }
 
 function renderAll(products) {
@@ -1336,30 +1379,82 @@ document.getElementById('chipRow')?.addEventListener('click', event => {
   const chip = event.target.closest('.chip');
   if (!chip) return;
   const target = document.getElementById(chip.dataset.target);
-  if (target) target.scrollIntoView({ behavior: 'smooth' });
+  if (target) {
+    setActiveSectionChip(chip.dataset.target);
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 });
 
-// rootMargin's top offset should track the fixed header's real height so
-// a section only counts as "current" once it clears the header, not a
-// hardcoded guess.
 function currentHeaderPx() {
   const raw = getComputedStyle(document.documentElement).getPropertyValue('--header-h').trim();
   const n = parseFloat(raw);
   return Number.isFinite(n) ? n : 172;
 }
 
-function refreshSectionObserver() {
-  sectionObserver?.disconnect();
-  sectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      document.querySelectorAll('.chip').forEach(chip => {
-        chip.classList.toggle('active', chip.dataset.target === entry.target.id);
-      });
-    });
-  }, { rootMargin: `-${currentHeaderPx() + 20}px 0px -70% 0px`, threshold: 0 });
-  document.querySelectorAll('.sectionHead').forEach(section => sectionObserver.observe(section));
+function visibleSectionNavItems() {
+  return Array.from(document.querySelectorAll('#chipRow .chip[data-target]'))
+    .filter(chip => getComputedStyle(chip).display !== 'none')
+    .map(chip => ({ chip, section: document.getElementById(chip.dataset.target) }))
+    .filter(item => item.section && item.section.offsetParent !== null);
 }
+
+function keepActiveChipVisible(chip) {
+  const row = document.getElementById('chipRow');
+  if (!row || !chip) return;
+  const chipLeft = chip.offsetLeft;
+  const chipRight = chipLeft + chip.offsetWidth;
+  const visibleLeft = row.scrollLeft + 6;
+  const visibleRight = row.scrollLeft + row.clientWidth - 6;
+  if (chipLeft >= visibleLeft && chipRight <= visibleRight) return;
+  const centeredLeft = chipLeft - ((row.clientWidth - chip.offsetWidth) / 2);
+  const maxLeft = Math.max(0, row.scrollWidth - row.clientWidth);
+  row.scrollTo({ left: Math.max(0, Math.min(centeredLeft, maxLeft)), behavior: 'smooth' });
+}
+
+function setActiveSectionChip(targetId) {
+  if (!targetId) return;
+  let activeChip = null;
+  document.querySelectorAll('#chipRow .chip[data-target]').forEach(chip => {
+    const isActive = chip.dataset.target === targetId;
+    chip.classList.toggle('active', isActive);
+    if (isActive) activeChip = chip;
+  });
+  if (targetId !== activeSectionId) {
+    activeSectionId = targetId;
+    keepActiveChipVisible(activeChip);
+  }
+}
+
+function updateActiveSectionFromScroll() {
+  sectionNavFrame = 0;
+  const navItems = visibleSectionNavItems();
+  if (!navItems.length) return;
+
+  // The active section is the one whose full content currently spans the
+  // reading line directly below the fixed header. Unlike observing only the
+  // title, this remains accurate when scrolling upward through a long grid.
+  const readingLine = currentHeaderPx() + 20;
+  let activeItem = navItems[0];
+  for (const item of navItems) {
+    if (item.section.getBoundingClientRect().top <= readingLine) activeItem = item;
+    else break;
+  }
+  setActiveSectionChip(activeItem.section.id);
+}
+
+function scheduleActiveSectionUpdate() {
+  if (sectionNavFrame) return;
+  sectionNavFrame = requestAnimationFrame(updateActiveSectionFromScroll);
+}
+
+function refreshSectionTracking() {
+  activeSectionId = '';
+  scheduleActiveSectionUpdate();
+}
+
+window.addEventListener('scroll', scheduleActiveSectionUpdate, { passive: true });
+window.addEventListener('resize', scheduleActiveSectionUpdate, { passive: true });
+document.fonts?.ready?.then(scheduleActiveSectionUpdate);
 
 /* ---------- hero slider ---------- */
 const heroCarousel = document.getElementById('hero');
@@ -1439,6 +1534,16 @@ if (searchInput) {
       sectionHead.style.display = anyVisible ? '' : 'none';
       grid.style.display = anyVisible ? '' : 'none';
     });
+
+    const hideLocations = query !== '';
+    const locationSection = document.getElementById('sec-locations');
+    const locationContent = document.querySelector('.locationsWrap');
+    const locationChip = document.querySelector('#chipRow .chip[data-target="sec-locations"]');
+    if (locationSection) locationSection.style.display = hideLocations ? 'none' : '';
+    if (locationContent) locationContent.style.display = hideLocations ? 'none' : '';
+    if (locationChip) locationChip.style.display = hideLocations ? 'none' : '';
+
+    scheduleActiveSectionUpdate();
   });
 }
 
