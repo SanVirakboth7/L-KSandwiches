@@ -392,6 +392,20 @@
   </div>
 </div>
 
+<div class="modalOverlay" id="lastOrderOverlay" aria-hidden="true">
+  <div class="modalCard lastOrderCard" role="dialog" aria-modal="true" aria-labelledby="lastOrderTitle">
+    <div class="lastOrderHead">
+      <span>
+        <small>Last pre-order</small>
+        <h3 id="lastOrderTitle">Your Order</h3>
+      </span>
+      <button type="button" class="lastOrderClose" id="lastOrderClose" aria-label="Close order preview">×</button>
+    </div>
+    <div class="lastOrderPreview" id="lastOrderPreview" aria-label="Your last order summary"></div>
+    <button type="button" class="sendOrderBtn lastOrderDoneBtn" id="lastOrderDoneBtn">Done</button>
+  </div>
+</div>
+
   <div class="sectionHead" id="sec-hours">
     <h3>ម៉ោងលក់ខាងក្រៅ</h3>
     <span class="sectionStatus" id="openStatus">Open now</span>
@@ -425,6 +439,10 @@
       </span>
     </button>
   </div>
+  <button type="button" class="lastOrderBtn" id="lastOrderBtn" aria-label="View your last order" title="Your last order" hidden>
+    <span class="lastOrderGlyph" aria-hidden="true"></span>
+    <span class="lastOrderCount" id="lastOrderCount" aria-hidden="true">1</span>
+  </button>
   <footer>
   </footer>
 </div>

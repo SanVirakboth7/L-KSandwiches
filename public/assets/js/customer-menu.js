@@ -157,6 +157,8 @@ const TELEGRAM_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/clever-processor`;
 const TELEGRAM_ORDER_SENDING_ENABLED = false;
 const PAYWAY_PENDING_KEY = 'lk_payway_pending';
 const ORDER_RECORD_PENDING_KEY = 'lk_pending_order_records';
+const LAST_ORDER_KEY = 'lk_last_preorder';
+const LOCAL_ORDER_COUNT_KEY = 'lk_order_count';
 const ACCEPTING_ORDERS_SETTING_KEY = 'accepting_orders';
 let acceptingOrders = true;
 let orderAvailabilityLoaded = false;
@@ -361,6 +363,7 @@ function updateCartBar() {
   if (countEl) countEl.textContent = String(count);
   if (totalEl) totalEl.textContent = total.toFixed(2);
   if (rielEl) rielEl.textContent = formatRiel(total);
+  syncLastOrderButton();
 }
 
 function buildQuoteText() {
@@ -633,6 +636,51 @@ function closeConfirmModal() {
   pendingReceiptImage = null;
 }
 
+function buildLastOrderPreviewHTML(orderRecord = {}) {
+  const items = Array.isArray(orderRecord.items) ? orderRecord.items : [];
+  const total = Number(orderRecord.total || 0);
+  const itemCount = Number(orderRecord.item_count || items.reduce((sum, item) => sum + Number(item.quantity || 0), 0));
+  const orderType = orderRecord.order_type === 'delivery' ? 'Delivery' : 'Pickup';
+  const scheduleDate = orderRecord.scheduled_date ? formatDate(orderRecord.scheduled_date) : 'Date not selected';
+  const scheduleTime = orderRecord.scheduled_time ? formatTime(orderRecord.scheduled_time) : '';
+  const schedule = scheduleTime ? `${scheduleDate} · ${scheduleTime}` : scheduleDate;
+
+  const itemsHTML = items.map(item => {
+    const quantity = Number(item.quantity || 0);
+    const unitPrice = Number(item.unit_price || 0);
+    const lineTotal = Number(item.line_total ?? unitPrice * quantity);
+    return `
+      <div class="lastOrderItem">
+        <span class="lastOrderItemQty">${quantity}×</span>
+        <span class="lastOrderItemCopy">
+          <strong>${escapeHTML(String(item.name || item.id || 'Item'))}</strong>
+          <small>$${unitPrice.toFixed(2)} each</small>
+        </span>
+        <strong class="lastOrderItemPrice">$${lineTotal.toFixed(2)}</strong>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="lastOrderSchedule">
+      <span class="lastOrderScheduleIcon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+      </span>
+      <span>
+        <small>${orderType} pre-order</small>
+        <strong>${escapeHTML(schedule)}</strong>
+      </span>
+      <span class="lastOrderItemCount">${itemCount} item${itemCount === 1 ? '' : 's'}</span>
+    </div>
+    <div class="lastOrderItems">${itemsHTML}</div>
+    <div class="lastOrderTotal">
+      <span>Total</span>
+      <span class="lastOrderTotalValues">
+        <strong>$${total.toFixed(2)}</strong>
+        <small>${formatRiel(total)}</small>
+      </span>
+    </div>`;
+}
+
 function openOrderSuccessModal() {
   const overlay = document.getElementById('orderSuccessOverlay');
   overlay?.classList.add('open');
@@ -642,6 +690,75 @@ function openOrderSuccessModal() {
 
 function closeOrderSuccessModal() {
   const overlay = document.getElementById('orderSuccessOverlay');
+  overlay?.classList.remove('open');
+  overlay?.setAttribute('aria-hidden', 'true');
+}
+
+function loadLastOrder() {
+  if (!storageAvailable) return null;
+  try {
+    const order = JSON.parse(localStorage.getItem(LAST_ORDER_KEY) || 'null');
+    return order && typeof order === 'object' ? order : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLastOrder(orderRecord) {
+  if (!storageAvailable) return;
+  try {
+    localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(orderRecord));
+  } catch (error) {
+    console.warn('[L&K] Could not save the last order preview.', error);
+  }
+}
+
+function loadLocalOrderCount() {
+  if (!storageAvailable) return loadLastOrder() ? 1 : 0;
+  const savedCount = Number.parseInt(localStorage.getItem(LOCAL_ORDER_COUNT_KEY) || '', 10);
+  if (Number.isFinite(savedCount) && savedCount > 0) return savedCount;
+  return loadLastOrder() ? 1 : 0;
+}
+
+function incrementLocalOrderCount() {
+  const nextCount = loadLocalOrderCount() + 1;
+  if (storageAvailable) {
+    try {
+      localStorage.setItem(LOCAL_ORDER_COUNT_KEY, String(nextCount));
+    } catch (error) {
+      console.warn('[L&K] Could not save the local order count.', error);
+    }
+  }
+  return nextCount;
+}
+
+function syncLastOrderButton() {
+  const button = document.getElementById('lastOrderBtn');
+  if (!button) return;
+  const orderCount = loadLocalOrderCount();
+  const badge = document.getElementById('lastOrderCount');
+  if (badge) badge.textContent = orderCount > 99 ? '99+' : String(orderCount);
+  button.setAttribute('aria-label', `View your last order. ${orderCount} order${orderCount === 1 ? '' : 's'} placed on this device.`);
+  button.title = `${orderCount} order${orderCount === 1 ? '' : 's'} placed`;
+  button.hidden = !loadLastOrder() || cartEntries().length > 0;
+}
+
+function openLastOrderPreview() {
+  const orderRecord = loadLastOrder();
+  if (!orderRecord) {
+    syncLastOrderButton();
+    return;
+  }
+  const preview = document.getElementById('lastOrderPreview');
+  const overlay = document.getElementById('lastOrderOverlay');
+  if (preview) preview.innerHTML = buildLastOrderPreviewHTML(orderRecord);
+  overlay?.classList.add('open');
+  overlay?.setAttribute('aria-hidden', 'false');
+  window.setTimeout(() => document.getElementById('lastOrderDoneBtn')?.focus(), 120);
+}
+
+function closeLastOrderPreview() {
+  const overlay = document.getElementById('lastOrderOverlay');
   overlay?.classList.remove('open');
   overlay?.setAttribute('aria-hidden', 'true');
 }
@@ -948,6 +1065,9 @@ async function submitOrder({ paymentVerifiedTranId = '' } = {}) {
       console.warn('[L&K] The admin order record was queued for retry:', recordError.message || recordError);
     }
 
+    incrementLocalOrderCount();
+    saveLastOrder(orderRecord);
+    syncLastOrderButton();
     closeConfirmModal();
     openOrderSuccessModal();
     sendBtn.textContent = 'Order Saved ✓';
@@ -1742,12 +1862,21 @@ const confirmCancelBtn = document.getElementById('confirmCancelBtn');
 const confirmSendBtn = document.getElementById('confirmSendBtn');
 const orderSuccessOverlay = document.getElementById('orderSuccessOverlay');
 const orderSuccessDoneBtn = document.getElementById('orderSuccessDoneBtn');
+const lastOrderBtn = document.getElementById('lastOrderBtn');
+const lastOrderOverlay = document.getElementById('lastOrderOverlay');
+const lastOrderClose = document.getElementById('lastOrderClose');
+const lastOrderDoneBtn = document.getElementById('lastOrderDoneBtn');
 
 if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', closeConfirmModal);
 if (confirmSendBtn) confirmSendBtn.addEventListener('click', submitOrder);
 if (confirmOverlay) confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirmModal(); });
 if (orderSuccessDoneBtn) orderSuccessDoneBtn.addEventListener('click', closeOrderSuccessModal);
 if (orderSuccessOverlay) orderSuccessOverlay.addEventListener('click', (e) => { if (e.target === orderSuccessOverlay) closeOrderSuccessModal(); });
+if (lastOrderBtn) lastOrderBtn.addEventListener('click', openLastOrderPreview);
+if (lastOrderClose) lastOrderClose.addEventListener('click', closeLastOrderPreview);
+if (lastOrderDoneBtn) lastOrderDoneBtn.addEventListener('click', closeLastOrderPreview);
+if (lastOrderOverlay) lastOrderOverlay.addEventListener('click', (e) => { if (e.target === lastOrderOverlay) closeLastOrderPreview(); });
+syncLastOrderButton();
 
 /* ---------- our locations map ---------- */
 const locations = [

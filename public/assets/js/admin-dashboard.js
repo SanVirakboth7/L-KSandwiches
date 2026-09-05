@@ -291,8 +291,11 @@ const ordersRefreshBtn = document.getElementById('ordersRefreshBtn');
 const ordersWeekStrip = document.getElementById('ordersWeekStrip');
 const ordersPeriodMode = document.getElementById('ordersPeriodMode');
 const ordersPeriodLabel = document.getElementById('ordersPeriodLabel');
+const ordersPeriodMenuBtn = document.getElementById('ordersPeriodMenuBtn');
+const ordersPeriodMenu = document.getElementById('ordersPeriodMenu');
 const ordersDatePicker = document.getElementById('ordersDatePicker');
 let selectedOrderDate = localDateInputValue();
+let selectedOrderPeriod = 'day';
 let ordersStripScrollFrame = 0;
 
 function formatOrderCreatedAt(value) {
@@ -315,15 +318,43 @@ function localDateFromInput(value) {
   return new Date(year, month - 1, day);
 }
 
-function orderPeriodBounds(value) {
+function orderPeriodBounds(value, period = selectedOrderPeriod) {
   const anchor = localDateFromInput(value);
-  const start = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate());
-  const end = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + 1);
+  let start;
+  let end;
+
+  if (period === 'week') {
+    start = startOfOrderWeek(anchor);
+    end = shiftLocalDate(start, 7);
+  } else if (period === 'month') {
+    start = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+    end = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 1);
+  } else if (period === 'year') {
+    start = new Date(anchor.getFullYear(), 0, 1);
+    end = new Date(anchor.getFullYear() + 1, 0, 1);
+  } else {
+    start = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate());
+    end = shiftLocalDate(start, 1);
+  }
+
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
 function formatOrderPeriodLabel() {
   const anchor = localDateFromInput(selectedOrderDate);
+  if (selectedOrderPeriod === 'week') {
+    const start = startOfOrderWeek(anchor);
+    const end = shiftLocalDate(start, 6);
+    const startLabel = start.toLocaleDateString(undefined, {
+      month: 'short', day: 'numeric', year: start.getFullYear() === end.getFullYear() ? undefined : 'numeric'
+    });
+    const endLabel = end.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${startLabel} – ${endLabel}`;
+  }
+  if (selectedOrderPeriod === 'month') {
+    return anchor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  }
+  if (selectedOrderPeriod === 'year') return String(anchor.getFullYear());
   return anchor.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
@@ -384,9 +415,16 @@ function extendOrdersWeekStrip(direction) {
 }
 
 function syncOrderDateControls({ recenterStrip = true } = {}) {
-  if (ordersPeriodMode) ordersPeriodMode.textContent = 'Day view';
+  const periodLabels = { day: 'Day view', week: 'Week view', month: 'Month view', year: 'Year view' };
+  if (ordersPeriodMode) ordersPeriodMode.textContent = periodLabels[selectedOrderPeriod] || periodLabels.day;
   if (ordersPeriodLabel) ordersPeriodLabel.textContent = formatOrderPeriodLabel();
   if (ordersDatePicker) ordersDatePicker.value = selectedOrderDate;
+  ordersPeriodMenuBtn?.classList.toggle('hasSelection', selectedOrderPeriod !== 'day');
+  ordersPeriodMenu?.querySelectorAll('[data-order-period]').forEach(button => {
+    const isActive = button.dataset.orderPeriod === selectedOrderPeriod;
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-checked', String(isActive));
+  });
   if (recenterStrip) {
     renderOrdersWeekStrip();
   } else {
@@ -555,7 +593,7 @@ async function loadOrders() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  const { start, end } = orderPeriodBounds(selectedOrderDate);
+  const { start, end } = orderPeriodBounds(selectedOrderDate, selectedOrderPeriod);
   query = query.gte('created_at', start).lt('created_at', end);
 
   const { data, error } = await query;
@@ -573,6 +611,31 @@ async function loadOrders() {
 }
 
 ordersRefreshBtn?.addEventListener('click', loadOrders);
+function setOrdersPeriodMenuOpen(open) {
+  if (!ordersPeriodMenu || !ordersPeriodMenuBtn) return;
+  ordersPeriodMenu.hidden = !open;
+  ordersPeriodMenuBtn.setAttribute('aria-expanded', String(open));
+}
+
+ordersPeriodMenuBtn?.addEventListener('click', () => {
+  setOrdersPeriodMenuOpen(ordersPeriodMenuBtn.getAttribute('aria-expanded') !== 'true');
+});
+ordersPeriodMenu?.addEventListener('click', event => {
+  const button = event.target.closest('[data-order-period]');
+  if (!button || !['day', 'week', 'month', 'year'].includes(button.dataset.orderPeriod)) return;
+  selectedOrderPeriod = button.dataset.orderPeriod;
+  setOrdersPeriodMenuOpen(false);
+  syncOrderDateControls({ recenterStrip: false });
+  loadOrders();
+});
+document.addEventListener('click', event => {
+  if (!event.target.closest('.ordersPeriodControl')) setOrdersPeriodMenuOpen(false);
+});
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || ordersPeriodMenu?.hidden) return;
+  setOrdersPeriodMenuOpen(false);
+  ordersPeriodMenuBtn?.focus();
+});
 ordersList?.addEventListener('click', event => {
   const button = event.target.closest('[data-order-items-toggle]');
   if (!button) return;

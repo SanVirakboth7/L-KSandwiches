@@ -516,7 +516,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .ordersToolbarHead{
   min-height:34px; padding:0 15px; display:grid;
-  grid-template-columns:calc((100% - 25px) / 6) minmax(0,1fr) auto; align-items:center; gap:12px;
+  grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px;
 }
 .ordersPeriodTitle{
   width:100%; min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left;
@@ -530,19 +530,51 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   max-width:none; white-space:nowrap; overflow:visible; text-overflow:clip;
 }
 .ordersToolbarActions{
-  grid-column:3; display:flex; align-items:center; gap:5px; flex-shrink:0;
+  grid-column:2; display:flex; align-items:center; gap:5px; flex-shrink:0;
 }
-.ordersCalendarBtn{
+.ordersPeriodControl{ position:relative; flex:0 0 34px; }
+.ordersCalendarBtn,
+.ordersPeriodSelectBtn{
   width:34px; height:34px; border:0; border-radius:11px;
   display:flex; align-items:center; justify-content:center;
   background:var(--icon-bg); color:var(--ink-dark); cursor:pointer;
 }
-.ordersCalendarBtn svg{ width:16px; height:16px; }
-.ordersCalendarBtn{ position:relative; flex:0 0 34px; overflow:hidden; }
+.ordersCalendarBtn svg,
+.ordersPeriodSelectBtn svg{ width:16px; height:16px; pointer-events:none; }
+.ordersCalendarBtn,
+.ordersPeriodSelectBtn{ position:relative; flex:0 0 34px; overflow:hidden; }
+.ordersPeriodSelectBtn{ border:0; }
+.ordersPeriodSelectBtn[aria-expanded="true"],
+.ordersPeriodSelectBtn.hasSelection{ background:var(--brand-brown); color:#fff; }
 .ordersDatePickerInput{
   position:absolute; inset:0; width:100%; height:100%; opacity:0;
-  border:0; cursor:pointer;
+  border:0; cursor:pointer; appearance:none; -webkit-appearance:none;
 }
+.ordersPeriodMenu{
+  position:absolute; z-index:30; top:calc(100% + 8px); right:0;
+  width:136px; padding:6px;
+  border:1px solid rgba(43,33,24,.11); border-radius:15px;
+  background:#fff; box-shadow:0 14px 34px rgba(43,33,24,.18),0 3px 9px rgba(43,33,24,.08);
+  transform-origin:top right; animation:ordersPeriodMenuIn .14s ease-out;
+}
+.ordersPeriodMenu[hidden]{ display:none; }
+@keyframes ordersPeriodMenuIn{
+  from{ opacity:0; transform:translateY(-4px) scale(.97); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
+}
+.ordersPeriodMenuItem{
+  width:100%; min-height:38px; padding:8px 10px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  border:0; border-radius:10px; background:transparent; color:var(--ink-soft); cursor:pointer;
+  font:650 12px/1 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; text-align:left;
+}
+.ordersPeriodMenuItem:hover{ background:rgba(43,33,24,.045); color:var(--ink-dark); }
+.ordersPeriodMenuItem:active{ background:rgba(43,33,24,.08); }
+.ordersPeriodMenuItem svg{ width:15px; height:15px; flex:0 0 15px; color:var(--brand-brown); opacity:0; }
+.ordersPeriodMenuItem.active{
+  background:var(--icon-bg); color:var(--ink-dark); font-weight:800;
+}
+.ordersPeriodMenuItem.active svg{ opacity:1; }
 .ordersWeekStrip{
   display:flex; gap:5px; margin:11px 5px 0; padding:0 2px 3px;
   overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity;
@@ -721,6 +753,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 
 @media (max-width:600px){
   .ordersToolbar{ padding:11px 9px 10px; border-radius:22px; }
+  .ordersToolbarHead{ padding-inline:12px; }
   .ordersDayBtn{ min-height:58px; border-radius:15px; }
   .ordersDayBtn span{ font-size:9.5px; }
   .ordersDayBtn strong{ font-size:15px; }
@@ -730,8 +763,9 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 @media (max-width:370px){
   .ordersPeriodTitle strong{ max-width:105px; }
   .ordersToolbarActions{ gap:3px; }
-  .ordersCalendarBtn{ width:31px; height:31px; }
-  .ordersCalendarBtn{ flex-basis:31px; }
+  .ordersToolbarHead{ padding-inline:8px; }
+  .ordersPeriodControl{ flex-basis:31px; }
+  .ordersCalendarBtn,.ordersPeriodSelectBtn{ width:31px; height:31px; flex-basis:31px; }
   .ordersWeekStrip{ gap:5px; }
   .ordersDayBtn{ min-height:54px; padding-inline:1px; }
   .adminOrderHead{ align-items:flex-start; }
