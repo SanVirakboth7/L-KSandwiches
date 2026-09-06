@@ -10,13 +10,13 @@
   "theme_color": "#8a5a3f",
   "icons": [
     {
-      "src": "/img/home-screen-icon-v2.png",
+      "src": "/img/home-screen-icon-v3.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/img/home-screen-icon-v2.png",
+      "src": "/img/home-screen-icon-v3.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
