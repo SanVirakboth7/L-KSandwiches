@@ -10,14 +10,14 @@
   "theme_color": "#8a5a3f",
   "icons": [
     {
-      "src": "/img/logo.png",
-      "sizes": "1645x1645",
+      "src": "/img/home-screen-icon.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/img/logo.png",
-      "sizes": "1645x1645",
+      "src": "/img/home-screen-icon.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
