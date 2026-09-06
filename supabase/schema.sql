@@ -218,6 +218,7 @@ create table if not exists public.orders (
   customer_name          text not null check (char_length(customer_name) between 1 and 100),
   customer_phone         text not null check (char_length(customer_phone) between 3 and 30),
   delivery_address       text not null default '' check (char_length(delivery_address) <= 500),
+  delivery_location_url  text not null default '',
   order_type             text not null check (order_type in ('delivery', 'pickup')),
   payment_method         text not null check (payment_method in ('aba', 'cash')),
   payment_status         text not null check (payment_status in ('paid', 'cash_due')),
@@ -238,7 +239,6 @@ create table if not exists public.orders (
   telegram_sent          boolean not null default false,
   created_at             timestamptz not null default now(),
   updated_at             timestamptz not null default now(),
-  check (order_type = 'pickup' or char_length(delivery_address) > 0),
   check (
     (payment_method = 'aba' and payment_status = 'paid' and payment_transaction_id is not null)
     or
@@ -248,6 +248,32 @@ create table if not exists public.orders (
 
 alter table public.orders
   add column if not exists customer_notes text not null default '';
+
+alter table public.orders
+  add column if not exists delivery_location_url text not null default '';
+
+alter table public.orders drop constraint if exists orders_check;
+alter table public.orders drop constraint if exists orders_delivery_destination_check;
+alter table public.orders
+  add constraint orders_delivery_destination_check
+  check (
+    order_type = 'pickup'
+    or char_length(delivery_address) > 0
+    or char_length(delivery_location_url) > 0
+  );
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'orders_delivery_location_url_length'
+      and conrelid = 'public.orders'::regclass
+  ) then
+    alter table public.orders
+      add constraint orders_delivery_location_url_length
+      check (char_length(delivery_location_url) <= 500);
+  end if;
+end $$;
 
 do $$
 begin

@@ -239,6 +239,7 @@ function getCustomerFields() {
     notes        : document.getElementById('custNotes')?.value.trim() || ''
   };
 }
+
 function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso + 'T00:00:00');
@@ -371,7 +372,7 @@ function updateCartBar() {
 
 function buildQuoteText() {
   const entries = cartEntries();
-  const { orderType, paymentMethod, name, phone, address, date, time, notes } = getCustomerFields();
+  const { orderType, paymentMethod, name, phone, address, locationUrl, date, time, notes } = getCustomerFields();
   const total = cartTotal();
 
   const divider = "────────────────";
@@ -380,7 +381,8 @@ function buildQuoteText() {
   text += `Name: ${name || '—'}\n`;
   text += `Phone Number: ${phone || '—'}\n`;
   if (orderType === 'delivery') {
-    text += `Address: ${address || ''}\n`;
+    text += `Address: ${address || '—'}\n`;
+    if (locationUrl) text += `Location: ${locationUrl}\n`;
   }
   text += `Date: ${date ? formatDate(date) : '—'}\n`;
   text += `Time: ${time ? formatTime(time) : '—'}\n`;
@@ -831,7 +833,7 @@ function buildPayWayOrderPayload() {
   const { orderType, name, phone, address, locationUrl, date, time, notes } = getCustomerFields();
   return {
     orderType,
-    customer: { name, phone, address: address || locationUrl },
+    customer: { name, phone, address, locationUrl },
     schedule: { date, time },
     notes,
     items: cartEntries().map(([id, quantity]) => ({ id, quantity }))
@@ -969,7 +971,8 @@ function buildOrderRecord(paymentVerifiedTranId = '', telegramSent = false) {
     client_order_id: newClientOrderId(),
     customer_name: name,
     customer_phone: phone,
-    delivery_address: orderType === 'delivery' ? (address || locationUrl) : '',
+    delivery_address: orderType === 'delivery' ? address : '',
+    delivery_location_url: orderType === 'delivery' ? locationUrl : '',
     order_type: orderType,
     payment_method: paymentMethod,
     payment_status: paymentMethod === 'aba' ? 'paid' : 'cash_due',

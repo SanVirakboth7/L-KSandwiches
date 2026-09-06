@@ -457,10 +457,14 @@ function formatAdminRiel(usdAmount) {
 function orderAddressHTML(order) {
   if (order.order_type !== 'delivery') return '';
   const address = String(order.delivery_address || '—');
-  const isMapLink = /^https:\/\/www\.google\.com\/maps\?q=-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/i.test(address);
-  const value = isMapLink
-    ? `<a href="${escapeAttr(address)}" target="_blank" rel="noopener">Open customer location</a>`
-    : `<span>${escapeHTML(address)}</span>`;
+  const legacyMapMatch = address.match(/https:\/\/www\.google\.com\/maps\?q=-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?/i);
+  const mapUrl = String(order.delivery_location_url || legacyMapMatch?.[0] || '').trim();
+  const addressText = (legacyMapMatch ? address.replace(legacyMapMatch[0], '') : address).trim().replace(/\s*\r?\n\s*/g, ' ');
+  const value = `
+    <span class="orderAddressContent">
+      ${addressText ? `<span class="orderAddressText">${escapeHTML(addressText)}</span>` : ''}
+      ${mapUrl ? `<a href="${escapeAttr(mapUrl)}" target="_blank" rel="noopener">Open customer location</a>` : ''}
+    </span>`;
   return `
     <div class="orderDetailRow orderAddressRow">
       <span class="orderDetailIcon" aria-hidden="true">
@@ -1053,7 +1057,7 @@ async function loadHeroSettings() {
 function getPublicSiteUrl() {
   const path = window.location.pathname;
   const dir = path.substring(0, path.lastIndexOf('/') + 1);
-  return window.location.origin + dir + 'index.html';
+  return window.location.origin + dir;
 }
 
 async function setupSettingsPage() {
