@@ -474,6 +474,66 @@ function orderAddressHTML(order) {
     </div>`;
 }
 
+function normalizeCustomerPhone(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('855')) return digits;
+  if (digits.startsWith('0')) return `855${digits.slice(1)}`;
+  return digits;
+}
+
+function orderStatusMeta(status) {
+  const normalizedStatus = ['new', 'preparing', 'ready', 'completed', 'cancelled'].includes(status)
+    ? status
+    : 'new';
+  const labels = {
+    new: 'New',
+    preparing: 'In progress',
+    ready: 'Ready',
+    completed: 'Completed',
+    cancelled: 'Cancelled'
+  };
+  return { status: normalizedStatus, label: labels[normalizedStatus] };
+}
+
+const adminOrderDetailsOverlay = document.getElementById('adminOrderDetailsOverlay');
+const adminOrderDetailsTitle = document.getElementById('adminOrderDetailsTitle');
+const adminOrderDetailsContent = document.getElementById('adminOrderDetailsContent');
+const adminOrderDetailsClose = document.getElementById('adminOrderDetailsClose');
+const adminOrderDetailsDone = document.getElementById('adminOrderDetailsDone');
+let adminOrderDetailsReturnFocus = null;
+
+function openAdminOrderDetails(card, trigger) {
+  const source = card?.querySelector('.adminOrderDetailsSource');
+  if (!source || !adminOrderDetailsOverlay || !adminOrderDetailsContent) return;
+  adminOrderDetailsReturnFocus = trigger || null;
+  if (adminOrderDetailsTitle) adminOrderDetailsTitle.textContent = card.dataset.orderLabel || 'Order';
+  adminOrderDetailsContent.innerHTML = source.innerHTML;
+  adminOrderDetailsOverlay.classList.add('open');
+  adminOrderDetailsOverlay.setAttribute('aria-hidden', 'false');
+  window.setTimeout(() => adminOrderDetailsClose?.focus(), 100);
+}
+
+function closeAdminOrderDetails() {
+  if (!adminOrderDetailsOverlay) return;
+  adminOrderDetailsOverlay.classList.remove('open');
+  adminOrderDetailsOverlay.setAttribute('aria-hidden', 'true');
+  adminOrderDetailsContent?.replaceChildren();
+  adminOrderDetailsReturnFocus?.focus();
+  adminOrderDetailsReturnFocus = null;
+}
+
+adminOrderDetailsClose?.addEventListener('click', closeAdminOrderDetails);
+adminOrderDetailsDone?.addEventListener('click', closeAdminOrderDetails);
+adminOrderDetailsOverlay?.addEventListener('click', event => {
+  if (event.target === adminOrderDetailsOverlay) closeAdminOrderDetails();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && adminOrderDetailsOverlay?.classList.contains('open')) {
+    closeAdminOrderDetails();
+  }
+});
+
 function orderCardHTML(order) {
   const items = safeOrderItems(order.items);
   const orderTotal = Number(order.total || 0);
@@ -503,79 +563,139 @@ function orderCardHTML(order) {
     </div>`;
   }).join('');
   const phone = String(order.customer_phone || '');
-  const paymentLabel = order.payment_method === 'aba' ? 'ABA Pay' : 'Cash';
   const paymentState = order.payment_status === 'paid' ? 'Paid' : 'Cash on delivery';
   const numericOrderNumber = Number(order.order_number);
   const orderNumber = Number.isFinite(numericOrderNumber) && numericOrderNumber > 0
     ? String(numericOrderNumber).padStart(3, '0')
     : String(order.id || '').slice(0, 8).toUpperCase();
-  const itemsPanelId = `admin-order-items-${String(order.id || orderNumber).replace(/[^a-z0-9_-]/gi, '')}`;
-  const phoneHref = phone.replace(/[^+\d]/g, '');
+  const normalizedPhone = normalizeCustomerPhone(phone);
+  const phoneHref = normalizedPhone ? `+${normalizedPhone}` : '';
+  const telegramText = `Hello ${String(order.customer_name || 'there')}, this is L&K Sandwiches about order #${orderNumber}.`;
+  const telegramHref = normalizedPhone
+    ? `https://t.me/+${normalizedPhone}?text=${encodeURIComponent(telegramText)}&profile`
+    : '';
+  const { status: orderStatus, label: orderStatusLabel } = orderStatusMeta(order.status);
   const phoneHTML = phone
-    ? `<a class="adminOrderPhone" href="tel:${escapeAttr(phoneHref)}">
-        <span class="adminOrderPhoneIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92Z"/></svg></span>
-        <span>${escapeHTML(phone)}</span>
-      </a>`
+    ? `<span class="adminOrderPhone">${escapeHTML(phone)}</span>`
     : '<span class="adminOrderPhone adminOrderPhoneMissing">No phone number</span>';
+  const contactActionsHTML = normalizedPhone
+    ? `<div class="adminOrderContactActions" aria-label="Contact customer">
+        <a class="adminOrderContactBtn" href="tel:${escapeAttr(phoneHref)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92Z"/></svg>
+          <span>Call</span>
+        </a>
+        <a class="adminOrderContactBtn adminOrderTelegramBtn" href="${escapeAttr(telegramHref)}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.8 3.2 18.6 19c-.2 1.1-.8 1.4-1.7.9l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 12.8 1.4 11.3c-1-.3-1-1 .2-1.5L20.4 2.6c.9-.3 1.6.2 1.4.6Z"/></svg>
+          <span>Telegram</span>
+        </a>
+      </div>`
+    : '';
 
   return `
-    <article class="adminOrderCard" data-order-id="${escapeAttr(String(order.id || ''))}">
+    <article class="adminOrderCard" data-order-id="${escapeAttr(String(order.id || ''))}" data-order-label="Order #${escapeAttr(String(orderNumber))}">
       <div class="adminOrderHead">
         <div class="adminOrderIdentity">
           <span class="adminOrderEyebrow">Order record</span>
           <span class="adminOrderNumber">Order #${escapeHTML(String(orderNumber))}</span>
         </div>
-        <time class="adminOrderTime">${escapeHTML(formatOrderCreatedAt(order.created_at))}</time>
-      </div>
-
-      <div class="adminOrderCustomer">
-        <span class="adminOrderCustomerIcon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-        </span>
-        <div class="adminOrderCustomerBody">
-          <span class="adminOrderSectionLabel">Customer</span>
-          <strong>${escapeHTML(String(order.customer_name || 'Customer'))}</strong>
-          ${phoneHTML}
+        <div class="adminOrderHeadMeta">
+          <time class="adminOrderTime">${escapeHTML(formatOrderCreatedAt(order.created_at))}</time>
+          <span class="adminOrderStatus adminOrderStatus-${escapeAttr(orderStatus)}">${escapeHTML(orderStatusLabel)}</span>
         </div>
       </div>
 
-      <div class="adminOrderChips">
-        <span class="adminOrderChip adminOrderChipPrimary">${order.order_type === 'delivery' ? 'Delivery' : 'Pick-up'}</span>
-        <span class="adminOrderChip">${paymentState}</span>
-        <span class="adminOrderChip">${Number(order.item_count) || 0} item${Number(order.item_count) === 1 ? '' : 's'}</span>
+      <div class="adminOrderBody">
+        <section class="adminOrderCustomerSection">
+          <div class="adminOrderCustomer">
+            <span class="adminOrderCustomerIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+            </span>
+            <div class="adminOrderCustomerBody">
+              <span class="adminOrderSectionLabel">Customer</span>
+              <strong>${escapeHTML(String(order.customer_name || 'Customer'))}</strong>
+              ${phoneHTML}
+            </div>
+          </div>
+          ${contactActionsHTML}
+        </section>
+
+        <div class="adminOrderQuickFacts">
+          <div class="adminOrderScheduleFact">
+            <span class="adminOrderSectionLabel">Scheduled</span>
+            <strong>${escapeHTML(formatOrderSchedule(order.scheduled_date, order.scheduled_time))}</strong>
+          </div>
+          <div class="adminOrderAmountFact">
+            <span class="adminOrderSectionLabel">Total</span>
+            <strong>$${orderTotal.toFixed(2)}</strong>
+          </div>
+        </div>
+
+        <div class="adminOrderChips">
+          <span class="adminOrderChip adminOrderChipPrimary">${order.order_type === 'delivery' ? 'Delivery' : 'Pick-up'}</span>
+          <span class="adminOrderChip">${paymentState}</span>
+          <span class="adminOrderChip">${Number(order.item_count) || 0} item${Number(order.item_count) === 1 ? '' : 's'}</span>
+        </div>
+
+        <button type="button" class="adminOrderDetailsBtn" data-order-details>
+          <span>View details</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+
+        <div class="adminOrderDetailsSource" hidden>
+          <section class="adminOrderPopupSection">
+            <span class="adminOrderPopupLabel">Customer</span>
+            <strong class="adminOrderPopupCustomer">${escapeHTML(String(order.customer_name || 'Customer'))}</strong>
+            ${phoneHTML}
+            <div class="adminOrderChips">
+              <span class="adminOrderChip adminOrderChipPrimary">${order.order_type === 'delivery' ? 'Delivery' : 'Pick-up'}</span>
+              <span class="adminOrderChip">${paymentState}</span>
+              <span class="adminOrderChip">${Number(order.item_count) || 0} item${Number(order.item_count) === 1 ? '' : 's'}</span>
+            </div>
+          </section>
+
+          <section class="adminOrderPopupSection">
+            <span class="adminOrderPopupLabel">Schedule &amp; delivery</span>
+            <div class="orderDetailRow">
+              <span class="orderDetailIcon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              </span>
+              <span>${escapeHTML(formatOrderSchedule(order.scheduled_date, order.scheduled_time))}</span>
+            </div>
+            ${orderAddressHTML(order)}
+            ${orderNotes ? `<div class="adminOrderNotes">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg>
+              <span>${escapeHTML(orderNotes)}</span>
+            </div>` : ''}
+          </section>
+
+          <section class="adminOrderPopupSection">
+            <span class="adminOrderPopupLabel">Order items</span>
+            <div class="adminOrderItems">
+              ${itemsHTML || '<p class="adminOrderNoItems">No item details</p>'}
+              <div class="adminOrderTotal">
+                <span>Total</span>
+                <span class="adminOrderTotalValues">
+                  <strong>$${orderTotal.toFixed(2)}</strong>
+                  <small>${formatAdminRiel(orderTotal)}</small>
+                </span>
+              </div>
+            </div>
+          </section>
+
+          ${order.payment_transaction_id ? `<p class="adminOrderTransaction">ABA transaction: ${escapeHTML(String(order.payment_transaction_id))}</p>` : ''}
+        </div>
       </div>
 
-      <div class="adminOrderFulfillment">
-        <div class="orderDetailRow">
-          <span class="orderDetailIcon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          </span>
-          <span>${escapeHTML(formatOrderSchedule(order.scheduled_date, order.scheduled_time))}</span>
-        </div>
-        ${orderAddressHTML(order)}
-        ${orderNotes ? `<div class="adminOrderNotes">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg>
-          <span>${escapeHTML(orderNotes)}</span>
-        </div>` : ''}
-        <button type="button" class="adminOrderItemsToggle" data-order-items-toggle aria-expanded="false" aria-controls="${escapeAttr(itemsPanelId)}">
-          <span class="adminOrderItemsToggleLabel">View more</span>
-          <strong>${Number(order.item_count) || 0}</strong>
-          <svg class="adminOrderItemsChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      <div class="adminOrderActions" aria-label="Update order status">
+        <button type="button" class="adminOrderActionBtn adminOrderCompleteBtn${orderStatus === 'completed' ? ' is-active' : ''}" data-order-status="completed"${orderStatus === 'completed' ? ' disabled' : ''}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+          <span>Completed</span>
+        </button>
+        <button type="button" class="adminOrderActionBtn adminOrderCancelBtn${orderStatus === 'cancelled' ? ' is-active' : ''}" data-order-status="cancelled"${orderStatus === 'cancelled' ? ' disabled' : ''}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>
+          <span>Cancel</span>
         </button>
       </div>
-
-      <div class="adminOrderItems" id="${escapeAttr(itemsPanelId)}" hidden>
-        ${itemsHTML || '<p class="adminOrderNoItems">No item details</p>'}
-        <div class="adminOrderTotal">
-          <span>Total</span>
-          <span class="adminOrderTotalValues">
-            <strong>$${orderTotal.toFixed(2)}</strong>
-            <small>${formatAdminRiel(orderTotal)}</small>
-          </span>
-        </div>
-      </div>
-
-      ${order.payment_transaction_id ? `<p class="adminOrderTransaction">ABA transaction: ${escapeHTML(String(order.payment_transaction_id))}</p>` : ''}
     </article>`;
 }
 
@@ -614,6 +734,43 @@ async function loadOrders() {
   renderOrders();
 }
 
+async function updateOrderStatus(orderId, nextStatus, button) {
+  if (!['completed', 'cancelled'].includes(nextStatus)) return;
+  const order = orders.find(item => String(item.id) === String(orderId));
+  if (!order || order.status === nextStatus) return;
+
+  const numericOrderNumber = Number(order.order_number);
+  const orderNumber = Number.isFinite(numericOrderNumber) && numericOrderNumber > 0
+    ? String(numericOrderNumber).padStart(3, '0')
+    : String(order.id || '').slice(0, 8).toUpperCase();
+  if (nextStatus === 'cancelled' && !confirm(`Cancel order #${orderNumber}?`)) return;
+
+  const card = button.closest('.adminOrderCard');
+  const actionButtons = card?.querySelectorAll('[data-order-status]') || [];
+  actionButtons.forEach(actionButton => { actionButton.disabled = true; });
+  button.classList.add('is-loading');
+
+  const { data, error } = await supabase
+    .from('orders')
+    .update({ status: nextStatus })
+    .eq('id', orderId)
+    .select('id,status')
+    .single();
+
+  if (error) {
+    renderOrders();
+    toast('Could not update order: ' + error.message, true);
+    return;
+  }
+
+  order.status = data.status;
+  renderOrders();
+  loadTodayOrderStats();
+  toast(nextStatus === 'completed'
+    ? `Order #${orderNumber} completed`
+    : `Order #${orderNumber} cancelled`);
+}
+
 ordersRefreshBtn?.addEventListener('click', loadOrders);
 function setOrdersPeriodMenuOpen(open) {
   if (!ordersPeriodMenu || !ordersPeriodMenuBtn) return;
@@ -641,15 +798,18 @@ document.addEventListener('keydown', event => {
   ordersPeriodMenuBtn?.focus();
 });
 ordersList?.addEventListener('click', event => {
-  const button = event.target.closest('[data-order-items-toggle]');
-  if (!button) return;
-  const panel = document.getElementById(button.getAttribute('aria-controls'));
-  if (!panel) return;
-  const expanded = button.getAttribute('aria-expanded') === 'true';
-  button.setAttribute('aria-expanded', String(!expanded));
-  panel.hidden = expanded;
-  const label = button.querySelector('.adminOrderItemsToggleLabel');
-  if (label) label.textContent = expanded ? 'View more' : 'Hide items';
+  const detailsButton = event.target.closest('[data-order-details]');
+  if (detailsButton) {
+    openAdminOrderDetails(detailsButton.closest('.adminOrderCard'), detailsButton);
+    return;
+  }
+
+  const statusButton = event.target.closest('[data-order-status]');
+  if (statusButton) {
+    const card = statusButton.closest('.adminOrderCard');
+    if (card) updateOrderStatus(card.dataset.orderId, statusButton.dataset.orderStatus, statusButton);
+    return;
+  }
 });
 ordersDatePicker?.addEventListener('change', () => {
   if (!ordersDatePicker.value) return;

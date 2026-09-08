@@ -808,6 +808,21 @@ function closeLastOrderPreview() {
   overlay?.setAttribute('aria-hidden', 'true');
 }
 
+function clearOrderHistory() {
+  if (!storageAvailable || !confirm('Clear your order history from this device?')) return;
+  try {
+    localStorage.removeItem(LAST_ORDER_KEY);
+    localStorage.removeItem(ORDER_HISTORY_KEY);
+    localStorage.removeItem(LOCAL_ORDER_COUNT_KEY);
+    const preview = document.getElementById('lastOrderPreview');
+    if (preview) preview.innerHTML = '';
+    closeLastOrderPreview();
+    syncLastOrderButton();
+  } catch (error) {
+    console.warn('[L&K] Could not clear the saved order history.', error);
+  }
+}
+
 function showPayWayStatus(message, type = 'info') {
   let status = document.getElementById('paywayStatus');
   if (!status) {
@@ -1973,6 +1988,7 @@ const orderSuccessDoneBtn = document.getElementById('orderSuccessDoneBtn');
 const lastOrderBtn = document.getElementById('lastOrderBtn');
 const lastOrderOverlay = document.getElementById('lastOrderOverlay');
 const lastOrderClose = document.getElementById('lastOrderClose');
+const lastOrderClearBtn = document.getElementById('lastOrderClearBtn');
 const lastOrderDoneBtn = document.getElementById('lastOrderDoneBtn');
 
 if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', closeConfirmModal);
@@ -1982,6 +1998,7 @@ if (orderSuccessDoneBtn) orderSuccessDoneBtn.addEventListener('click', closeOrde
 if (orderSuccessOverlay) orderSuccessOverlay.addEventListener('click', (e) => { if (e.target === orderSuccessOverlay) closeOrderSuccessModal(); });
 if (lastOrderBtn) lastOrderBtn.addEventListener('click', openLastOrderPreview);
 if (lastOrderClose) lastOrderClose.addEventListener('click', closeLastOrderPreview);
+if (lastOrderClearBtn) lastOrderClearBtn.addEventListener('click', clearOrderHistory);
 if (lastOrderDoneBtn) lastOrderDoneBtn.addEventListener('click', closeLastOrderPreview);
 if (lastOrderOverlay) lastOrderOverlay.addEventListener('click', (e) => { if (e.target === lastOrderOverlay) closeLastOrderPreview(); });
 syncLastOrderButton();
