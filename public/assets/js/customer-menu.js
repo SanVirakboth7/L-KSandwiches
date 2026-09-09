@@ -240,6 +240,22 @@ function getCustomerFields() {
   };
 }
 
+const CAMBODIA_PHONE_PREFIX = '+855 ';
+
+function formatCambodiaPhone(value) {
+  const raw = String(value || '').trim();
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return CAMBODIA_PHONE_PREFIX;
+  if (digits.startsWith('855')) return `${CAMBODIA_PHONE_PREFIX}${digits.slice(3)}`;
+  if (digits.startsWith('0')) return `${CAMBODIA_PHONE_PREFIX}${digits.slice(1)}`;
+  return `${CAMBODIA_PHONE_PREFIX}${digits}`;
+}
+
+function isValidCambodiaPhone(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  return digits.startsWith('855') && digits.length >= 11;
+}
+
 function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso + 'T00:00:00');
@@ -466,7 +482,7 @@ function updateSendButtonState() {
   const { orderType, paymentMethod, name, phone, address, locationUrl, date } = getCustomerFields();
   const items = cartEntries();
   const addressOk = orderType === 'delivery' ? !!(address || locationUrl) : true;
-  const complete = items.length > 0 && orderType && paymentMethod && name && phone && addressOk && date;
+  const complete = items.length > 0 && orderType && paymentMethod && name && isValidCambodiaPhone(phone) && addressOk && date;
   sendBtn.disabled = !complete;
   sendBtn.textContent = 'Send Order';
 }
@@ -664,11 +680,13 @@ function buildLastOrderPreviewHTML(orderRecord = {}, historyIndex = 0) {
     const quantity = Number(item.quantity || 0);
     const unitPrice = Number(item.unit_price || 0);
     const lineTotal = Number(item.line_total ?? unitPrice * quantity);
+    const itemId = String(item.id || item.menu_item_id || item.product_id || '').trim();
     return `
       <div class="lastOrderItem">
         <span class="lastOrderItemQty">${quantity}×</span>
         <span class="lastOrderItemCopy">
-          <strong>${escapeHTML(String(item.name || item.id || 'Item'))}</strong>
+          <strong>${escapeHTML(String(item.name || 'Menu item'))}</strong>
+          ${itemId ? `<small class="lastOrderItemId">ID: ${escapeHTML(itemId)}</small>` : ''}
         </span>
         <strong class="lastOrderItemPrice">$${lineTotal.toFixed(2)}</strong>
       </div>`;
@@ -1943,7 +1961,7 @@ function prefillCustomerFields() {
   setOrderType(saved.orderType || 'pickup');
   setPaymentMethod(saved.paymentMethod || 'cash');
   if (custNameInput) custNameInput.value = saved.name || '';
-  if (custPhoneInput) custPhoneInput.value = saved.phone || '';
+  if (custPhoneInput) custPhoneInput.value = formatCambodiaPhone(saved.phone);
   const savedAddress = String(saved.address || '').trim();
   const legacyMapUrl = getAddressCoordinates(savedAddress) ? savedAddress : '';
   selectedDeliveryLocationUrl = String(saved.locationUrl || legacyMapUrl || '').trim();
@@ -1960,6 +1978,22 @@ function prefillCustomerFields() {
     saveCustomer(getCustomerFields());
     updateSendButtonState();
   });
+});
+
+custPhoneInput?.addEventListener('focus', () => {
+  if (!custPhoneInput.value.trim()) custPhoneInput.value = CAMBODIA_PHONE_PREFIX;
+});
+custPhoneInput?.addEventListener('input', () => {
+  if (!custPhoneInput.value.startsWith(CAMBODIA_PHONE_PREFIX)) {
+    custPhoneInput.value = formatCambodiaPhone(custPhoneInput.value);
+    saveCustomer(getCustomerFields());
+    updateSendButtonState();
+  }
+});
+custPhoneInput?.addEventListener('blur', () => {
+  custPhoneInput.value = formatCambodiaPhone(custPhoneInput.value);
+  saveCustomer(getCustomerFields());
+  updateSendButtonState();
 });
 
 function openCartPage() {

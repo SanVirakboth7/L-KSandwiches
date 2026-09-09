@@ -616,16 +616,19 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .ordersRefreshBtn{
   width:36px; height:36px; border:1px solid rgba(43,33,24,.12); border-radius:11px;
   display:flex; align-items:center; justify-content:center;
-  background:#fff; color:var(--ink); cursor:pointer;
+  background:#2B211814; color:var(--brand-brown); cursor:pointer;
+  transition:background .18s ease,transform .18s ease;
 }
-.ordersRefreshBtn svg{ width:16px; height:16px; }
+.ordersRefreshBtn svg{ width:18px; height:18px; }
+.ordersRefreshBtn:not(.loading):active{ transform:scale(.94); background:rgba(43,33,24,.12); }
 .ordersRefreshBtn.loading svg{ animation:ordersSpin .8s linear infinite; }
 @keyframes ordersSpin{ to{ transform:rotate(360deg); } }
 
 .ordersList{
   display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
-  row-gap:20px; column-gap:14px;
+  row-gap:20px; column-gap:18px;
 }
+.ordersListDivider{ display:none; }
 .ordersEmpty{
   grid-column:1/-1; padding:34px 18px;
   border:1px dashed var(--line); border-radius:16px;
@@ -644,15 +647,15 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   padding:14px 16px; border-bottom:1px solid rgba(43,33,24,.075);
   background:#fcfbfa;
 }
-.adminOrderIdentity{ min-width:0; display:flex; flex-direction:column; gap:2px; }
-.adminOrderEyebrow,.adminOrderSectionLabel{
+.adminOrderIdentity{ min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
+.adminOrderSectionLabel{
   color:var(--ink-soft); font:700 8.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   text-transform:uppercase; letter-spacing:.6px;
 }
 .adminOrderNumber{ font-size:15px; font-weight:800; color:var(--ink-dark); }
-.adminOrderTime{ flex-shrink:0; font-size:10.5px; font-weight:650; color:var(--ink-soft); }
+.adminOrderTime{ margin-top:1px; font-size:9.5px; font-weight:650; color:var(--ink-soft); }
 .adminOrderHeadMeta{
-  flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-end; gap:6px;
+  flex:0 0 auto; display:flex; align-items:center;
 }
 .adminOrderStatus{
   min-height:21px; padding:5px 8px; border-radius:999px;
@@ -670,8 +673,8 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   background:#fff;
 }
 .adminOrderCustomerSection{
-  padding:10px; border:1px solid rgba(43,33,24,.075); border-radius:14px;
-  background:#fcfbfa;
+  padding:1px 0; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:10px;
+  border:0; border-radius:0; background:transparent;
 }
 .adminOrderCustomer{
   display:flex; align-items:center; gap:11px; margin:0;
@@ -684,22 +687,18 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .adminOrderCustomerIcon svg{ width:18px; height:18px; }
 .adminOrderCustomerBody{ min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
 .adminOrderCustomer strong{ min-width:0; color:var(--ink-dark); font-size:14px; line-height:1.25; overflow-wrap:anywhere; }
-.adminOrderPhone{
-  display:inline-flex; align-items:center; margin-top:2px;
-  color:var(--ink-soft); font:650 11px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
-}
-.adminOrderPhoneMissing{ color:var(--ink-soft); font-weight:600; }
 .adminOrderContactActions{
-  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:9px;
+  display:flex; align-items:center; gap:6px; margin:0;
 }
 .adminOrderContactBtn{
-  min-width:0; min-height:33px; padding:7px 10px; border:1px solid rgba(114,60,16,.16); border-radius:10px;
+  width:36px; height:36px; min-width:36px; padding:0; border:1px solid rgba(114,60,16,.16); border-radius:11px;
   display:flex; align-items:center; justify-content:center; gap:7px;
   background:#fff; color:var(--brand-brown); text-decoration:none;
   font:800 10.5px/1 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   transition:background .16s ease,transform .16s ease;
 }
-.adminOrderContactBtn svg{ width:15px; height:15px; flex:0 0 15px; }
+.adminOrderContactBtn svg{ width:16px; height:16px; flex:0 0 16px; }
+.adminOrderContactBtn span{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 .adminOrderTelegramBtn{ border-color:rgba(36,161,222,.22); color:#168ac1; background:#f5fbfe; }
 .adminOrderContactBtn:active{ transform:scale(.98); }
 .adminOrderChips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
@@ -711,14 +710,16 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .adminOrderChipPrimary{ background:rgba(138,90,63,.12); color:var(--brand-brown); }
 .adminOrderQuickFacts{
-  min-width:0; padding:9px 10px; border-radius:12px;
+  min-width:0; padding:9px 0; border-top:1px solid rgba(43,33,24,.075); border-bottom:1px solid rgba(43,33,24,.075); border-radius:0;
   display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px;
-  background:rgba(43,33,24,.045);
+  background:transparent;
 }
-.adminOrderScheduleFact,.adminOrderAmountFact{ min-width:0; display:flex; flex-direction:column; gap:3px; }
+.adminOrderScheduleFact{ min-width:0; display:flex; align-items:center; gap:8px; }
+.adminOrderScheduleFact svg{ width:17px; height:17px; flex:0 0 17px; color:var(--brand-brown); }
 .adminOrderScheduleFact strong{
-  color:var(--ink-dark); font-size:10.5px; font-weight:750; line-height:1.35; overflow-wrap:anywhere;
+  color:var(--ink-dark); font-size:13px; font-weight:800; line-height:1.35; overflow-wrap:anywhere;
 }
+.adminOrderAmountFact{ min-width:0; display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
 .adminOrderAmountFact{ align-items:flex-end; padding-left:12px; border-left:1px solid rgba(43,33,24,.09); }
 .adminOrderAmountFact strong{ color:var(--brand-brown); font-size:15px; font-weight:850; }
 .adminOrderDetailsBtn{
@@ -816,7 +817,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .adminOrderActions{
   padding:9px 12px 11px; border-top:1px solid rgba(43,33,24,.075);
-  display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:8px;
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px;
   background:#fcfbfa;
 }
 .adminOrderActionBtn{
@@ -826,13 +827,54 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   transition:opacity .16s ease,transform .16s ease,background .16s ease;
 }
 .adminOrderActionBtn svg{ width:16px; height:16px; flex:0 0 16px; }
-.adminOrderCompleteBtn{ background:#723c10; color:#fff; box-shadow:0 4px 11px rgba(114,60,16,.13); }
-.adminOrderCancelBtn{ border-color:#ead9d5; background:#fff; color:#9d4138; }
+.adminOrderCompleteSlider{
+  position:relative; isolation:isolate; min-width:0; min-height:39px; padding:4px 12px 4px 43px;
+  border:1px solid rgba(114,60,16,.15); border-radius:999px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  background:#f3eee9; color:var(--brand-brown); cursor:pointer;
+  font:800 10.5px/1 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+  touch-action:pan-y; user-select:none; -webkit-user-select:none;
+  transition:border-color .24s ease,background .24s ease,color .24s ease;
+}
+.adminOrderCompleteSlider::before{
+  content:''; position:absolute; z-index:-1; inset:3px auto 3px 3px;
+  width:var(--complete-progress,0%); border-radius:999px;
+  background:linear-gradient(90deg,rgba(114,60,16,.10),rgba(114,60,16,.20));
+  transition:width .24s cubic-bezier(.22,.8,.24,1);
+}
+.adminOrderCompleteThumb{
+  position:absolute; left:var(--complete-thumb-left,4px); top:4px; width:29px; height:29px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; background:#723c10; color:#fff;
+  box-shadow:0 3px 9px rgba(114,60,16,.24); transition:left .24s cubic-bezier(.22,.8,.24,1),background .22s ease,transform .18s ease,box-shadow .18s ease;
+}
+.adminOrderCompleteText{ position:relative; z-index:1; transition:opacity .18s ease,transform .18s ease; }
+.adminOrderCompleteSlider:not(.is-dragging):not(.is-active):not(:disabled) .adminOrderCompleteThumb svg{
+  animation:completeArrowHint 1.8s ease-in-out infinite;
+}
+.adminOrderCompleteSlider.is-dragging{ border-color:rgba(114,60,16,.28); }
+.adminOrderCompleteSlider.is-dragging::before,.adminOrderCompleteSlider.is-dragging .adminOrderCompleteThumb{ transition:none; }
+.adminOrderCompleteSlider.is-dragging .adminOrderCompleteThumb{ transform:scale(1.06); box-shadow:0 4px 12px rgba(114,60,16,.28); }
+.adminOrderCompleteSlider.is-dragging .adminOrderCompleteText{ opacity:.48; transform:translateX(4px); }
+.adminOrderCompleteThumb svg{ width:14px; height:14px; }
+.adminOrderCompleteSlider.is-active{ --complete-progress:calc(100% - 6px); padding:4px 43px 4px 12px; background:#e7f8ea; border-color:#bfe5c8; color:#24753a; }
+.adminOrderCompleteSlider.is-active::before{ background:#d9f1de; }
+.adminOrderCompleteSlider.is-active .adminOrderCompleteThumb{ left:calc(100% - 33px); background:#2d8a45; }
+.adminOrderCompleteSlider:disabled{ cursor:default; }
+.adminOrderCompleteSlider:not(:disabled):active:not(.is-dragging) .adminOrderCompleteThumb{ transform:scale(.95); }
+.adminOrderCancelBtn{ min-width:68px; padding-inline:13px; border-color:#ead9d5; background:#fff; color:#9d4138; }
 .adminOrderActionBtn:not(:disabled):active{ transform:scale(.985); }
 .adminOrderActionBtn:disabled{ cursor:default; opacity:.64; box-shadow:none; }
-.adminOrderCompleteBtn.is-active{ background:#e7f8ea; color:#24753a; }
 .adminOrderCancelBtn.is-active{ border-color:#f1d5d2; background:#fdeceb; color:#a23c32; }
-.adminOrderActionBtn.is-loading{ opacity:.58; }
+.adminOrderActionBtn.is-loading,.adminOrderCompleteSlider.is-loading{ opacity:.58; }
+@keyframes completeArrowHint{
+  0%,55%,100%{ transform:translateX(0); opacity:1; }
+  72%{ transform:translateX(2px); opacity:.7; }
+  86%{ transform:translateX(0); opacity:1; }
+}
+@media (prefers-reduced-motion:reduce){
+  .adminOrderCompleteSlider,.adminOrderCompleteSlider::before,.adminOrderCompleteThumb,.adminOrderCompleteText{ transition:none; }
+  .adminOrderCompleteSlider:not(.is-dragging):not(.is-active):not(:disabled) .adminOrderCompleteThumb svg{ animation:none; }
+}
 
 .adminOrderDetailsOverlay{ align-items:center; padding:max(14px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom)); }
 .modalOverlay .modalCard.adminOrderDetailsModal{
@@ -872,11 +914,9 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   font:800 8.5px/1.2 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   text-transform:uppercase; letter-spacing:.55px;
 }
-.adminOrderPopupCustomer{ display:block; color:var(--ink-dark); font-size:14px; line-height:1.3; }
-.adminOrderPopupSection .adminOrderChips{ margin-top:10px; }
 .adminOrderPopupSection .orderDetailRow + .orderDetailRow{ margin-top:9px; }
 .adminOrderPopupSection .adminOrderItems{ padding:0; }
-.adminOrderDetailsContent > .adminOrderTransaction{ padding:0 4px; }
+.adminOrderPaymentReference .adminOrderTransaction{ padding:0; color:var(--ink); font-size:10.5px; }
 .adminOrderDetailsDone{
   flex:0 0 auto; min-height:44px; margin:0 12px max(12px,env(safe-area-inset-bottom)); border-radius:999px;
 }
@@ -887,7 +927,11 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   .ordersDayBtn{ min-height:58px; border-radius:15px; }
   .ordersDayBtn span{ font-size:9.5px; }
   .ordersDayBtn strong{ font-size:15px; }
-  .ordersList{ grid-template-columns:minmax(0,1fr); }
+  .ordersList{ grid-template-columns:minmax(0,1fr); row-gap:12px; }
+  .ordersListDivider{
+    display:block; height:1px; margin:1px 14px;
+    background:rgba(43,33,24,.10);
+  }
 }
 
 @media (max-width:370px){

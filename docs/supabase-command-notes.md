@@ -271,6 +271,14 @@ What each part means:
 - `RESTART IDENTITY` resets its owned auto-number sequence.
 - The first new order receives `order_number = 1` and displays as `001`.
 
+If `RESTART IDENTITY` returns to `1001` instead of `1`, repair the sequence's recorded start value once:
+
+```sql
+alter sequence public.orders_order_number_seq start with 1;
+```
+
+This does not delete orders or immediately change the current number. It changes the value used by the next `TRUNCATE ... RESTART IDENTITY`.
+
 Verify the reset:
 
 ```sql
@@ -384,4 +392,3 @@ These two commands only read security information. Ask for help before changing 
 - [Deleting data safely](https://supabase.com/docs/guides/database/postgres/data-deletion)
 - [Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - [Securing the Data API](https://supabase.com/docs/guides/api/securing-your-api)
-

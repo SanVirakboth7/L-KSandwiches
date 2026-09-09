@@ -691,7 +691,6 @@
 .pmBtn:disabled{
   opacity:.48; cursor:not-allowed; background:#f8f6f4; box-shadow:none;
 }
-.pmBtn:disabled .paymentOptionRadio{ background:#f1efed; }
 .pmBtn{ font-size:13px; }
 
 .paymentOptionIcon{
@@ -714,17 +713,6 @@
 .paymentOptionSubtitle{
   font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:11.5px; font-weight:500;
   color:var(--cart-muted); line-height:1.25;
-}
-.paymentOptionRadio{
-  width:20px; height:20px; flex:0 0 20px;
-  border:2px solid #aaa39d; border-radius:50%;
-  background:#fff;
-  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;
-}
-.pmBtn.active .paymentOptionRadio{
-  border-color:var(--cart-accent);
-  background:var(--cart-accent);
-  box-shadow:inset 0 0 0 4px #fff;
 }
 .pmBtn:focus-visible{
   outline:2px solid rgba(114,60,16,.22);
@@ -919,7 +907,7 @@
 
 .custLabel{
   font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:12.5px; font-weight:800;
-  color:var(--cart-text); letter-spacing:.45px;
+  color:var(--cart-text); text-transform:uppercase; letter-spacing:.45px;
 }
 .custInput{
   width:100%; min-width:0; max-width:100%; box-sizing:border-box;
@@ -1541,10 +1529,17 @@ body.adminLayerOpen{ overflow:hidden; }
   color:#723c10; background:#fff;
   font:800 10px/1 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
 }
-.lastOrderItemCopy{ min-width:0; }
+.lastOrderItemCopy{
+  min-width:0; display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+}
 .lastOrderItemCopy strong{
   color:#292521; font:700 12px/20px 'Khmer OS Sans','Noto Sans Khmer','Inter',sans-serif;
   overflow-wrap:anywhere;
+}
+.lastOrderItemId{
+  display:block; margin-top:-2px; color:#8a8179;
+  font:650 9px/1.25 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+  letter-spacing:.15px; overflow-wrap:anywhere;
 }
 .lastOrderItemPrice{
   color:#292521; white-space:nowrap;
@@ -1577,7 +1572,7 @@ body.adminLayerOpen{ overflow:hidden; }
   min-width:0; min-height:44px; padding:10px 12px; border:1px solid #e7dfd7; border-radius:999px;
   display:flex; align-items:center; justify-content:center; gap:6px;
   background:#faf8f6; color:#756f69; cursor:pointer;
-  font:750 11px/1 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+  font:750 12px/1 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
 }
 .lastOrderClearBtn svg{ width:15px; height:15px; flex:0 0 15px; }
 .lastOrderClearBtn:active{ background:#f3efeb; }

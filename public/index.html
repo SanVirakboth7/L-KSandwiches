@@ -236,7 +236,7 @@
             <input type="text" id="custName" class="custInput" placeholder="Full name" aria-label="Full name" autocomplete="name">
           </div>
           <div class="custField">
-            <input type="tel" id="custPhone" class="custInput" placeholder="+855" aria-label="Phone number" autocomplete="tel" inputmode="tel">
+            <input type="tel" id="custPhone" class="custInput" value="+855 " aria-label="Phone number" autocomplete="tel" inputmode="tel">
           </div>
           <div class="custField deliveryAddressField" id="custAddressField">
             <span class="deliveryAddressTitle">Delivery address</span>
@@ -269,7 +269,7 @@
             </div>
             <div class="custField">
               <label class="custLabel" for="custTime">Time <span class="checkoutOptional">(optional)</span></label>
-              <input type="text" id="custTime" class="custInput" placeholder="e.g. 12:00 PM">
+              <input type="text" id="custTime" class="custInput" placeholder="e.g. 6:30 PM">
             </div>
           </div>
         </section>
@@ -299,7 +299,6 @@
                 <span class="paymentOptionTitle">ABA Pay</span>
                 <span class="paymentOptionSubtitle">Temporarily unavailable</span>
               </span>
-              <span class="paymentOptionRadio" aria-hidden="true"></span>
             </button>
             <button type="button" class="pmBtn" data-payment="cash">
               <span class="paymentOptionIcon paymentOptionCash">
@@ -309,7 +308,6 @@
                 <span class="paymentOptionTitle">Cash on Delivery</span>
                 <span class="paymentOptionSubtitle">Pay when your order arrives</span>
               </span>
-              <span class="paymentOptionRadio" aria-hidden="true"></span>
             </button>
           </div>
         </section>
@@ -407,7 +405,7 @@
     <div class="lastOrderActions">
       <button type="button" class="lastOrderClearBtn" id="lastOrderClearBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/></svg>
-        <span>Clear history</span>
+        <span>Clear</span>
       </button>
       <button type="button" class="sendOrderBtn lastOrderDoneBtn" id="lastOrderDoneBtn">Done</button>
     </div>

@@ -575,16 +575,13 @@ function orderCardHTML(order) {
     ? `https://t.me/+${normalizedPhone}?text=${encodeURIComponent(telegramText)}&profile`
     : '';
   const { status: orderStatus, label: orderStatusLabel } = orderStatusMeta(order.status);
-  const phoneHTML = phone
-    ? `<span class="adminOrderPhone">${escapeHTML(phone)}</span>`
-    : '<span class="adminOrderPhone adminOrderPhoneMissing">No phone number</span>';
   const contactActionsHTML = normalizedPhone
     ? `<div class="adminOrderContactActions" aria-label="Contact customer">
-        <a class="adminOrderContactBtn" href="tel:${escapeAttr(phoneHref)}">
+        <a class="adminOrderContactBtn" href="tel:${escapeAttr(phoneHref)}" aria-label="Call ${escapeAttr(String(order.customer_name || 'customer'))}" title="Call customer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92Z"/></svg>
           <span>Call</span>
         </a>
-        <a class="adminOrderContactBtn adminOrderTelegramBtn" href="${escapeAttr(telegramHref)}" target="_blank" rel="noopener">
+        <a class="adminOrderContactBtn adminOrderTelegramBtn" href="${escapeAttr(telegramHref)}" target="_blank" rel="noopener" aria-label="Message ${escapeAttr(String(order.customer_name || 'customer'))} on Telegram" title="Open Telegram">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.8 3.2 18.6 19c-.2 1.1-.8 1.4-1.7.9l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 12.8 1.4 11.3c-1-.3-1-1 .2-1.5L20.4 2.6c.9-.3 1.6.2 1.4.6Z"/></svg>
           <span>Telegram</span>
         </a>
@@ -595,11 +592,10 @@ function orderCardHTML(order) {
     <article class="adminOrderCard" data-order-id="${escapeAttr(String(order.id || ''))}" data-order-label="Order #${escapeAttr(String(orderNumber))}">
       <div class="adminOrderHead">
         <div class="adminOrderIdentity">
-          <span class="adminOrderEyebrow">Order record</span>
           <span class="adminOrderNumber">Order #${escapeHTML(String(orderNumber))}</span>
+          <time class="adminOrderTime">${escapeHTML(formatOrderCreatedAt(order.created_at))}</time>
         </div>
         <div class="adminOrderHeadMeta">
-          <time class="adminOrderTime">${escapeHTML(formatOrderCreatedAt(order.created_at))}</time>
           <span class="adminOrderStatus adminOrderStatus-${escapeAttr(orderStatus)}">${escapeHTML(orderStatusLabel)}</span>
         </div>
       </div>
@@ -611,9 +607,7 @@ function orderCardHTML(order) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
             </span>
             <div class="adminOrderCustomerBody">
-              <span class="adminOrderSectionLabel">Customer</span>
               <strong>${escapeHTML(String(order.customer_name || 'Customer'))}</strong>
-              ${phoneHTML}
             </div>
           </div>
           ${contactActionsHTML}
@@ -621,7 +615,7 @@ function orderCardHTML(order) {
 
         <div class="adminOrderQuickFacts">
           <div class="adminOrderScheduleFact">
-            <span class="adminOrderSectionLabel">Scheduled</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
             <strong>${escapeHTML(formatOrderSchedule(order.scheduled_date, order.scheduled_time))}</strong>
           </div>
           <div class="adminOrderAmountFact">
@@ -642,58 +636,40 @@ function orderCardHTML(order) {
         </button>
 
         <div class="adminOrderDetailsSource" hidden>
-          <section class="adminOrderPopupSection">
-            <span class="adminOrderPopupLabel">Customer</span>
-            <strong class="adminOrderPopupCustomer">${escapeHTML(String(order.customer_name || 'Customer'))}</strong>
-            ${phoneHTML}
-            <div class="adminOrderChips">
-              <span class="adminOrderChip adminOrderChipPrimary">${order.order_type === 'delivery' ? 'Delivery' : 'Pick-up'}</span>
-              <span class="adminOrderChip">${paymentState}</span>
-              <span class="adminOrderChip">${Number(order.item_count) || 0} item${Number(order.item_count) === 1 ? '' : 's'}</span>
-            </div>
-          </section>
-
-          <section class="adminOrderPopupSection">
-            <span class="adminOrderPopupLabel">Schedule &amp; delivery</span>
-            <div class="orderDetailRow">
-              <span class="orderDetailIcon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-              </span>
-              <span>${escapeHTML(formatOrderSchedule(order.scheduled_date, order.scheduled_time))}</span>
-            </div>
+          ${(order.order_type === 'delivery' || orderNotes) ? `<section class="adminOrderPopupSection">
+            <span class="adminOrderPopupLabel">Delivery details</span>
             ${orderAddressHTML(order)}
             ${orderNotes ? `<div class="adminOrderNotes">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg>
               <span>${escapeHTML(orderNotes)}</span>
             </div>` : ''}
-          </section>
+          </section>` : ''}
 
           <section class="adminOrderPopupSection">
             <span class="adminOrderPopupLabel">Order items</span>
             <div class="adminOrderItems">
               ${itemsHTML || '<p class="adminOrderNoItems">No item details</p>'}
-              <div class="adminOrderTotal">
-                <span>Total</span>
-                <span class="adminOrderTotalValues">
-                  <strong>$${orderTotal.toFixed(2)}</strong>
-                  <small>${formatAdminRiel(orderTotal)}</small>
-                </span>
-              </div>
             </div>
           </section>
 
-          ${order.payment_transaction_id ? `<p class="adminOrderTransaction">ABA transaction: ${escapeHTML(String(order.payment_transaction_id))}</p>` : ''}
+          ${order.payment_transaction_id ? `<section class="adminOrderPopupSection adminOrderPaymentReference">
+            <span class="adminOrderPopupLabel">Payment reference</span>
+            <p class="adminOrderTransaction">${escapeHTML(String(order.payment_transaction_id))}</p>
+          </section>` : ''}
         </div>
       </div>
 
       <div class="adminOrderActions" aria-label="Update order status">
-        <button type="button" class="adminOrderActionBtn adminOrderCompleteBtn${orderStatus === 'completed' ? ' is-active' : ''}" data-order-status="completed"${orderStatus === 'completed' ? ' disabled' : ''}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
-          <span>Completed</span>
+        <button type="button" class="adminOrderCompleteBtn adminOrderCompleteSlider${orderStatus === 'completed' ? ' is-active' : ''}" data-order-status="completed" aria-label="${orderStatus === 'completed' ? 'Order completed' : 'Slide to complete order'}"${orderStatus === 'completed' ? ' disabled' : ''}>
+          <span class="adminOrderCompleteThumb" aria-hidden="true">
+            ${orderStatus === 'completed'
+              ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>'
+              : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>'}
+          </span>
+          <span class="adminOrderCompleteText">${orderStatus === 'completed' ? 'Completed' : 'Slide to complete'}</span>
         </button>
         <button type="button" class="adminOrderActionBtn adminOrderCancelBtn${orderStatus === 'cancelled' ? ' is-active' : ''}" data-order-status="cancelled"${orderStatus === 'cancelled' ? ' disabled' : ''}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>
-          <span>Cancel</span>
+          <span>${orderStatus === 'cancelled' ? 'Cancelled' : 'Cancel'}</span>
         </button>
       </div>
     </article>`;
@@ -703,7 +679,7 @@ function renderOrders() {
   if (!ordersList || !ordersCount) return;
   ordersCount.textContent = `${orders.length} order${orders.length === 1 ? '' : 's'} · ${formatOrderPeriodLabel()}`;
   ordersList.innerHTML = orders.length
-    ? orders.map(orderCardHTML).join('')
+    ? orders.map(orderCardHTML).join('<div class="ordersListDivider" aria-hidden="true"></div>')
     : `<p class="ordersEmpty">No orders found for ${escapeHTML(formatOrderPeriodLabel().toLowerCase())}.</p>`;
 }
 
@@ -771,6 +747,54 @@ async function updateOrderStatus(orderId, nextStatus, button) {
     : `Order #${orderNumber} cancelled`);
 }
 
+function startCompleteSlide(event, slider) {
+  if (slider.disabled || event.button > 0) return;
+  event.preventDefault();
+  const card = slider.closest('.adminOrderCard');
+  if (!card) return;
+
+  const rect = slider.getBoundingClientRect();
+  const minLeft = 4;
+  const maxLeft = Math.max(minLeft, rect.width - 33);
+  const startX = event.clientX;
+  let progress = 0;
+  slider.style.setProperty('--complete-progress', '0%');
+  slider.classList.add('is-dragging');
+  slider.setPointerCapture?.(event.pointerId);
+
+  const move = moveEvent => {
+    progress = Math.max(0, Math.min(1, (moveEvent.clientX - startX) / Math.max(1, maxLeft - minLeft)));
+    slider.style.setProperty('--complete-thumb-left', `${minLeft + ((maxLeft - minLeft) * progress)}px`);
+    slider.style.setProperty('--complete-progress', `${Math.round(progress * 100)}%`);
+  };
+
+  const finish = finishEvent => {
+    slider.removeEventListener('pointermove', move);
+    slider.removeEventListener('pointerup', finish);
+    slider.removeEventListener('pointercancel', cancel);
+    if (slider.hasPointerCapture?.(finishEvent.pointerId)) slider.releasePointerCapture(finishEvent.pointerId);
+    slider.classList.remove('is-dragging');
+    if (progress >= 0.72) {
+      slider.style.setProperty('--complete-thumb-left', `${maxLeft}px`);
+      slider.style.setProperty('--complete-progress', '100%');
+      slider.querySelector('.adminOrderCompleteText')?.replaceChildren(document.createTextNode('Completing…'));
+      updateOrderStatus(card.dataset.orderId, 'completed', slider);
+      return;
+    }
+    slider.style.removeProperty('--complete-thumb-left');
+    slider.style.removeProperty('--complete-progress');
+  };
+
+  const cancel = cancelEvent => {
+    progress = 0;
+    finish(cancelEvent);
+  };
+
+  slider.addEventListener('pointermove', move);
+  slider.addEventListener('pointerup', finish);
+  slider.addEventListener('pointercancel', cancel);
+}
+
 ordersRefreshBtn?.addEventListener('click', loadOrders);
 function setOrdersPeriodMenuOpen(open) {
   if (!ordersPeriodMenu || !ordersPeriodMenuBtn) return;
@@ -806,10 +830,22 @@ ordersList?.addEventListener('click', event => {
 
   const statusButton = event.target.closest('[data-order-status]');
   if (statusButton) {
+    if (statusButton.matches('.adminOrderCompleteSlider')) return;
     const card = statusButton.closest('.adminOrderCard');
     if (card) updateOrderStatus(card.dataset.orderId, statusButton.dataset.orderStatus, statusButton);
     return;
   }
+});
+ordersList?.addEventListener('pointerdown', event => {
+  const slider = event.target.closest('.adminOrderCompleteSlider');
+  if (slider) startCompleteSlide(event, slider);
+});
+ordersList?.addEventListener('keydown', event => {
+  const slider = event.target.closest('.adminOrderCompleteSlider');
+  if (!slider || !['Enter', ' '].includes(event.key)) return;
+  event.preventDefault();
+  const card = slider.closest('.adminOrderCard');
+  if (card) updateOrderStatus(card.dataset.orderId, 'completed', slider);
 });
 ordersDatePicker?.addEventListener('change', () => {
   if (!ordersDatePicker.value) return;
