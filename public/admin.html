@@ -290,6 +290,20 @@
               <span class="settingsRowLabel"><strong>Edit Slideshow</strong><small>Update customer menu banners</small></span>
               <span class="settingsRowChevron" aria-hidden="true">›</span>
               </button>
+              <form class="exchangeRateCard" id="exchangeRateForm">
+                <span class="exchangeRateIcon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </span>
+                <span class="exchangeRateCopy">
+                  <strong>Exchange Rate</strong>
+                  <small id="exchangeRateStatus">KHR per $1</small>
+                </span>
+                <label class="exchangeRateField">
+                  <span>KHR</span>
+                  <input type="number" id="exchangeRateInput" inputmode="numeric" min="1" step="1" placeholder="4000" aria-label="KHR exchange rate per 1 US dollar">
+                </label>
+                <button type="submit" class="exchangeRateSaveBtn" id="exchangeRateSaveBtn">Save</button>
+              </form>
               <button class="settingsRow settingsRowDanger" id="settingsLogout">
               <span class="settingsRowIcon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>

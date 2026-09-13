@@ -162,9 +162,12 @@ const ORDER_HISTORY_KEY = 'lk_order_history';
 const ORDER_HISTORY_LIMIT = 50;
 const LOCAL_ORDER_COUNT_KEY = 'lk_order_count';
 const ACCEPTING_ORDERS_SETTING_KEY = 'accepting_orders';
+const EXCHANGE_RATE_SETTING_KEY = 'exchange_rate_khr_per_usd';
+const DEFAULT_KHR_PER_USD = 4000;
 let acceptingOrders = true;
 let orderAvailabilityLoaded = false;
 let orderSubmissionInProgress = false;
+let khrPerUsd = DEFAULT_KHR_PER_USD;
 
 let allProducts = [];
 let menuCategories = DEFAULT_CATEGORIES.map(category => ({ ...category }));
@@ -361,10 +364,8 @@ function cartTotal() {
   }, 0);
 }
 
-const KHR_PER_USD = 4000; // approximate exchange rate; adjust as needed
-
 function formatRiel(usdAmount) {
-  const riel = Math.round(usdAmount * KHR_PER_USD);
+  const riel = Math.round(usdAmount * khrPerUsd);
   return riel.toLocaleString('en-US') + ' ៛';
 }
 
@@ -515,6 +516,33 @@ async function loadOrderAvailability() {
   const isAccepting = String(data?.value ?? 'true').toLowerCase() !== 'false';
   applyOrderAvailability(isAccepting);
   return isAccepting;
+}
+
+function normalizeExchangeRate(value) {
+  const rate = Number.parseInt(String(value ?? '').replace(/[^\d]/g, ''), 10);
+  return Number.isFinite(rate) && rate > 0 ? rate : DEFAULT_KHR_PER_USD;
+}
+
+async function loadExchangeRateSetting() {
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', EXCHANGE_RATE_SETTING_KEY)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[L&K] Could not load exchange rate:', error.message);
+    khrPerUsd = DEFAULT_KHR_PER_USD;
+  } else {
+    khrPerUsd = normalizeExchangeRate(data?.value);
+  }
+
+  updateCartBar();
+  if (document.getElementById('cartPage')?.classList.contains('open')) renderCartModal();
+  if (document.getElementById('confirmOverlay')?.classList.contains('open')) {
+    const summaryEl = document.getElementById('confirmSummary');
+    if (summaryEl) summaryEl.innerHTML = buildConfirmSummaryHTML();
+  }
 }
 
 /* Builds a readable receipt-style HTML summary for the confirm modal,
@@ -2161,6 +2189,7 @@ async function loadHeroImages() {
 const productsReady = loadProducts();
 loadHeroImages();
 loadOrderAvailability();
+loadExchangeRateSetting();
 updateCartBar();
 updateSendButtonState();
 flushPendingOrderRecords();
@@ -2186,6 +2215,8 @@ supabase
       await loadHeroImages();
     } else if (settingKey === ACCEPTING_ORDERS_SETTING_KEY) {
       await loadOrderAvailability();
+    } else if (settingKey === EXCHANGE_RATE_SETTING_KEY) {
+      await loadExchangeRateSetting();
     }
   })
   .subscribe();

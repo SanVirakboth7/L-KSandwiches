@@ -1087,19 +1087,58 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .settingsControlHead h3{ margin-top:3px; color:var(--ink-dark); font-size:14px; line-height:1.2; }
 #page-settings .orderAvailabilityCard,
-#page-settings .notificationSettingsCard{
+#page-settings .notificationSettingsCard,
+#page-settings .exchangeRateCard{
   min-height:72px; margin:0; padding:12px 0; border:0; border-radius:0;
   background:#fff; box-shadow:none;
 }
-#page-settings .orderAvailabilityCard{ border-bottom:1px solid rgba(43,33,24,.09); }
+#page-settings .orderAvailabilityCard,
+#page-settings .notificationSettingsCard,
+#page-settings .exchangeRateCard{ border-bottom:1px solid rgba(43,33,24,.09); }
 #page-settings .orderAvailabilityCard.closed{ background:#fff; }
 #page-settings .orderAvailabilityIcon,
-#page-settings .notificationSettingsIcon{ width:40px; height:40px; border-radius:12px; }
+#page-settings .notificationSettingsIcon,
+#page-settings .exchangeRateIcon{ width:40px; height:40px; border-radius:12px; }
 #page-settings .orderAvailabilityCopy strong,
-#page-settings .notificationSettingsCopy strong{ color:var(--ink-dark); font-size:13px; }
+#page-settings .notificationSettingsCopy strong,
+#page-settings .exchangeRateCopy strong{ color:var(--ink-dark); font-size:13px; }
 #page-settings .orderAvailabilityCopy small,
-#page-settings .notificationSettingsCopy small{ font-size:10.5px; }
+#page-settings .notificationSettingsCopy small,
+#page-settings .exchangeRateCopy small{ font-size:10.5px; }
 #page-settings .notificationSettingsBtn{ min-width:48px; min-height:28px; padding:0; }
+.exchangeRateCard{
+  width:100%; display:flex; align-items:center; gap:12px;
+  border-bottom:1px solid rgba(43,33,24,.09);
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+}
+.exchangeRateIcon{
+  flex:0 0 40px; display:flex; align-items:center; justify-content:center;
+  background:var(--icon-bg); color:var(--brand-brown);
+}
+.exchangeRateIcon svg{ width:18px; height:18px; }
+.exchangeRateCopy{ min-width:0; flex:1; display:flex; flex-direction:column; gap:2px; }
+.exchangeRateCopy small{ color:var(--ink-soft); font-weight:600; }
+.exchangeRateField{
+  width:112px; min-height:38px; padding:0 10px;
+  display:flex; align-items:center; gap:6px;
+  border:1px solid rgba(43,33,24,.10); border-radius:12px;
+  background:rgba(43,33,24,.045); color:var(--brand-brown);
+  font-size:10px; font-weight:800; letter-spacing:.35px;
+}
+.exchangeRateField input{
+  min-width:0; width:100%; border:0; outline:0; background:transparent;
+  color:var(--ink-dark); font:800 14px/1 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+}
+.exchangeRateField input::-webkit-outer-spin-button,
+.exchangeRateField input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+.exchangeRateSaveBtn{
+  min-height:38px; padding:0 14px; border:0; border-radius:12px;
+  background:var(--brand-brown); color:#fff; cursor:pointer;
+  font:800 12px/1 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+  transition:transform .15s ease, opacity .15s ease;
+}
+.exchangeRateSaveBtn:active{ transform:scale(.96); }
+.exchangeRateSaveBtn:disabled{ opacity:.55; cursor:wait; transform:none; }
 
 .qrCard{
   padding:14px 6px; display:grid;
@@ -1159,6 +1198,9 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 @media (max-width:390px){
   .settingsControlList,.settingsList{ padding-inline:13px; }
   .settingsControlList > .settingsList{ padding-inline:0; }
+  .exchangeRateCard{ gap:9px; }
+  .exchangeRateField{ width:96px; padding-inline:8px; }
+  .exchangeRateSaveBtn{ padding-inline:11px; }
   .qrCard{ grid-template-columns:176px minmax(0,1fr); gap:10px; padding:12px 4px; }
   .qrCardCode{ width:176px; height:176px; padding:7px; }
   .qrCardDetails{ padding:12px 10px; gap:9px; border-radius:16px; }
@@ -1166,6 +1208,9 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 
 @media (max-width:330px){
+  .exchangeRateCard{ flex-wrap:wrap; }
+  .exchangeRateCopy{ flex-basis:calc(100% - 52px); }
+  .exchangeRateField{ flex:1; width:auto; }
   .qrCard{ grid-template-columns:176px minmax(0,1fr); gap:6px; }
   .qrCardCode{ width:176px; height:176px; padding:7px; border-radius:17px; }
   .qrCardDetails{ padding:10px 8px; }

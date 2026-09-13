@@ -50,6 +50,8 @@ const ORDER_UNREAD_STORAGE_KEY = 'lk-admin-unread-orders';
 
 const CATEGORY_SETTING_KEY = 'menu_categories';
 const ACCEPTING_ORDERS_SETTING_KEY = 'accepting_orders';
+const EXCHANGE_RATE_SETTING_KEY = 'exchange_rate_khr_per_usd';
+const DEFAULT_KHR_PER_USD = 4000;
 const DEFAULT_CATEGORIES = [
   { slug: 'sandwich', id: 'LK-S', name: 'Sandwich', customerLabel: 'សាំងវិច' },
   { slug: 'rice', id: 'LK-R', name: 'Rice', customerLabel: 'បាយ' },
@@ -58,6 +60,7 @@ const DEFAULT_CATEGORIES = [
   { slug: 'salad', id: 'LK-SA', name: 'Salad', customerLabel: 'សាឡាដ' }
 ];
 let categories = DEFAULT_CATEGORIES.map(category => ({ ...category }));
+let adminKhrPerUsd = DEFAULT_KHR_PER_USD;
 
 const PLACEHOLDER_IMAGE = 'img/placeholder.jpg';
 
@@ -83,6 +86,7 @@ function showDashboard() {
   setupSettingsPage();
   loadHeroSettings();
   loadAcceptingOrdersSetting();
+  loadExchangeRateSetting();
   initPushNotifications();
   setGreeting();
   subscribeToOrderChanges();
@@ -191,6 +195,10 @@ const acceptOrdersStatus = document.getElementById('acceptOrdersStatus');
 const orderAvailabilityCard = document.getElementById('orderAvailabilityCard');
 const performanceItemsCard = document.getElementById('performanceItemsCard');
 const performanceAvailabilityLabel = document.getElementById('performanceAvailabilityLabel');
+const exchangeRateForm = document.getElementById('exchangeRateForm');
+const exchangeRateInput = document.getElementById('exchangeRateInput');
+const exchangeRateSaveBtn = document.getElementById('exchangeRateSaveBtn');
+const exchangeRateStatus = document.getElementById('exchangeRateStatus');
 
 function renderAcceptingOrdersSetting(isAccepting) {
   if (acceptOrdersToggle) acceptOrdersToggle.checked = isAccepting;
@@ -237,6 +245,57 @@ acceptOrdersToggle?.addEventListener('change', async () => {
     toast(nextValue ? 'Customer orders are open' : 'Customer orders are paused');
   }
   acceptOrdersToggle.disabled = false;
+});
+
+function normalizeExchangeRate(value) {
+  const rate = Number.parseInt(String(value ?? '').replace(/[^\d]/g, ''), 10);
+  return Number.isFinite(rate) && rate > 0 ? rate : DEFAULT_KHR_PER_USD;
+}
+
+function renderExchangeRateSetting(rate, statusText = 'KHR per $1') {
+  adminKhrPerUsd = normalizeExchangeRate(rate);
+  if (exchangeRateInput) exchangeRateInput.value = String(adminKhrPerUsd);
+  if (exchangeRateStatus) exchangeRateStatus.textContent = statusText;
+}
+
+async function loadExchangeRateSetting() {
+  if (exchangeRateSaveBtn) exchangeRateSaveBtn.disabled = true;
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', EXCHANGE_RATE_SETTING_KEY)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[L&K admin] Could not load exchange rate:', error.message);
+    renderExchangeRateSetting(DEFAULT_KHR_PER_USD, 'Using default KHR per $1');
+  } else {
+    renderExchangeRateSetting(data?.value ?? DEFAULT_KHR_PER_USD);
+  }
+  if (exchangeRateSaveBtn) exchangeRateSaveBtn.disabled = false;
+  loadTodayOrderStats();
+}
+
+exchangeRateForm?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const nextRate = normalizeExchangeRate(exchangeRateInput?.value);
+  renderExchangeRateSetting(nextRate, 'Saving…');
+  if (exchangeRateSaveBtn) exchangeRateSaveBtn.disabled = true;
+
+  const { error } = await supabase.from('site_settings').upsert({
+    key: EXCHANGE_RATE_SETTING_KEY,
+    value: String(nextRate)
+  }, { onConflict: 'key' });
+
+  if (error) {
+    toast('Could not update exchange rate: ' + error.message, true);
+    if (exchangeRateStatus) exchangeRateStatus.textContent = 'Could not save';
+  } else {
+    toast('Exchange rate updated');
+    renderExchangeRateSetting(nextRate, 'Saved');
+    loadTodayOrderStats();
+  }
+  if (exchangeRateSaveBtn) exchangeRateSaveBtn.disabled = false;
 });
 
 async function loadTodayOrderStats() {
@@ -447,10 +506,8 @@ function safeOrderItems(value) {
   return Array.isArray(value) ? value.filter(item => item && typeof item === 'object') : [];
 }
 
-const ADMIN_KHR_PER_USD = 4000;
-
 function formatAdminRiel(usdAmount) {
-  const riel = Math.round(Number(usdAmount || 0) * ADMIN_KHR_PER_USD);
+  const riel = Math.round(Number(usdAmount || 0) * adminKhrPerUsd);
   return `${riel.toLocaleString('en-US')} ៛`;
 }
 
@@ -885,6 +942,7 @@ function subscribeToOrderChanges() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, payload => {
       const settingKey = payload.new?.key || payload.old?.key || '';
       if (settingKey === ACCEPTING_ORDERS_SETTING_KEY) loadAcceptingOrdersSetting();
+      if (settingKey === EXCHANGE_RATE_SETTING_KEY) loadExchangeRateSetting();
     })
     .subscribe();
 }
