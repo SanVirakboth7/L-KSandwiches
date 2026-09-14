@@ -1449,6 +1449,24 @@ document.getElementById('chipRow')?.addEventListener('click', event => {
   }
 });
 
+document.getElementById('chipRow')?.addEventListener('click', event => {
+  const chip = event.target.closest('.chip');
+  if (!chip) return;
+  const target = document.getElementById(chip.dataset.target);
+  if (target) {
+    setActiveSectionChip(chip.dataset.target);
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+
+document.getElementById('locationFloatBtn')?.addEventListener('click', () => {
+  const target = document.getElementById('sec-locations');
+  if (target) {
+    setActiveSectionChip('sec-locations');
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+
 function currentHeaderPx() {
   const raw = getComputedStyle(document.documentElement).getPropertyValue('--header-h').trim();
   const n = parseFloat(raw);
@@ -1456,10 +1474,12 @@ function currentHeaderPx() {
 }
 
 function visibleSectionNavItems() {
-  return Array.from(document.querySelectorAll('#chipRow .chip[data-target]'))
-    .filter(chip => getComputedStyle(chip).display !== 'none')
+  const chipItems = Array.from(document.querySelectorAll('#chipRow .chip[data-target]'));
+  const floatBtn = document.getElementById('locationFloatBtn');
+  const items = floatBtn ? [...chipItems, floatBtn] : chipItems;
+  return items
     .map(chip => ({ chip, section: document.getElementById(chip.dataset.target) }))
-    .filter(item => item.section && item.section.offsetParent !== null);
+    .filter(item => item.section && item.section.offsetParent !== null && getComputedStyle(item.chip).display !== 'none');
 }
 
 function keepActiveChipVisible(chip) {
@@ -1483,9 +1503,15 @@ function setActiveSectionChip(targetId) {
     chip.classList.toggle('active', isActive);
     if (isActive) activeChip = chip;
   });
+  const floatBtn = document.getElementById('locationFloatBtn');
+  if (floatBtn) {
+    const isActive = floatBtn.dataset.target === targetId;
+    floatBtn.classList.toggle('active', isActive);
+    if (isActive) activeChip = floatBtn;
+  }
   if (targetId !== activeSectionId) {
     activeSectionId = targetId;
-    keepActiveChipVisible(activeChip);
+    if (activeChip && activeChip.closest('#chipRow')) keepActiveChipVisible(activeChip);
   }
 }
 
@@ -1599,13 +1625,13 @@ if (searchInput) {
       grid.style.display = anyVisible ? '' : 'none';
     });
 
-    const hideLocations = query !== '';
-    const locationSection = document.getElementById('sec-locations');
-    const locationContent = document.querySelector('.locationsWrap');
-    const locationChip = document.querySelector('#chipRow .chip[data-target="sec-locations"]');
-    if (locationSection) locationSection.style.display = hideLocations ? 'none' : '';
-    if (locationContent) locationContent.style.display = hideLocations ? 'none' : '';
-    if (locationChip) locationChip.style.display = hideLocations ? 'none' : '';
+   const hideLocations = query !== '';
+const locationSection = document.getElementById('sec-locations');
+const locationContent = document.querySelector('.locationsWrap');
+const locationFloatBtn = document.getElementById('locationFloatBtn');
+if (locationSection) locationSection.style.display = hideLocations ? 'none' : '';
+if (locationContent) locationContent.style.display = hideLocations ? 'none' : '';
+if (locationFloatBtn) locationFloatBtn.style.display = hideLocations ? 'none' : '';
 
     scheduleActiveSectionUpdate();
   });
