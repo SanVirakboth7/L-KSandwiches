@@ -1116,7 +1116,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   background:var(--icon-bg); color:var(--brand-brown);
 }
 .exchangeRateIcon svg{ width:18px; height:18px; }
-.exchangeRateCopy{ min-width:0; flex:1; display:flex; flex-direction:column; gap:2px; }
+#page-settings .exchangeRateCopy strong{ min-width:0; flex:1; display:flex; flex-direction:column; gap:2px; font-size: 12px; }
 .exchangeRateCopy small{ color:var(--ink-soft); font-weight:600; }
 .exchangeRateField{
   width:112px; min-height:38px; padding:0 10px;

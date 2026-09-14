@@ -255,7 +255,7 @@
 
   .sectionHead{ padding:22px 16px 0; display:flex; align-items:baseline; justify-content:space-between; scroll-margin-top: calc(var(--header-h) + 10px); }
   .sectionHead h3{
-    font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:23px; font-weight:700; color:var(--ink);
+    font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:25px; font-weight:700; color:var(--ink);
   }
   .sectionHead .sectionStatus{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:16px; color:var(--ink-soft); opacity:.8; }
 
@@ -440,7 +440,7 @@
   }
   .brPin svg{ width:18px; height:18px; }
   .brInfo{ flex:1; min-width:0; }
-  .brName{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:13px; color:var(--ink); }
+  .brName{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:16px; line-height:1.25; color:var(--ink); }
   .brAddr{ font-size:10.5px; line-height:1.35; color:var(--ink-soft); margin-top:3px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .brGo{
     width:36px; height:36px; border-radius:12px; flex:0 0 36px;
