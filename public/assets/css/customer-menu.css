@@ -255,7 +255,8 @@
 
   .sectionHead{ padding:22px 16px 0; display:flex; align-items:baseline; justify-content:space-between; scroll-margin-top: calc(var(--header-h) + 10px); }
   .sectionHead h3{
-    font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:25px; font-weight:700; color:var(--ink);
+  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:28px; font-weight:700; color:var(--ink);
+  width:100%; text-align:left;
   }
   .sectionHead .sectionStatus{ font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:16px; color:var(--ink-soft); opacity:.8; }
 
@@ -1149,21 +1150,49 @@
     outline:3px solid rgba(114,60,16,.25); outline-offset:3px;
   }
 
-  .locationFloatBtn{
-  position:fixed; bottom:78px; right:max(16px, calc(50% - 214px)); z-index:21;
-  width:46px; height:46px; padding:0; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
+.locationFloatBtn{
+  position:fixed; bottom:20px; right:max(16px, calc(50% - 214px)); z-index:21;
+  display:flex; align-items:center; gap:8px;
+  height:44px; padding:0 16px 0 6px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.25);
+  background: linear-gradient(135deg, var(--mustard-500), var(--crust-500));
   color:#fff;
-  background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
-  border:0;
-  box-shadow:0 6px 15px rgba(114,60,16,.32);
+  box-shadow: 0 8px 20px rgba(114,60,16,.34), inset 0 1px 0 rgba(255,255,255,.18);
   cursor:pointer; touch-action:manipulation;
-  transition:transform .18s ease, box-shadow .18s ease;
+  transition: transform .18s ease, box-shadow .18s ease, bottom .24s cubic-bezier(.2,.8,.2,1);
 }
-.locationFloatBtn svg{ width:22px; height:22px; }
-.locationFloatBtn:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(114,60,16,.36); }
+.locationFloatBtn.pushedUp{
+  bottom:78px;
+}
+.locFloatIcon{
+  flex-shrink:0; width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background: rgba(255,255,255,.16);
+}
+.locFloatIcon svg{ width:17px; height:17px; }
+.locFloatLabel{
+  font-family:'Khmer OS Sans','Noto Sans Khmer','Inter',sans-serif;
+  font-size:13px; font-weight:700; letter-spacing:.2px;
+  white-space:nowrap;
+}
+.locationFloatBtn:hover{
+  transform:translateY(-1px);
+  box-shadow: 0 10px 24px rgba(114,60,16,.4), inset 0 1px 0 rgba(255,255,255,.22);
+}
 .locationFloatBtn:active{ transform:scale(.95); }
-.locationFloatBtn:focus-visible{ outline:3px solid rgba(114,60,16,.25); outline-offset:3px; }
+.locationFloatBtn:focus-visible{
+  outline:3px solid rgba(114,60,16,.25); outline-offset:3px;
+}
+.locationFloatBtn.active{
+  box-shadow: 0 0 0 3px rgba(114,60,16,.18), 0 8px 20px rgba(114,60,16,.34), inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+/* Collapse to icon-only on very narrow screens so it doesn't crowd the basket bar */
+@media (max-width:360px){
+  .locationFloatBtn{ padding:0; width:44px; gap:0; justify-content:center; }
+  .locFloatLabel{ display:none; }
+  .locFloatIcon{ width:44px; height:44px; background:transparent; }
+}
 
 .confirmModalCard{ max-width:360px; }
 

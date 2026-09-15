@@ -385,6 +385,8 @@ function updateCartBar() {
   if (totalEl) totalEl.textContent = total.toFixed(2);
   if (rielEl) rielEl.textContent = formatRiel(total);
   syncLastOrderButton();
+  syncLastOrderButton();
+  updateLocationFloatPosition();
 }
 
 function buildQuoteText() {
@@ -827,6 +829,18 @@ function syncLastOrderButton() {
   button.setAttribute('aria-label', `View your order history. ${orderCount} order${orderCount === 1 ? '' : 's'} placed on this device.`);
   button.title = `${orderCount} order${orderCount === 1 ? '' : 's'} placed`;
   button.hidden = loadOrderHistory().length === 0 || cartEntries().length > 0;
+  button.hidden = loadOrderHistory().length === 0 || cartEntries().length > 0;
+  updateLocationFloatPosition();
+}
+
+function updateLocationFloatPosition() {
+  const locBtn = document.getElementById('locationFloatBtn');
+  if (!locBtn) return;
+  const cartBar = document.getElementById('cartBar');
+  const lastOrderBtn = document.getElementById('lastOrderBtn');
+  const cartBarVisible = cartBar && getComputedStyle(cartBar).display !== 'none';
+  const lastOrderVisible = lastOrderBtn && !lastOrderBtn.hidden;
+  locBtn.classList.toggle('pushedUp', Boolean(cartBarVisible || lastOrderVisible));
 }
 
 function openLastOrderPreview() {
@@ -1626,8 +1640,8 @@ if (searchInput) {
     });
 
    const hideLocations = query !== '';
-const locationSection = document.getElementById('sec-locations');
-const locationContent = document.querySelector('.locationsWrap');
+   const locationSection = document.getElementById('sec-locations');
+   const locationContent = document.querySelector('.locationsWrap');
 const locationFloatBtn = document.getElementById('locationFloatBtn');
 if (locationSection) locationSection.style.display = hideLocations ? 'none' : '';
 if (locationContent) locationContent.style.display = hideLocations ? 'none' : '';
