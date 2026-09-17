@@ -1452,17 +1452,6 @@ function renderGrid(category, items) {
   if (gridEl) gridEl.innerHTML = items.map(cardHTML).join("");
 }
 
-/* ---------- chips / section nav ---------- */
-document.getElementById('chipRow')?.addEventListener('click', event => {
-  const chip = event.target.closest('.chip');
-  if (!chip) return;
-  const target = document.getElementById(chip.dataset.target);
-  if (target) {
-    setActiveSectionChip(chip.dataset.target);
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-});
-
 document.getElementById('chipRow')?.addEventListener('click', event => {
   const chip = event.target.closest('.chip');
   if (!chip) return;
@@ -2181,22 +2170,28 @@ function focusLocation(i) {
 window.focusLocation = focusLocation;
 
 /* ---------- working hours: highlight today + open/closed status ---------- */
-(function () {
+
+const WEEKDAY_OPEN = 6 * 60;        // 6:00 AM
+const WEEKDAY_CLOSE = 9 * 60 + 30;  // 9:30 AM
+
+function refreshOpenStatus() {
   const now = new Date();
-  const day = now.getDay();
-  const isWeekend = (day === 0 || day === 6);
-
-  const row = document.querySelector(`.hoursRow[data-day="${isWeekend ? "weekend" : "weekday"}"]`);
-  if (row) row.classList.add("today");
-
-  const openHour = 4;
-  const closeHour = 20;
-  const hour = now.getHours();
-  const isOpen = !isWeekend && hour >= openHour && hour < closeHour;
-
+  const isWeekend = (now.getDay() === 0 || now.getDay() === 6);
+  const minutesNow = now.getHours() * 60 + now.getMinutes();
+  const isOpen = !isWeekend && minutesNow >= WEEKDAY_OPEN && minutesNow < WEEKDAY_CLOSE;
   const statusEl = document.getElementById("openStatus");
   if (statusEl) statusEl.textContent = isOpen ? "Open now" : "Closed now";
+}
+
+(function markTodayRow() {
+  const isWeekend = (new Date().getDay() === 0 || new Date().getDay() === 6);
+  const row = document.querySelector(`.hoursRow[data-day="${isWeekend ? "weekend" : "weekday"}"]`);
+  if (row) row.classList.add("today");
 })();
+
+refreshOpenStatus();
+setInterval(refreshOpenStatus, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshOpenStatus(); });
 
 async function loadHeroImages() {
   const { data, error } = await supabase.from('site_settings').select('key,value').like('key', 'hero_%');
