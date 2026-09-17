@@ -1121,18 +1121,23 @@
     flex-shrink:0;
   }
   .cartBarText{
-    display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
-    justify-content:center; line-height:1.3;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    justify-content:center; line-height:1.25; min-width:0;
   }
   .cartBarLabel{
-    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:16px; color:#fff;
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:15px; color:#fff;
+    white-space:nowrap;
   }
-  .cartBarPrice{ display:flex; align-items:baseline; gap:6px; }
+  .cartBarPrice{
+    display:flex; align-items:baseline; gap:6px; flex-wrap:nowrap; min-width:0;
+  }
   #cartBarRiel{
-    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:16px; color:#fff;
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700;
+    font-size:clamp(12px, 3.6vw, 15px); color:#fff; white-space:nowrap;
   }
   .cartBarUsd{
-    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:500; font-size:13px; color:rgba(255,255,255,.85);
+    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:500;
+    font-size:clamp(9.5px, 2.8vw, 12px); color:rgba(255,255,255,.85); white-space:nowrap;
   }
   .lastOrderBtn{
     position:fixed; bottom:20px; right:max(16px, calc(50% - 214px)); z-index:21;
@@ -1178,7 +1183,7 @@
   transition: transform .18s ease, box-shadow .18s ease, bottom .24s cubic-bezier(.2,.8,.2,1);
 }
 .locationFloatBtn.pushedUp{
-  bottom:78px;
+  bottom: calc(20px + var(--float-lift, 58px));
 }
 .locFloatIcon{
   flex-shrink:0; width:32px; height:32px; border-radius:50%;
