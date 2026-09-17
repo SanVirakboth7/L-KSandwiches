@@ -1248,6 +1248,14 @@ document.addEventListener('click', (e) => {
     }
     return;
   }
+
+  const stepQty = e.target.closest('.stepQty');
+  if (stepQty && !stepQty.querySelector('input')) {
+    e.stopPropagation();
+    startStepQtyEdit(stepQty);
+    return;
+  }
+
   const stepBtn = e.target.closest('.stepBtn');
   if (stepBtn) {
     e.stopPropagation();
@@ -1258,6 +1266,56 @@ document.addEventListener('click', (e) => {
     else decFromCart(id);
   }
 });
+
+function setCartQuantity(id, qty) {
+  const product = allProducts.find(p => p.id === id);
+  if (!product || product.is_out_of_stock) return;
+  const cleanQty = Math.max(0, Math.floor(Number(qty) || 0));
+  if (cleanQty <= 0) delete cart[id];
+  else cart[id] = cleanQty;
+  saveCart();
+  refreshCardControl(id);
+  updateCartBar();
+  if (document.getElementById('cartPage')?.classList.contains('open')) renderCartModal();
+}
+
+function startStepQtyEdit(qtySpan) {
+  if (qtySpan.querySelector('input')) return; // already editing
+  const wrap = qtySpan.closest('.stepper');
+  const id = wrap?.dataset.id;
+  if (!id) return;
+
+  const currentQty = cart[id] || 0;
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'stepQtyInput';
+  input.min = '0';
+  input.inputMode = 'numeric';
+  input.value = String(currentQty);
+
+  qtySpan.textContent = '';
+  qtySpan.appendChild(input);
+  input.focus();
+  input.select();
+
+  let committed = false;
+  const commit = () => {
+    if (committed) return;
+    committed = true;
+    const newQty = parseInt(input.value, 10);
+    setCartQuantity(id, Number.isFinite(newQty) ? newQty : currentQty);
+  };
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    else if (e.key === 'Escape') {
+      committed = true;
+      refreshCardControl(id);
+      if (document.getElementById('cartPage')?.classList.contains('open')) renderCartModal();
+    }
+  });
+}
 
 function cardHTML(p) {
   const badge = p.badge ? `<span class="badge">${escapeHTML(p.badge)}</span>` : "";
