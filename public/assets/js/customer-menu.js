@@ -840,6 +840,17 @@ function updateLocationFloatPosition() {
   const lastOrderBtn = document.getElementById('lastOrderBtn');
   const cartBarVisible = cartBar && getComputedStyle(cartBar).display !== 'none';
   const lastOrderVisible = lastOrderBtn && !lastOrderBtn.hidden;
+
+  if (cartBarVisible) {
+    // Height can vary (e.g. long riel/USD totals), so measure it live
+    // instead of assuming a fixed pill height.
+    const height = cartBar.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--float-lift', `${Math.ceil(height) + 12}px`);
+  } else if (lastOrderVisible) {
+    const height = lastOrderBtn.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--float-lift', `${Math.ceil(height) + 12}px`);
+  }
+
   locBtn.classList.toggle('pushedUp', Boolean(cartBarVisible || lastOrderVisible));
 }
 
