@@ -1307,8 +1307,7 @@ function startStepQtyEdit(qtySpan) {
   qtySpan.textContent = '';
   qtySpan.appendChild(input);
   input.focus();
-  input.select();
-
+  
   let committed = false;
   const commit = () => {
     if (committed) return;

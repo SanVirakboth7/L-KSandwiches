@@ -1078,22 +1078,22 @@
   .hoursRow[data-day="weekend"] .hTime{ background:rgba(193,68,45,.08); color:var(--tomato-500); }
 
 /* ---------- floating basket bar (Telegram-style green pill) ---------- */
-  .cartBar{
+    .cartBar{
     position:fixed; bottom:20px;
     left:50%; transform:translate3d(-50%, 0, 0);
     z-index:20;
     display:flex;
     justify-content:center;
-    width:calc(100% - 32px);
+    width:calc(100% - 24px);
     max-width:428px;
     will-change:transform;
   }
-  .cartBar button{
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    width:fit-content;
+    .cartBar button{
+    display:flex; align-items:center; justify-content:flex-start; gap:8px;
+    width:100%;
     background:var(--crust-500);
     color:#fff; border:none; border-radius:26px; cursor:pointer;
-    padding:6px 16px 6px 5px; font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+    padding:6px 20px 6px 5px; font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
     box-shadow:0 8px 22px rgba(114,60,16,.32);
     transition: transform .15s ease;
     touch-action: manipulation;
@@ -1120,9 +1120,9 @@
     background: rgba(255,255,255,.22);
     flex-shrink:0;
   }
-  .cartBarText{
-    display:flex; flex-direction:column; align-items:center; gap:2px;
-    justify-content:center; line-height:1.25; min-width:0;
+   .cartBarText{
+    display:flex; flex-direction:row; align-items:baseline; gap:8px;
+    justify-content:flex-start; flex-wrap:nowrap; line-height:1.3; min-width:0;
   }
   .cartBarLabel{
     font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-weight:700; font-size:15px; color:#fff;
