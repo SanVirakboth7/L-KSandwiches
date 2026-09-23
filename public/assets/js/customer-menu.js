@@ -1,6 +1,7 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./supabase-client.js";
 
+const { createClient } = window.supabase || {};
+if (typeof createClient !== 'function') throw new Error('Supabase browser client did not load.');
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const IS_BRANCH_ORDER_PAGE = ['/branch-order', '/branch-order.html'].includes(window.location.pathname.replace(/\/$/, ''))
   || new URLSearchParams(window.location.search).get('order') === 'branch';

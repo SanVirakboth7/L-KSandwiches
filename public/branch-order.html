@@ -15,6 +15,7 @@
   <main id="branchPageMount"><p style="padding:24px;text-align:center;font:600 14px Inter,sans-serif;color:#6b5f52">Loading daily menu…</p></main>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script>
   <script type="module">
     const response = await fetch('/', { cache: 'no-store' });
     if (!response.ok) throw new Error('Could not load the menu.');
@@ -23,7 +24,7 @@
     const app = sourceDocument.querySelector('.app');
     if (!app) throw new Error('Menu shell is unavailable.');
     document.getElementById('branchPageMount').replaceWith(app);
-    await import('./assets/js/customer-menu.js');
+    await import('./assets/js/customer-menu.js?v=supabase-umd-1');
   </script>
 </body>
 </html>

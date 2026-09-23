@@ -1,6 +1,7 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./supabase-client.js";
 
+const { createClient } = window.supabase || {};
+if (typeof createClient !== 'function') throw new Error('Supabase browser client did not load.');
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const BRANCH_QUANTITY_SETTING_KEY = 'branch_menu_quantities';
 const branchId = new URLSearchParams(window.location.search).get('branch') || 'branch-1';

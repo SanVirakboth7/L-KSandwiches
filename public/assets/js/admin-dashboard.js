@@ -1,6 +1,7 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET, VAPID_PUBLIC_KEY } from "./supabase-client.js";
 
+const { createClient } = window.supabase || {};
+if (typeof createClient !== 'function') throw new Error('Supabase browser client did not load.');
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ---------- lock zoom (iOS Safari ignores user-scalable=no, so block gestures directly) ---------- */
