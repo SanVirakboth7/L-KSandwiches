@@ -167,6 +167,7 @@ const ACCEPTING_ORDERS_SETTING_KEY = 'accepting_orders';
 const EXCHANGE_RATE_SETTING_KEY = 'exchange_rate_khr_per_usd';
 const BRANCH_MENU_SETTING_KEY = 'branch_menu_availability';
 const BRANCH_QUANTITY_SETTING_KEY = 'branch_menu_quantities';
+const BRANCH_STOCK_USAGE_KEY = 'lk_branch_stock_usage';
 const ORDER_MODE_STORAGE_KEY = 'lk_order_mode';
 const DAILY_BRANCHES = {
   'branch-1': { name: 'ទីតាំងទី ១', shortName: 'Branch 1' },
@@ -235,13 +236,32 @@ function productAvailableAtBranch(product, branchId = selectedDailyBranch) {
   if (!branchId || !product) return Boolean(product);
   const savedValue = branchMenuAvailability?.[branchId]?.[product.id];
   const quantityValue = branchMenuQuantities?.[branchId]?.[product.id];
-  return savedValue !== false && !(quantityValue !== undefined && Number(quantityValue) <= 0);
+  return savedValue !== false && Number.isFinite(Number(quantityValue)) && Number(quantityValue) >= 0;
 }
 
 function productDailyLimit(product, branchId = selectedDailyBranch) {
   if (!branchId || !product) return Infinity;
   const value = branchMenuQuantities?.[branchId]?.[product.id];
-  return value === undefined ? Infinity : Math.max(0, Number(value) || 0);
+  return value === undefined ? 0 : Math.max(0, Number(value) || 0);
+}
+
+function readBranchStockUsage() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(BRANCH_STOCK_USAGE_KEY) || '{}');
+    return saved?.day === todayInputValue() && saved.usage && typeof saved.usage === 'object'
+      ? saved.usage : {};
+  } catch { return {}; }
+}
+
+function applyBranchStockUsage() {
+  const usage = readBranchStockUsage();
+  Object.entries(usage).forEach(([branchId, products]) => {
+    if (!branchMenuQuantities[branchId]) return;
+    Object.entries(products || {}).forEach(([productId, used]) => {
+      if (branchMenuQuantities[branchId][productId] === undefined) return;
+      branchMenuQuantities[branchId][productId] = Math.max(0, Number(branchMenuQuantities[branchId][productId] || 0) - Number(used || 0));
+    });
+  });
 }
 
 function todayInputValue() {
@@ -330,7 +350,7 @@ document.fonts?.ready?.then(setHeaderHeight);
    The product detail modal is the only product view that shows the
    −/qty/+ quantity stepper. */
 function addControlHTML(p, { showQuantity = false } = {}) {
-  if (p.is_out_of_stock) {
+  if (p.is_out_of_stock || (selectedDailyBranch && productDailyLimit(p) <= 0)) {
     return `<p class="outOfStockText">Unavailable</p>`;
   }
   const qty = cart[p.id] || 0;
@@ -359,7 +379,7 @@ function refreshCardControl(id) {
   if (!product) return;
   document.querySelectorAll(`.addWrap[data-add-id="${id}"]`).forEach(wrap => {
     wrap.innerHTML = addControlHTML(product, {
-      showQuantity: wrap.classList.contains('modalAddWrap')
+      showQuantity: wrap.classList.contains('modalAddWrap') || Boolean(selectedDailyBranch)
     });
   });
 }
@@ -382,6 +402,65 @@ function decFromCart(id) {
   refreshCardControl(id);
   updateCartBar();
   if (document.getElementById('cartPage')?.classList.contains('open')) renderCartModal();
+}
+
+function deductBranchStock(items) {
+  if (!selectedDailyBranch || !Array.isArray(items) || !items.length) return;
+  const current = { ...(branchMenuQuantities[selectedDailyBranch] || {}) };
+  const usage = readBranchStockUsage();
+  usage[selectedDailyBranch] ||= {};
+  items.forEach(item => {
+    const before = Number(current[item.id]);
+    if (!Number.isFinite(before)) return;
+    current[item.id] = Math.max(0, before - Number(item.quantity || 0));
+    usage[selectedDailyBranch][item.id] = Number(usage[selectedDailyBranch][item.id] || 0) + Number(item.quantity || 0);
+  });
+  try { localStorage.setItem(BRANCH_STOCK_USAGE_KEY, JSON.stringify({ day: todayInputValue(), usage })); } catch { /* storage may be unavailable */ }
+  branchMenuQuantities[selectedDailyBranch] = current;
+  renderAll(allProducts);
+  initCardClicks();
+  syncDailyOrderModeUI();
+}
+
+/* A confirmed branch order updates the shared remaining quantity so open
+   customer menus and the admin daily-selection screen stay in sync. */
+async function decrementSharedBranchStock(items) {
+  const branchItems = (Array.isArray(items) ? items : []).filter(item =>
+    item?.order_channel === 'branch_daily' && DAILY_BRANCHES[item.branch_id] && item.id
+  );
+  if (!branchItems.length) return false;
+
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', BRANCH_QUANTITY_SETTING_KEY)
+    .maybeSingle();
+  if (error) throw error;
+
+  let shared = {};
+  try {
+    const parsed = data?.value ? JSON.parse(data.value) : {};
+    shared = parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    shared = {};
+  }
+
+  branchItems.forEach(item => {
+    const branch = shared[item.branch_id];
+    if (!branch || branch[item.id] === undefined) return;
+    branch[item.id] = Math.max(0, Number(branch[item.id] || 0) - Number(item.quantity || 0));
+  });
+
+  const result = await supabase.from('site_settings').upsert({
+    key: BRANCH_QUANTITY_SETTING_KEY,
+    value: JSON.stringify(shared)
+  }, { onConflict: 'key' });
+  if (result.error) throw result.error;
+  branchMenuQuantities = shared;
+  renderAll(allProducts);
+  initCardClicks();
+  syncDailyOrderModeUI();
+  return true;
 }
 function clearCart() {
   cart = {};
@@ -478,6 +557,7 @@ function renderCartModal() {
             <div class="cartItemInfo">
               <p class="cartItemName">${escapeHTML(p.name)}</p>
               <p class="cartItemId">ID: ${p.id}</p>
+              ${selectedDailyBranch ? `<p class="cartItemAvailable">${Math.max(0, productDailyLimit(p))} available</p>` : ''}
               <p class="cartItemLineTotal">$${lineTotal}</p>
             </div>
             <div class="stepper" data-id="${id}">
@@ -1215,6 +1295,7 @@ async function submitOrder({ paymentVerifiedTranId = '' } = {}) {
     }
 
     const orderRecord = buildOrderRecord(paymentVerifiedTranId, telegramSent);
+    let orderRecordSaved = true;
     try {
       await insertOrderRecord(orderRecord);
     } catch (recordError) {
@@ -1222,7 +1303,20 @@ async function submitOrder({ paymentVerifiedTranId = '' } = {}) {
         throw recordError;
       }
       queueOrderRecord(orderRecord);
+      orderRecordSaved = false;
       console.warn('[L&K] The admin order record was queued for retry:', recordError.message || recordError);
+    }
+
+    // Decrement shared branch stock so every open customer menu and the admin
+    // daily-selection list receive the new remaining quantity in real time.
+    if (selectedDailyBranch && orderRecordSaved) {
+      try {
+        const sharedUpdated = await decrementSharedBranchStock(orderRecord.items);
+        if (!sharedUpdated) deductBranchStock(orderRecord.items);
+      } catch (stockError) {
+        console.warn('[L&K] Shared branch stock could not be updated; using local fallback:', stockError);
+        deductBranchStock(orderRecord.items);
+      }
     }
 
     incrementLocalOrderCount();
@@ -1301,7 +1395,10 @@ document.addEventListener('click', (e) => {
 function cardHTML(p) {
   const badge = p.badge ? `<span class="badge">${escapeHTML(p.badge)}</span>` : "";
   const price = p.price ? `<p class="price">${escapeHTML(String(p.price))}</p>` : "";
-  const outOfStock = p.is_out_of_stock;
+  const available = selectedDailyBranch
+    ? `<p class="dailyAvailable">${Math.max(0, productDailyLimit(p))} available</p>`
+    : "";
+  const outOfStock = p.is_out_of_stock || (selectedDailyBranch && productDailyLimit(p) <= 0);
   const stockRibbon = outOfStock ? `<span class="outOfStockBadge"><span>Out of stock</span></span>` : "";
   return `
     <div class="card ${outOfStock ? 'outOfStock' : ''}" data-id="${p.id}">
@@ -1315,8 +1412,9 @@ function cardHTML(p) {
           <p class="id">ID: ${p.id}</p>
           <p class="name">${escapeHTML(p.name)}</p>
           ${price}
+          ${available}
         </div>
-        <div class="addWrap cardAddWrap" data-add-id="${p.id}">${addControlHTML(p)}</div>
+        <div class="addWrap cardAddWrap" data-add-id="${p.id}">${addControlHTML(p, { showQuantity: Boolean(selectedDailyBranch) })}</div>
       </div>
     </div>`;
 }
@@ -1525,13 +1623,42 @@ function renderAll(products) {
 
   renderGrid("bestseller", bestsellers);
   visibleCategories.forEach(category => renderGrid(category.slug, byCategory[category.slug] || []));
+  syncBranchCategoryVisibility();
+}
+
+function syncBranchCategoryVisibility() {
+  if (!IS_BRANCH_ORDER_PAGE || !selectedDailyBranch) return;
+  document.querySelectorAll('.sectionHead').forEach(sectionHead => {
+    if (sectionHead.id === 'sec-locations' || sectionHead.id === 'sec-hours') return;
+    let grid = sectionHead.nextElementSibling;
+    while (grid && !grid.classList.contains('grid')) grid = grid.nextElementSibling;
+    if (!grid) return;
+    const hasItems = grid.querySelector('.card') !== null;
+    sectionHead.hidden = !hasItems;
+    sectionHead.style.display = hasItems ? '' : 'none';
+    grid.hidden = !hasItems;
+    grid.style.display = hasItems ? '' : 'none';
+    const chip = document.querySelector(`#chipRow .chip[data-target="${sectionHead.id}"]`);
+    if (chip) chip.hidden = !hasItems;
+  });
 }
 
 function renderGrid(category, items) {
   const cfg = CATEGORY_MAP[category];
   if (!cfg) return;
   const gridEl = document.getElementById(cfg.gridId);
-  if (gridEl) gridEl.innerHTML = items.map(cardHTML).join("");
+  if (gridEl) {
+    gridEl.innerHTML = items.map(cardHTML).join("");
+    const sectionHead = gridEl.previousElementSibling?.classList.contains('sectionHead')
+      ? gridEl.previousElementSibling : null;
+    const hideEmpty = IS_BRANCH_ORDER_PAGE && Boolean(selectedDailyBranch) && items.length === 0;
+    gridEl.hidden = hideEmpty;
+    gridEl.style.display = hideEmpty ? 'none' : '';
+    if (sectionHead) {
+      sectionHead.hidden = hideEmpty;
+      sectionHead.style.display = hideEmpty ? 'none' : '';
+    }
+  }
 }
 
 function syncDailyOrderModeUI() {
@@ -1543,6 +1670,9 @@ function syncDailyOrderModeUI() {
     branchName.textContent = DAILY_BRANCHES[selectedDailyBranch]?.name || selectedDailyBranch;
   }
   if (branchSelect && selectedDailyBranch) branchSelect.value = selectedDailyBranch;
+  document.querySelectorAll('[data-picker-branch]').forEach(option => {
+    option.classList.toggle('active', option.dataset.pickerBranch === selectedDailyBranch);
+  });
   const chooser = document.getElementById('dailyBranchOrder');
   if (chooser) chooser.hidden = Boolean(selectedDailyBranch);
   document.querySelectorAll('[data-daily-branch]').forEach(button => {
@@ -1581,12 +1711,19 @@ document.getElementById('dailyBranchOrder')?.addEventListener('click', event => 
 });
 document.getElementById('dailyOrderChangeBtn')?.addEventListener('click', () => {
   const button = document.getElementById('dailyOrderChangeBtn');
-  const select = document.getElementById('dailyOrderBranchSelect');
-  if (!select || !button) return;
-  const willOpen = select.hidden;
-  select.hidden = !willOpen;
+  const picker = document.getElementById('dailyBranchPicker');
+  if (!picker || !button) return;
+  const willOpen = picker.hidden;
+  picker.hidden = !willOpen;
   button.setAttribute('aria-expanded', String(willOpen));
-  if (willOpen) select.focus();
+});
+document.getElementById('dailyBranchPicker')?.addEventListener('click', event => {
+  const option = event.target.closest('[data-picker-branch]');
+  if (!option) return;
+  changeOrderMode(option.dataset.pickerBranch);
+  const picker = document.getElementById('dailyBranchPicker');
+  picker.hidden = true;
+  document.getElementById('dailyOrderChangeBtn')?.setAttribute('aria-expanded', 'false');
 });
 document.getElementById('dailyOrderBranchSelect')?.addEventListener('change', event => {
   changeOrderMode(event.target.value);
@@ -1817,6 +1954,8 @@ function openModal(product) {
     addRow.innerHTML = addControlHTML(product, { showQuantity: true });
   }
 
+  const modalCard = overlay.querySelector('.modalCard');
+  if (modalCard) modalCard.scrollTop = 0;
   overlay.classList.add('open');
 }
 function closeModal() { overlay.classList.remove('open'); }
@@ -2187,13 +2326,29 @@ function openCartPage() {
   prefillCustomerFields();
   const cartTitle = document.getElementById('cartPageTitle');
   const cartSubtitle = document.getElementById('cartPageSubtitle');
+  const isDaily = Boolean(selectedDailyBranch);
+  const orderMethodSection = document.getElementById('orderMethodSection');
+  const paymentMethodSection = document.getElementById('paymentMethodSection');
   const scheduleSection = document.getElementById('orderScheduleSection');
   if (cartTitle) cartTitle.textContent = selectedDailyBranch ? 'Daily Branch Order' : 'Event Pre-order';
   if (cartSubtitle) cartSubtitle.textContent = selectedDailyBranch
     ? (DAILY_BRANCHES[selectedDailyBranch]?.name || 'Selected branch')
     : 'Large orders and advance bookings';
-  if (scheduleSection) scheduleSection.hidden = Boolean(selectedDailyBranch);
-  if (selectedDailyBranch && custDateInput) custDateInput.value = todayInputValue();
+  if (orderMethodSection) orderMethodSection.hidden = isDaily;
+  if (paymentMethodSection) paymentMethodSection.hidden = isDaily;
+  if (scheduleSection) scheduleSection.hidden = false;
+  if (isDaily) {
+    setOrderType('pickup');
+    setPaymentMethod('cash');
+    if (custDateInput) custDateInput.value = todayInputValue();
+  }
+  const stepMap = [
+    ['contactInformationStep', isDaily ? '1' : '2'],
+    ['orderScheduleStep', isDaily ? '2' : '3'],
+    ['orderNotesStep', isDaily ? '3' : '4'],
+    ['paymentMethodStep', '5']
+  ];
+  stepMap.forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.textContent = value; });
   renderCartModal();
   cartPage?.classList.add('open');
 }
@@ -2207,6 +2362,22 @@ if (cartPageBack) cartPageBack.addEventListener('click', closeCartPage);
 if (addMoreBtn) addMoreBtn.addEventListener('click', closeCartPage);
 if (cartPageClear) cartPageClear.addEventListener('click', clearCart);
 if (sendOrderBtn) sendOrderBtn.addEventListener('click', openConfirmModal);
+
+// Keep switching between the two order flows feeling like one app instead of
+// a hard page refresh. The destination still remains a real URL for sharing.
+document.querySelectorAll('.orderModeBtn').forEach(link => {
+  link.addEventListener('click', event => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    document.documentElement.classList.add('orderPageLeaving');
+    window.setTimeout(() => { window.location.href = link.href; }, 180);
+  });
+});
+
+// Safari may restore the previous page from its back/forward cache mid-fade.
+window.addEventListener('pageshow', () => {
+  document.documentElement.classList.remove('orderPageLeaving');
+});
 
 
 /* ---------- confirm order modal ---------- */

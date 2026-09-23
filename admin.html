@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
 <meta name="theme-color" content="#8a5a3f">
 <link rel="manifest" href="assets/manifest/admin-app.webmanifest">
-<link rel="stylesheet" href="assets/css/admin-dashboard.css">
+<link rel="stylesheet" href="assets/css/admin-dashboard.css?v=daily-editor-7">
 </head>
 <body>
   <!-- ---------- LOGIN SCREEN ---------- -->
@@ -332,6 +332,17 @@
           </div>
         </section>
 
+        <section class="settingsMenuGroup workerLinksGroup" aria-labelledby="workerLinksTitle">
+          <div class="workerLinksCard">
+            <div class="workerLinksHead">
+              <span class="settingsGroupEyebrow">Branch tools</span>
+              <h3 id="workerLinksTitle">Worker dashboard links</h3>
+              <p>Open a branch-only menu to record walk-in sales and keep online stock live.</p>
+            </div>
+            <div class="workerLinksList" id="workerLinksList"></div>
+          </div>
+        </section>
+
         <section class="settingsMenuGroup" aria-label="Customer menu QR code">
           <div class="qrCard">
             <div class="qrCardCode">
@@ -421,21 +432,32 @@
 </div>
 
 <!-- ---------- DAILY BRANCH SELECTION ---------- -->
-<div class="modalOverlay" id="dailySelectionOverlay" aria-hidden="true">
+<div class="modalOverlay dailySelectionOverlay" id="dailySelectionOverlay" aria-hidden="true">
   <div class="modalCard dailySelectionCard" role="dialog" aria-modal="true" aria-labelledby="dailySelectionTitle">
     <div class="dailySelectionHeader">
       <div>
         <p class="dailySelectionEyebrow">TODAY’S MENU</p>
         <h2 id="dailySelectionTitle">Daily branch selection</h2>
-        <p>Set the available quantity for each menu item at each branch. Use 0 to hide an item.</p>
       </div>
       <button type="button" class="photoModalClose" id="dailySelectionClose" aria-label="Close">&times;</button>
     </div>
     <div class="dailyBranchTabs" id="dailyBranchTabs" role="tablist" aria-label="Choose branch"></div>
+    <div class="dailySelectionTools">
+      <div class="dailySelectionSummary" id="dailySelectionSummary">0 items · 0 portions</div>
+      <div class="dailySelectionBulkActions">
+        <button type="button" class="dailySelectionToolBtn" id="dailySelectionClear">Clear</button>
+        <button type="button" class="dailySelectionToolBtn dailySelectionApplyAll" id="dailySelectionApplyAll">Apply all</button>
+      </div>
+      <input type="search" class="dailySelectionSearch" id="dailySelectionSearch" placeholder="Search menu" aria-label="Search daily menu">
+      <select class="dailySelectionCategoryFilter" id="dailySelectionCategoryFilter" aria-label="Filter by category">
+        <option value="__selected__">Selected Item</option>
+        <option value="">All items</option>
+      </select>
+    </div>
     <div class="dailySelectionList" id="dailySelectionList"></div>
     <div class="dailySelectionFooter">
       <span id="dailySelectionStatus">Not saved yet</span>
-      <button type="button" class="primaryBtn" id="dailySelectionSave">Save daily menu</button>
+      <button type="button" class="primaryBtn" id="dailySelectionSave">Save menu</button>
     </div>
   </div>
 </div>
@@ -537,6 +559,6 @@
   </div>
   </div>
 
-<script type="module" src="assets/js/admin-dashboard.js"></script>
+<script type="module" src="assets/js/admin-dashboard.js?v=daily-editor-7"></script>
 </body>
 </html>
