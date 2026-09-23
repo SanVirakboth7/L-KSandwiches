@@ -538,9 +538,7 @@
   .dailyBranchChoices small{ color:var(--ink-soft); font-size:9.5px; line-height:1.25; }
   .eventOrderNote{ width:100%; margin:11px 0 0; padding:8px; border:0; background:transparent; color:var(--crust-500); font:650 9.5px/1.4 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; text-align:center; cursor:pointer; }
 
-  dialog.dailyBranchOrderOverlay{ position:fixed; inset:0; z-index:1000; box-sizing:border-box; width:100vw; height:100dvh; max-width:none; max-height:none; margin:0; padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px)); border:0; display:flex; align-items:center; justify-content:center; overflow:visible; background:transparent; color:inherit; }
-  dialog.dailyBranchOrderOverlay:not([open]){ display:none; }
-  dialog.dailyBranchOrderOverlay::backdrop{ background:rgba(43,33,24,.52); backdrop-filter:blur(3px); }
+  .dailyBranchOrderOverlay{ position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px)); background:rgba(43,33,24,.52); backdrop-filter:blur(3px); }
   .dailyBranchOrderOverlay[hidden]{ display:none !important; }
   .dailyBranchOrderOverlay.open{ animation:branchChooserFadeIn .18s ease both; }
   body.branchChooserOpen{ overflow:hidden; }

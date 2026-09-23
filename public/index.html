@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
 <script>document.documentElement.classList.add(location.pathname.replace(/\/$/, '') === '/branch-order' ? 'branchOrderPage' : 'preOrderPage', 'orderPageEntering');</script>
-<link rel="stylesheet" href="assets/css/customer-menu.css">
+<link rel="stylesheet" href="assets/css/customer-menu.css?v=branch-chooser-dialog-2">
 </head>
 <body>
 <div class="app">
@@ -80,7 +80,7 @@
         </span>
         <span><strong>Pre-order</strong><small>Events &amp; large orders</small></span>
       </a>
-      <a class="orderModeBtn orderModeBranch" href="/branch-order.html">
+      <a class="orderModeBtn orderModeBranch" href="branch-order.html?choose=branch">
         <span class="orderModeBtnIcon" aria-hidden="true">
           <img src="img/branch-order-icon.png" alt="">
         </span>
@@ -206,7 +206,8 @@
       </div>
     </div>
 
-    <section class="orderFlowCard" id="dailyBranchOrder" aria-labelledby="orderFlowTitle">
+    <dialog class="dailyBranchOrderOverlay" id="dailyBranchOrderOverlay" aria-labelledby="orderFlowTitle">
+    <section class="orderFlowCard" id="dailyBranchOrder">
       <div class="orderFlowHead">
         <span class="orderFlowIcon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9.5 13h5"/></svg>
@@ -216,6 +217,7 @@
           <h3 id="orderFlowTitle">Order from a branch</h3>
           <p class="orderFlowSubtitle">Choose a location to see what is available today.</p>
         </div>
+        <button type="button" class="orderFlowClose" id="orderFlowClose" aria-label="Close branch selection">&times;</button>
       </div>
 
       <div class="dailyBranchChoices" aria-label="Choose a branch for a daily order">
@@ -225,6 +227,7 @@
       </div>
       <button type="button" class="eventOrderNote" id="eventOrderModeBtn">Planning a large event? Use Event pre-order</button>
     </section>
+    </dialog>
   </div>
 
   <!-- ---------- product detail modal ---------- -->
@@ -549,7 +552,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script>
-<script type="module" src="assets/js/customer-menu.js?v=supabase-umd-1"></script>
+<script type="module" src="assets/js/customer-menu.js?v=branch-chooser-dialog-3"></script>
 
 </body>
 </html>

@@ -3,11 +3,9 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./supabase-client.js";
 const { createClient } = window.supabase || {};
 if (typeof createClient !== 'function') throw new Error('Supabase browser client did not load.');
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const IS_BRANCH_ORDER_PAGE = /(?:^|\/)branch-order(?:\.html)?$/.test(window.location.pathname.replace(/\/$/, ''))
+const IS_BRANCH_ORDER_PAGE = ['/branch-order', '/branch-order.html'].includes(window.location.pathname.replace(/\/$/, ''))
   || new URLSearchParams(window.location.search).get('order') === 'branch';
-// Entering the daily-order page always starts with the branch chooser,
-// even when a branch was remembered from an earlier visit.
-let forceBranchChooser = IS_BRANCH_ORDER_PAGE;
+let forceBranchChooser = new URLSearchParams(window.location.search).get('choose') === 'branch';
 
 /* ---------- admin access from the customer logo ---------- */
 const adminLogoTrigger = document.getElementById('adminLogoTrigger');
@@ -289,7 +287,7 @@ function saveCustomer(info) {
 }
 function getCustomerFields() {
   return {
-    orderType    : selectedDailyBranch ? 'pickup' : (document.getElementById('orderTypeToggle')?.dataset.selected || ''),
+    orderType    : document.getElementById('orderTypeToggle')?.dataset.selected || '',
     paymentMethod: document.getElementById('paymentMethodToggle')?.dataset.selected || '',
     name         : document.getElementById('custName')?.value.trim() || '',
     phone        : document.getElementById('custPhone')?.value.trim() || '',
@@ -1682,14 +1680,9 @@ function syncDailyOrderModeUI() {
   const showChooser = IS_BRANCH_ORDER_PAGE && (!selectedDailyBranch || forceBranchChooser);
   if (chooser) chooser.hidden = !showChooser;
   if (chooserOverlay) {
+    chooserOverlay.hidden = !showChooser;
     chooserOverlay.classList.toggle('open', showChooser);
     chooserOverlay.setAttribute('aria-hidden', String(!showChooser));
-    if (chooserOverlay instanceof HTMLDialogElement) {
-      if (showChooser && !chooserOverlay.open) chooserOverlay.showModal();
-      else if (!showChooser && chooserOverlay.open) chooserOverlay.close();
-    } else {
-      chooserOverlay.hidden = !showChooser;
-    }
   }
   document.body.classList.toggle('branchChooserOpen', showChooser);
   document.querySelectorAll('[data-daily-branch]').forEach(button => {
@@ -1732,14 +1725,14 @@ document.getElementById('dailyBranchOrder')?.addEventListener('click', event => 
   if (button) changeOrderMode(button.dataset.dailyBranch);
 });
 document.getElementById('orderFlowClose')?.addEventListener('click', () => {
-  window.location.href = 'index.html';
+  window.location.href = '/';
 });
 document.getElementById('dailyBranchOrderOverlay')?.addEventListener('click', event => {
-  if (event.target.id === 'dailyBranchOrderOverlay') window.location.href = 'index.html';
+  if (event.target.id === 'dailyBranchOrderOverlay') window.location.href = '/';
 });
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && document.getElementById('dailyBranchOrderOverlay')?.classList.contains('open')) {
-    window.location.href = 'index.html';
+    window.location.href = '/';
   }
 });
 document.getElementById('dailyOrderChangeBtn')?.addEventListener('click', () => {
@@ -2053,17 +2046,12 @@ if (custDateInput) custDateInput.min = new Date().toISOString().split('T')[0];
 
 function setOrderType(type) {
   if (!orderTypeToggle) return;
-  const selectedType = selectedDailyBranch ? 'pickup' : type;
-  orderTypeToggle.dataset.selected = selectedType;
+  orderTypeToggle.dataset.selected = type;
   orderTypeToggle.querySelectorAll('.otBtn').forEach(btn => {
-    const unavailableForDailyOrder = Boolean(selectedDailyBranch) && btn.dataset.type === 'delivery';
-    btn.disabled = unavailableForDailyOrder;
-    btn.setAttribute('aria-disabled', String(unavailableForDailyOrder));
-    btn.classList.toggle('active', btn.dataset.type === selectedType);
-    btn.setAttribute('aria-pressed', String(btn.dataset.type === selectedType));
+    btn.classList.toggle('active', btn.dataset.type === type);
   });
   // Address is only relevant (and required) for delivery.
-  if (custAddressField) custAddressField.classList.toggle('hidden', selectedType !== 'delivery');
+  if (custAddressField) custAddressField.classList.toggle('hidden', type !== 'delivery');
 }
 
 if (orderTypeToggle) {
