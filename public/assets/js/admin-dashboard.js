@@ -346,9 +346,6 @@ async function loadTodayOrderStats() {
   }
 }
 
-document.getElementById('quickAddItem')?.addEventListener('click', () => {
-  openAddProductModal();
-});
 document.getElementById('quickCreateCategory')?.addEventListener('click', () => {
   openCategoryModal();
 });
@@ -399,7 +396,7 @@ async function loadBranchMenuQuantities() {
 function renderDailySelectionTabs() {
   if (!dailySelectionTabs) return;
   dailySelectionTabs.innerHTML = Object.entries(DAILY_BRANCHES).map(([branchId, branch]) => `
-    <button type="button" class="dailyBranchTab${branchId === dailySelectionBranch ? ' active' : ''}" data-daily-selection-branch="${branchId}" role="tab" aria-selected="${branchId === dailySelectionBranch}">${escapeHTML(branch.label)}</button>
+    <button type="button" class="dailyBranchTab${branchId === dailySelectionBranch ? ' active' : ''}" data-daily-selection-branch="${branchId}" role="tab" aria-selected="${branchId === dailySelectionBranch}">${escapeHTML(branch.customerLabel)}</button>
   `).join('');
 }
 
