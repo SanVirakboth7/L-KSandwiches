@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
-<script>document.documentElement.classList.add(location.pathname.replace(/\/$/, '') === '/branch-order' ? 'branchOrderPage' : 'preOrderPage');</script>
+<script>document.documentElement.classList.add(location.pathname.replace(/\/$/, '') === '/branch-order' ? 'branchOrderPage' : 'preOrderPage', 'orderPageEntering');</script>
 <link rel="stylesheet" href="assets/css/customer-menu.css">
 </head>
 <body>
@@ -76,13 +76,13 @@
     <nav class="orderModeSwitch" aria-label="Choose ordering service">
       <a class="orderModeBtn orderModePreorder" href="/">
         <span class="orderModeBtnIcon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 13h6"/></svg>
+          <img src="img/preorder-icon.png" alt="">
         </span>
         <span><strong>Pre-order</strong><small>Events &amp; large orders</small></span>
       </a>
       <a class="orderModeBtn orderModeBranch" href="/branch-order.html">
         <span class="orderModeBtnIcon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16l-1.5-5h-13L4 10Z"/><path d="M5 10v9h14v-9M9 19v-5h6v5"/></svg>
+          <img src="img/branch-order-icon.png" alt="">
         </span>
         <span><strong>Branch order</strong><small>Today’s daily menu</small></span>
       </a>
@@ -111,6 +111,11 @@
     <span class="dailyOrderModeCopy"><small>DAILY ORDER</small><strong id="dailyOrderBranchName">ទីតាំងទី ១</strong></span>
     <div class="dailyOrderModeActions">
       <button type="button" id="dailyOrderChangeBtn" aria-expanded="false">Change</button>
+      <div class="branchPicker" id="dailyBranchPicker" hidden>
+        <button type="button" class="branchPickerOption" data-picker-branch="branch-1"><span class="branchPickerNumber">1</span><span><strong>ទីតាំងទី ១</strong><small>ABA Grand Phnom Penh</small></span></button>
+        <button type="button" class="branchPickerOption" data-picker-branch="branch-2"><span class="branchPickerNumber">2</span><span><strong>ទីតាំងទី ២</strong><small>Russey Keo (598)</small></span></button>
+        <button type="button" class="branchPickerOption" data-picker-branch="branch-3"><span class="branchPickerNumber">3</span><span><strong>ទីតាំងទី ៣</strong><small>AEON Mall Sen Sok</small></span></button>
+      </div>
       <select id="dailyOrderBranchSelect" aria-label="Change daily order branch" hidden>
         <option value="branch-1">ទីតាំងទី ១</option>
         <option value="branch-2">ទីតាំងទី ២</option>
@@ -258,9 +263,9 @@
       <div class="cartItems" id="cartItems"></div>
 
       <div class="cartCustomer">
-        <section class="checkoutSection" id="orderScheduleSection">
+        <section class="checkoutSection" id="orderMethodSection">
           <div class="checkoutSectionTitle">
-            <span class="checkoutStep">1</span>
+            <span class="checkoutStep" id="orderMethodStep">1</span>
             <h3>Order Method</h3>
           </div>
           <div class="custField">
@@ -277,9 +282,9 @@
           </div>
         </section>
 
-        <section class="checkoutSection">
+        <section class="checkoutSection" id="contactInformationSection">
           <div class="checkoutSectionTitle">
-            <span class="checkoutStep">2</span>
+            <span class="checkoutStep" id="contactInformationStep">2</span>
             <h3>Contact Information</h3>
           </div>
           <div class="custField">
@@ -304,9 +309,9 @@
           </div>
         </section>
 
-        <section class="checkoutSection">
+        <section class="checkoutSection" id="orderScheduleSection">
           <div class="checkoutSectionTitle">
-            <span class="checkoutStep">3</span>
+            <span class="checkoutStep" id="orderScheduleStep">3</span>
             <h3>Order Schedule</h3>
           </div>
           <div class="custFieldRow">
@@ -324,9 +329,9 @@
           </div>
         </section>
 
-        <section class="checkoutSection">
+        <section class="checkoutSection" id="orderNotesSection">
           <div class="checkoutSectionTitle">
-            <span class="checkoutStep">4</span>
+            <span class="checkoutStep" id="orderNotesStep">4</span>
             <h3>Order Notes <span class="checkoutOptional">(optional)</span></h3>
           </div>
           <div class="custField">
@@ -335,9 +340,9 @@
           </div>
         </section>
 
-        <section class="checkoutSection">
+        <section class="checkoutSection" id="paymentMethodSection">
           <div class="checkoutSectionTitle">
-            <span class="checkoutStep">5</span>
+            <span class="checkoutStep" id="paymentMethodStep">5</span>
             <h3>Payment Method</h3>
           </div>
           <div class="paymentMethodToggle" id="paymentMethodToggle">

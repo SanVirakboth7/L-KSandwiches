@@ -359,7 +359,23 @@ const dailySelectionList = document.getElementById('dailySelectionList');
 const dailySelectionClose = document.getElementById('dailySelectionClose');
 const dailySelectionSave = document.getElementById('dailySelectionSave');
 const dailySelectionStatus = document.getElementById('dailySelectionStatus');
+const dailySelectionSummary = document.getElementById('dailySelectionSummary');
+const dailySelectionSearch = document.getElementById('dailySelectionSearch');
+const dailySelectionCategoryFilter = document.getElementById('dailySelectionCategoryFilter');
+const dailySelectionClear = document.getElementById('dailySelectionClear');
+const dailySelectionApplyAll = document.getElementById('dailySelectionApplyAll');
 let dailySelectionBranch = 'branch-1';
+
+function hasDailySelection(quantityMap, productId) {
+  return Object.prototype.hasOwnProperty.call(quantityMap || {}, productId);
+}
+
+function updateDailySelectionSummary() {
+  const quantityMap = branchMenuQuantities[dailySelectionBranch] || {};
+  const itemCount = Object.keys(quantityMap).length;
+  const portions = Object.values(quantityMap).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
+  if (dailySelectionSummary) dailySelectionSummary.textContent = `${itemCount} item${itemCount === 1 ? '' : 's'} · ${portions} portions`;
+}
 
 async function loadBranchMenuQuantities() {
   const { data, error } = await supabase
@@ -390,24 +406,54 @@ function renderDailySelectionTabs() {
 function renderDailySelectionList() {
   if (!dailySelectionList) return;
   const quantityMap = branchMenuQuantities[dailySelectionBranch] || {};
-  const groups = products.reduce((map, product) => {
+  const query = String(dailySelectionSearch?.value || '').trim().toLowerCase();
+  const selectedCategory = dailySelectionCategoryFilter?.value || '';
+  const selectedOnly = selectedCategory === '__selected__';
+  const filteredProducts = products.filter(product => {
+  const matchesQuery = !query || `${product.id} ${product.name || ''}`.toLowerCase().includes(query);
+    const matchesCategory = selectedOnly
+      ? hasDailySelection(quantityMap, product.id)
+      : (!selectedCategory || product.category === selectedCategory);
+    return matchesQuery && matchesCategory;
+  }).sort((a, b) => {
+    const aSelected = hasDailySelection(quantityMap, a.id) ? 1 : 0;
+    const bSelected = hasDailySelection(quantityMap, b.id) ? 1 : 0;
+    return bSelected - aSelected;
+  });
+  const groups = filteredProducts.reduce((map, product) => {
     const category = categories.find(item => item.slug === product.category);
     const label = category?.customerLabel || category?.name || product.category || 'Menu';
     (map[label] ||= []).push(product);
     return map;
   }, {});
+  updateDailySelectionSummary();
   dailySelectionList.innerHTML = Object.entries(groups).map(([category, items]) => `
     <div class="dailySelectionCategory">${escapeHTML(category)}</div>
     ${items.map(product => {
       const rawQuantity = quantityMap[product.id];
-      const quantity = Number.isFinite(Number(rawQuantity)) ? Math.max(0, Number(rawQuantity)) : 0;
-      return `<label class="dailySelectionRow">
+      const offered = hasDailySelection(quantityMap, product.id);
+      const quantity = offered && Number.isFinite(Number(rawQuantity)) ? Math.max(0, Number(rawQuantity)) : 0;
+      const outOfStock = offered && quantity === 0;
+      return `<div class="dailySelectionRow${offered ? ' is-selected' : ''}${outOfStock ? ' is-out-of-stock' : ''}" data-daily-row-id="${escapeAttr(product.id)}">
         <img src="${escapeAttr(product.image_url || PLACEHOLDER_IMAGE)}" alt="" loading="lazy">
         <span><strong>${escapeHTML(product.name || product.id)}</strong><small>${escapeHTML(product.id)} · $${String(product.price || '').replace(/^\$/, '')}</small></span>
-        <input class="dailyQuantityInput" type="number" min="0" max="999" step="1" value="${quantity}" data-daily-quantity-id="${escapeAttr(product.id)}" aria-label="${escapeAttr(product.name || product.id)} quantity at ${escapeAttr(DAILY_BRANCHES[dailySelectionBranch].label)}">
-      </label>`;
+        <span class="dailySelectionControls">
+          <input class="dailyOfferToggle" type="checkbox" data-daily-offer-id="${escapeAttr(product.id)}" ${offered ? 'checked' : ''} aria-label="Include ${escapeAttr(product.name || product.id)} in today’s menu">
+          <button type="button" class="dailyStockBtn${outOfStock ? ' active' : ''}" data-daily-stock-id="${escapeAttr(product.id)}" aria-pressed="${outOfStock}">Out of stock</button>
+          <input class="dailyQuantityInput" type="number" min="0" max="999" step="1" value="${quantity}" data-daily-quantity-id="${escapeAttr(product.id)}" aria-label="${escapeAttr(product.name || product.id)} quantity at ${escapeAttr(DAILY_BRANCHES[dailySelectionBranch].label)}" ${offered ? '' : 'disabled'}>
+        </span>
+      </div>`;
     }).join('')}
   `).join('') || '<p class="ordersEmpty">No menu items found.</p>';
+  const categoriesForFilter = [...new Set(products.map(product => product.category).filter(Boolean))];
+  if (dailySelectionCategoryFilter) {
+    const current = dailySelectionCategoryFilter.value;
+    dailySelectionCategoryFilter.innerHTML = '<option value="__selected__">Selected Item</option><option value="">All items</option>' + categoriesForFilter.map(category => {
+      const label = categories.find(item => item.slug === category)?.customerLabel || categories.find(item => item.slug === category)?.name || category;
+      return `<option value="${escapeAttr(category)}">${escapeHTML(label)}</option>`;
+    }).join('');
+    dailySelectionCategoryFilter.value = current === '__selected__' || categoriesForFilter.includes(current) ? current : '';
+  }
 }
 
 function openDailySelection() {
@@ -438,10 +484,87 @@ dailySelectionTabs?.addEventListener('click', event => {
   renderDailySelectionTabs();
   renderDailySelectionList();
 });
+dailySelectionSearch?.addEventListener('input', renderDailySelectionList);
+dailySelectionCategoryFilter?.addEventListener('change', renderDailySelectionList);
+dailySelectionList?.addEventListener('change', event => {
+  const toggle = event.target.closest('[data-daily-offer-id]');
+  if (toggle) {
+    const productId = toggle.dataset.dailyOfferId;
+    const quantityMap = branchMenuQuantities[dailySelectionBranch] ||= {};
+    const input = dailySelectionList.querySelector(`[data-daily-quantity-id="${cssEscape(productId)}"]`);
+    const row = toggle.closest('.dailySelectionRow');
+    if (toggle.checked) {
+      const quantity = Math.max(1, Number.parseInt(input?.value, 10) || 1);
+      quantityMap[productId] = quantity;
+      if (input) { input.disabled = false; input.value = String(quantity); }
+      row?.classList.add('is-selected');
+      row?.classList.remove('is-out-of-stock');
+      row?.querySelector('[data-daily-stock-id]')?.classList.remove('active');
+    } else {
+      delete quantityMap[productId];
+      if (input) input.disabled = true;
+      row?.classList.remove('is-selected', 'is-out-of-stock');
+      row?.querySelector('[data-daily-stock-id]')?.classList.remove('active');
+    }
+    updateDailySelectionSummary();
+    if (dailySelectionStatus) dailySelectionStatus.textContent = 'Changes are not saved yet';
+    renderDailySelectionList();
+    return;
+  }
+  const quantityInput = event.target.closest('[data-daily-quantity-id]');
+  if (!quantityInput) return;
+  const productId = quantityInput.dataset.dailyQuantityId;
+  const quantity = Math.max(0, Math.min(999, Number.parseInt(quantityInput.value, 10) || 0));
+  quantityInput.value = String(quantity);
+  (branchMenuQuantities[dailySelectionBranch] ||= {})[productId] = quantity;
+  const row = quantityInput.closest('.dailySelectionRow');
+  row?.classList.toggle('is-out-of-stock', quantity === 0);
+  const stockButton = row?.querySelector('[data-daily-stock-id]');
+  stockButton?.classList.toggle('active', quantity === 0);
+  stockButton?.setAttribute('aria-pressed', String(quantity === 0));
+  updateDailySelectionSummary();
+  if (dailySelectionStatus) dailySelectionStatus.textContent = 'Changes are not saved yet';
+});
+dailySelectionList?.addEventListener('click', event => {
+  const stockButton = event.target.closest('[data-daily-stock-id]');
+  if (!stockButton) return;
+  const productId = stockButton.dataset.dailyStockId;
+  const quantityMap = branchMenuQuantities[dailySelectionBranch] ||= {};
+  const input = dailySelectionList.querySelector(`[data-daily-quantity-id="${cssEscape(productId)}"]`);
+  const toggle = dailySelectionList.querySelector(`[data-daily-offer-id="${cssEscape(productId)}"]`);
+  const makeAvailable = stockButton.classList.contains('active');
+  quantityMap[productId] = makeAvailable ? Math.max(1, Number.parseInt(input?.value, 10) || 1) : 0;
+  if (toggle) toggle.checked = true;
+  if (input) { input.disabled = false; input.value = String(quantityMap[productId]); }
+  stockButton.classList.toggle('active', !makeAvailable);
+  stockButton.setAttribute('aria-pressed', String(!makeAvailable));
+  const row = stockButton.closest('.dailySelectionRow');
+  row?.classList.add('is-selected');
+  row?.classList.toggle('is-out-of-stock', !makeAvailable);
+  updateDailySelectionSummary();
+  if (dailySelectionStatus) dailySelectionStatus.textContent = 'Changes are not saved yet';
+  renderDailySelectionList();
+});
+dailySelectionClear?.addEventListener('click', () => {
+  branchMenuQuantities[dailySelectionBranch] = {};
+  renderDailySelectionList();
+  if (dailySelectionStatus) dailySelectionStatus.textContent = 'Branch menu cleared — save to confirm';
+});
+dailySelectionApplyAll?.addEventListener('click', () => {
+  const source = { ...(branchMenuQuantities[dailySelectionBranch] || {}) };
+  Object.keys(DAILY_BRANCHES).forEach(branchId => { branchMenuQuantities[branchId] = { ...source }; });
+  renderDailySelectionList();
+  if (dailySelectionStatus) dailySelectionStatus.textContent = 'Applied to all branches — save to confirm';
+});
 dailySelectionSave?.addEventListener('click', async () => {
   if (!dailySelectionList) return;
-  const nextQuantities = {};
+  const nextQuantities = { ...(branchMenuQuantities[dailySelectionBranch] || {}) };
   dailySelectionList.querySelectorAll('[data-daily-quantity-id]').forEach(input => {
+    const toggle = dailySelectionList.querySelector(`[data-daily-offer-id="${cssEscape(input.dataset.dailyQuantityId)}"]`);
+    if (!toggle?.checked) {
+      delete nextQuantities[input.dataset.dailyQuantityId];
+      return;
+    }
     const value = Math.max(0, Math.min(999, Number.parseInt(input.value, 10) || 0));
     input.value = String(value);
     nextQuantities[input.dataset.dailyQuantityId] = value;
@@ -1090,6 +1213,11 @@ function subscribeToOrderChanges() {
       const settingKey = payload.new?.key || payload.old?.key || '';
       if (settingKey === ACCEPTING_ORDERS_SETTING_KEY) loadAcceptingOrdersSetting();
       if (settingKey === EXCHANGE_RATE_SETTING_KEY) loadExchangeRateSetting();
+      if (settingKey === BRANCH_QUANTITY_SETTING_KEY) {
+        loadBranchMenuQuantities().then(() => {
+          if (dailySelectionOverlay?.classList.contains('open')) renderDailySelectionList();
+        });
+      }
     })
     .subscribe();
 }
@@ -1461,8 +1589,28 @@ function getPublicSiteUrl() {
   return window.location.origin + dir;
 }
 
+function setupWorkerLinks() {
+  const list = document.getElementById('workerLinksList');
+  if (!list) return;
+  const branches = [
+    ['branch-1', 'Branch 1', 'ទីតាំងទី ១'],
+    ['branch-2', 'Branch 2', 'ទីតាំងទី ២'],
+    ['branch-3', 'Branch 3', 'ទីតាំងទី ៣']
+  ];
+  const base = `${window.location.origin}/worker.html`;
+  list.innerHTML = branches.map(([id, label, name]) => {
+    const url = `${base}?branch=${encodeURIComponent(id)}`;
+    return `<a class="workerLinkRow" href="${escapeAttr(url)}" target="_blank" rel="noopener">
+      <span class="workerLinkIcon" aria-hidden="true">${label.replace('Branch ', '')}</span>
+      <span class="workerLinkCopy"><strong>${label} · ${name}</strong><small>Open menu &amp; update remaining stock</small></span>
+      <span class="settingsRowChevron" aria-hidden="true">›</span>
+    </a>`;
+  }).join('');
+}
+
 async function setupSettingsPage() {
   bindHeroSettingsEditor();
+  setupWorkerLinks();
   const emailEl = document.getElementById('settingsEmail');
   if (emailEl) {
     try {
@@ -1742,14 +1890,6 @@ function rowHTML(p) {
           <span class="catTag">${escapeHTML(p.category)}</span>
           ${p.is_out_of_stock ? '<span class="stockTag">Out of Stock</span>' : ''}
           <span class="savedTick" data-role="savedTick">Saved ✓</span>
-        </div>
-
-        <div class="branchAvailabilityControls" aria-label="Daily branch availability">
-          <span class="branchAvailabilityLabel">Daily</span>
-          ${Object.keys(DAILY_BRANCHES).map((branchId, index) => {
-            const available = isProductAvailableAtBranch(p.id, branchId);
-            return `<button type="button" class="branchAvailabilityBtn${available ? ' active' : ''}" data-role="branchAvailability" data-branch-id="${branchId}" aria-pressed="${available}" title="${available ? 'Available' : 'Hidden'} at ${DAILY_BRANCHES[branchId].label}">B${index + 1}</button>`;
-          }).join('')}
         </div>
 
         <div class="rowBottomLine">
