@@ -1,0 +1,6 @@
+.stockDashboard{width:min(760px,100%)}
+.branchStockTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 16px}
+.branchStockTab{min-height:42px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--soft);font-weight:800;cursor:pointer}
+.branchStockTab.active{background:var(--brown);border-color:var(--brown);color:#fff}
+.branchStockGrid{display:block}
+.branchStockCard{max-width:760px;margin:0 auto}

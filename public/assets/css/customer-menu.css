@@ -240,7 +240,7 @@
   .orderModeBtn{
     min-width:0; min-height:58px; padding:9px 10px; border:1px solid rgba(43,33,24,.08); border-radius:16px;
     display:flex; align-items:center; gap:8px; text-decoration:none;
-    background:#f5f1ec; color:var(--ink); box-shadow:0 4px 12px rgba(43,33,24,.055);
+    background:#fff8f1; color:#5b351c; border-color:#e8d8c8; box-shadow:0 4px 12px rgba(43,33,24,.055);
     transition:transform .16s ease,background .16s ease,color .16s ease;
   }
   .orderModeBtn:active{ transform:scale(.975); }
@@ -253,15 +253,16 @@
   @media (prefers-reduced-motion:reduce){ body,html.orderPageEntering body,html.orderPageLeaving body{ animation:none; transition:none; transform:none; opacity:1; } }
   .orderModeBtnIcon{
     width:31px; height:31px; flex:0 0 31px; border-radius:10px;
-    display:flex; align-items:center; justify-content:center; background:rgba(43,33,24,.07); color:var(--crust-500);
+    display:flex; align-items:center; justify-content:center; background:transparent; color:#9b8775;
   }
   .orderModeBtnIcon svg,.orderModeBtnIcon img{ width:25px; height:25px; object-fit:contain; display:block; }
   .orderModeBtn > span:last-child{ min-width:0; display:flex; flex-direction:column; gap:2px; }
   .orderModeBtn strong{ font:750 11.5px/1.2 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; white-space:nowrap; }
   .orderModeBtn small{ color:currentColor; opacity:.62; font:600 8.5px/1.2 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
   html.preOrderPage .orderModePreorder,
-  html.branchOrderPage .orderModeBranch{ background:var(--crust-500); border-color:var(--crust-500); color:#fff; }
+  html.branchOrderPage .orderModeBranch{ background:#7a3f12; border-color:#7a3f12; color:#fff; }
   .orderModeBtnIcon{ background:transparent; }
+  .orderModeBtnIcon img{ filter:grayscale(1) opacity(.62); }
   html.preOrderPage .orderModePreorder .orderModeBtnIcon,
   html.branchOrderPage .orderModeBranch .orderModeBtnIcon{ background:transparent; color:#fff; }
   html.preOrderPage .orderModePreorder .orderModeBtnIcon img,
@@ -418,7 +419,8 @@
   .stepBtn.plus{ background: var(--mustard-500); color:#fff; }
   .stepQty{
     font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',monospace; font-size:12px; font-weight:700;
-    min-width:14px; text-align:center; color:var(--ink);
+    width:30px; min-width:30px; padding:0; border:0; background:transparent; text-align:center; color:var(--ink);
+    outline:none;
   }
 
   .outOfStockText{
@@ -513,30 +515,24 @@
     background:var(--crust-500); color:#fff; box-shadow:0 5px 12px rgba(114,60,16,.18);
   }
   .orderFlowIcon svg{ width:19px; height:19px; }
-  .orderFlowEyebrow{
-    font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
-    font-size:9px; line-height:1.2; font-weight:700; letter-spacing:.12em;
-    color:var(--crust-500); margin-bottom:2px;
-  }
   .orderFlowHead h3{
     font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
     font-size:17px; line-height:1.2; font-weight:750; color:var(--ink);
   }
   .orderFlowSubtitle{ margin-top:3px; color:var(--ink-soft); font-size:10.5px; line-height:1.35; }
-  .dailyBranchChoices{ display:grid; gap:7px; }
+  .dailyBranchChoices{ display:grid; gap:10px; }
   .dailyBranchChoices button{
-    width:100%; min-height:51px; padding:8px 10px; border:1px solid rgba(255,255,255,.09); border-radius:13px;
-    display:grid; grid-template-columns:27px minmax(0,1fr); grid-template-rows:auto auto; align-items:center; column-gap:9px;
+    width:100%; min-height:72px; padding:13px 14px; border:1px solid rgba(255,255,255,.09); border-radius:15px;
+    display:grid; grid-template-columns:40px minmax(0,1fr); grid-template-rows:auto auto; align-items:center; column-gap:12px;
     background:#fff; color:var(--ink); text-align:left; cursor:pointer; box-shadow:0 2px 7px rgba(43,33,24,.04);
   }
   .dailyBranchChoices button:active{ transform:scale(.985); background:#fff7ef; }
   .dailyBranchChoices button > span{
-    grid-row:1 / 3; width:27px; height:27px; border-radius:9px; display:flex; align-items:center; justify-content:center;
-    background:rgba(114,60,16,.1); color:var(--crust-500); font:700 11px 'Inter',sans-serif;
+    grid-row:1 / 3; width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    background:rgba(114,60,16,.1); color:var(--crust-500); font:700 14px 'Inter',sans-serif;
   }
-  .dailyBranchChoices strong{ font:700 12px/1.25 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
-  .dailyBranchChoices small{ color:var(--ink-soft); font-size:9.5px; line-height:1.25; }
-  .eventOrderNote{ width:100%; margin:11px 0 0; padding:8px; border:0; background:transparent; color:var(--crust-500); font:650 9.5px/1.4 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; text-align:center; cursor:pointer; }
+  .dailyBranchChoices strong{ font:700 15px/1.3 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
+  .dailyBranchChoices small{ color:var(--ink-soft); font-size:12px; line-height:1.35; }
 
   dialog.dailyBranchOrderOverlay{ position:fixed; inset:0; z-index:1000; box-sizing:border-box; width:100vw; height:100dvh; max-width:none; max-height:none; margin:0; padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px)); border:0; display:flex; align-items:center; justify-content:center; overflow:visible; background:transparent; color:inherit; }
   dialog.dailyBranchOrderOverlay:not([open]){ display:none; }
@@ -552,11 +548,12 @@
   @keyframes branchChooserFadeIn{ from{opacity:0} to{opacity:1} }
 
   .dailyOrderMode{
-    margin:12px 16px 0; padding:10px 11px; border:1px solid rgba(114,60,16,.15); border-radius:16px;
+    margin:12px 16px clamp(72px, 20vw, 110px); padding:10px 11px; border:1px solid rgba(114,60,16,.15); border-radius:16px;
     display:grid; grid-template-columns:36px minmax(0,1fr) auto; align-items:center; gap:9px;
     background:#fff8f1; box-shadow:0 5px 16px rgba(43,33,24,.05);
   }
   .dailyOrderMode[hidden]{ display:none; }
+  html.dailyBranchSelected:has(#dailyOrderEmptyState:not([hidden])) .dailyOrderMode{ margin-bottom:12px; }
   .dailyOrderModeIcon{ width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; background:var(--crust-500); color:#fff; }
   .dailyOrderModeIcon svg{ width:17px; height:17px; }
   .dailyOrderModeCopy{ min-width:0; display:flex; flex-direction:column; gap:1px; }
@@ -565,6 +562,9 @@
   .dailyOrderModeActions{ position:relative; display:flex; align-items:center; justify-content:flex-end; }
   .dailyOrderModeActions button{ padding:7px 9px; border:0; border-radius:9px; background:rgba(114,60,16,.09); color:var(--crust-500); font:700 10px 'Inter',sans-serif; cursor:pointer; }
   .dailyOrderModeActions select{ display:none; }
+  .dailyOrderEmptyState{ min-height:110px; margin:0 16px; border:1px dashed rgba(114,60,16,.18); border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--soft); background:rgba(255,255,255,.55); font:600 12px/1.3 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
+  .dailyOrderEmptyState[hidden]{ display:none; }
+  .dailyOrderEmptyState svg{ width:25px; height:25px; color:var(--crust-500); opacity:.65; }
   .branchPicker{ position:absolute; z-index:15; top:calc(100% + 7px); right:0; width:190px; padding:6px; border:1px solid rgba(114,60,16,.16); border-radius:15px; background:#fff; box-shadow:0 12px 28px rgba(43,33,24,.16); }
   .branchPicker[hidden]{ display:none; }
   .branchPickerOption{ width:100%; display:flex; align-items:center; gap:8px; padding:8px; border:0; border-radius:10px; background:transparent; color:var(--ink); text-align:left; cursor:pointer; }

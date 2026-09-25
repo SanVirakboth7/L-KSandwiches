@@ -350,6 +350,11 @@ async function loadTodayOrderStats() {
 document.getElementById('quickCreateCategory')?.addEventListener('click', () => {
   openCategoryModal();
 });
+document.getElementById('quickBranchTracking')?.addEventListener('click', () => {
+  const overlay = document.getElementById('branchStockOverlay');
+  if (overlay) { overlay.hidden = false; document.body.classList.add('branchStockOpen'); }
+});
+document.getElementById('branchStockOverlayClose')?.addEventListener('click', () => { document.getElementById('branchStockOverlay').hidden = true; document.body.classList.remove('branchStockOpen'); });
 
 const dailySelectionOverlay = document.getElementById('dailySelectionOverlay');
 const dailySelectionTabs = document.getElementById('dailyBranchTabs');
@@ -1598,13 +1603,24 @@ function setupWorkerLinks() {
   const base = `${window.location.origin}/worker.html`;
   list.innerHTML = branches.map(([id, label, name]) => {
     const url = `${base}?branch=${encodeURIComponent(id)}`;
-    return `<a class="workerLinkRow" href="${escapeAttr(url)}" target="_blank" rel="noopener">
+    return `<div class="workerLinkRow" data-worker-branch="${escapeAttr(id)}"><a class="workerLinkOpen" href="${escapeAttr(url)}" target="_blank" rel="noopener">
       <span class="workerLinkIcon" aria-hidden="true">${label.replace('Branch ', '')}</span>
-      <span class="workerLinkCopy"><strong>${label} · ${name}</strong><small>Open menu &amp; update remaining stock</small></span>
-      <span class="settingsRowChevron" aria-hidden="true">›</span>
-    </a>`;
+      <span class="workerLinkCopy"><strong>${label} · ${name}</strong><small>Open branch dashboard</small></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="${escapeAttr(url)}">Copy link</button></div>`;
   }).join('');
 }
+
+document.getElementById('workerLinksList')?.addEventListener('click', async event => {
+  const button = event.target.closest('[data-worker-copy]');
+  if (!button) return;
+  event.preventDefault();
+  event.stopPropagation();
+  try {
+    await navigator.clipboard.writeText(new URL(button.dataset.workerCopy, window.location.href).href);
+    const original = button.textContent;
+    button.textContent = 'Copied';
+    setTimeout(() => { button.textContent = original; }, 1400);
+  } catch { button.textContent = 'Copy failed'; }
+});
 
 async function setupSettingsPage() {
   bindHeroSettingsEditor();

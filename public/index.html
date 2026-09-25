@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
 <script>document.documentElement.classList.add(location.pathname.replace(/\/$/, '') === '/branch-order' ? 'branchOrderPage' : 'preOrderPage', 'orderPageEntering');</script>
-<link rel="stylesheet" href="assets/css/customer-menu.css?v=branch-chooser-dialog-2">
+<link rel="stylesheet" href="assets/css/customer-menu.css?v=branch-chooser-size-1">
 </head>
 <body>
 <div class="app">
@@ -123,6 +123,10 @@
       </select>
     </div>
   </div>
+  <div class="dailyOrderEmptyState" id="dailyOrderEmptyState" hidden aria-live="polite">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8.5h12l-1 11H7l-1-11Z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/><path d="M9.5 13h5"/></svg>
+    <span>No menu available today</span>
+  </div>
 
   <div class="sectionHead" id="sec-bestseller">
     <h3>Bestseller</h3>
@@ -213,7 +217,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9.5 13h5"/></svg>
         </span>
         <div>
-          <p class="orderFlowEyebrow">SMALL DAILY ORDERS</p>
           <h3 id="orderFlowTitle">Order from a branch</h3>
           <p class="orderFlowSubtitle">Choose a location to see what is available today.</p>
         </div>
@@ -225,7 +228,6 @@
         <button type="button" data-daily-branch="branch-2"><span>2</span><strong>ទីតាំងទី ២</strong><small>Russey Keo (598)</small></button>
         <button type="button" data-daily-branch="branch-3"><span>3</span><strong>ទីតាំងទី ៣</strong><small>AEON Mall Sen Sok</small></button>
       </div>
-      <button type="button" class="eventOrderNote" id="eventOrderModeBtn">Planning a large event? Use Event pre-order</button>
     </section>
     </dialog>
   </div>

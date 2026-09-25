@@ -59,7 +59,7 @@ function renderMenu() {
       return `<div class="workerItem${remaining === 0 ? ' is-empty' : ''}">
         <img src="${esc(product.image_url || 'img/placeholder.jpg')}" alt="" loading="lazy">
         <div class="workerItemName"><strong>${esc(product.name || product.id)}</strong><small>${esc(product.id)} · $${price(product.price).toFixed(2)}</small></div>
-        <div class="workerItemStock"><strong>${remaining}</strong><span>${remaining ? 'នៅសល់' : 'អស់ហើយ'}</span><div class="workerQtyPill"><button type="button" data-worker-step="-1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បន្ថយចំនួន">−</button><input class="workerQty" type="text" inputmode="numeric" readonly value="0" max="${remaining}" data-worker-qty="${esc(product.id)}" data-worker-price="${price(product.price)}" aria-label="ចំនួនលក់ ${esc(product.name || product.id)}" ${remaining ? '' : 'disabled'}><button type="button" data-worker-step="1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បង្កើនចំនួន">+</button></div></div>
+        <div class="workerItemStock"><strong>${remaining}</strong><span>${remaining ? 'នៅសល់' : 'អស់ហើយ'}</span><div class="workerQtyPill"><button type="button" data-worker-step="-1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បន្ថយចំនួន">−</button><input class="workerQty" type="text" inputmode="numeric" value="0" max="${remaining}" data-worker-qty="${esc(product.id)}" data-worker-price="${price(product.price)}" aria-label="ចំនួនលក់ ${esc(product.name || product.id)}" ${remaining ? '' : 'disabled'}><button type="button" data-worker-step="1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បង្កើនចំនួន">+</button></div></div>
       </div>`;
     }).join('')}
   `).join('') || '<p class="workerEmpty">No menu is available for this branch today.</p>';
@@ -107,6 +107,21 @@ $('workerMenuList').addEventListener('click', event => {
   const input = workerInputFor(step.dataset.workerId);
   setWorkerQuantity(step.dataset.workerId, (Number(input?.value) || 0) + Number(step.dataset.workerStep));
 });
+$('workerMenuList').addEventListener('input', event => {
+  const input = event.target.closest('[data-worker-qty]');
+  if (!input) return;
+  // Keep the field easy to type into, but never allow a sale above live stock.
+  const digits = input.value.replace(/\D/g, '');
+  const max = Number(input.max) || 0;
+  input.value = digits === '' ? '' : String(Math.min(max, Number.parseInt(digits, 10) || 0));
+  renderSummary();
+});
+$('workerMenuList').addEventListener('blur', event => {
+  const input = event.target.closest('[data-worker-qty]');
+  if (!input) return;
+  input.value = String(Math.max(0, Math.min(Number(input.max) || 0, Number.parseInt(input.value, 10) || 0)));
+  renderSummary();
+}, true);
 $('workerSubmitBtn').addEventListener('click', async () => { $('workerSubmitBtn').disabled = true; setNotice('Submitting…'); try { await submitWorkerOrder(); } catch (error) { setNotice(error.message || 'Could not submit order.', 'error'); renderSummary(); } });
 supabase.channel(`worker-stock-${branchId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, payload => { const key = payload.new?.key || payload.old?.key; if (key === BRANCH_QUANTITY_SETTING_KEY) loadData().catch(() => {}); }).subscribe();
 async function startWorkerDashboard() {

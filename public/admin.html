@@ -185,6 +185,16 @@
           </div>
           <span class="quickActionChevron">›</span>
         </button>
+        <button class="quickActionCard" id="quickBranchTracking">
+          <div class="quickActionIcon quickActionIconDaily">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16"/><path d="m7 15 4-4 3 2 5-6"/></svg>
+          </div>
+          <div class="quickActionText">
+            <span class="quickActionTitle">Track Branch Stock</span>
+            <span class="quickActionSub">Open the live branch stock dashboard</span>
+          </div>
+          <span class="quickActionChevron">›</span>
+        </button>
         <button class="quickActionCard" id="quickCreateCategory">
           <div class="quickActionIcon quickActionIconAlt">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h10M4 18h7"/><path d="M19 14v6M16 17h6"/></svg>
@@ -322,28 +332,21 @@
         </section>
 
         <section class="settingsMenuGroup workerLinksGroup" aria-labelledby="workerLinksTitle">
-          <div class="workerLinksCard">
+          <div class="workerLinksCard" id="workerLinksCard">
             <div class="workerLinksHead">
               <span class="settingsGroupEyebrow">Branch tools</span>
               <h3 id="workerLinksTitle">Worker dashboard links</h3>
-              <p>Open a branch-only menu to record walk-in sales and keep online stock live.</p>
             </div>
             <div class="workerLinksList" id="workerLinksList">
-              <a class="workerLinkRow" href="/worker.html?branch=branch-1" data-worker-branch="branch-1" target="_blank" rel="noopener">
+              <div class="workerLinkRow" data-worker-branch="branch-1"><a class="workerLinkOpen" href="/worker.html?branch=branch-1" target="_blank" rel="noopener">
                 <span class="workerLinkIcon" aria-hidden="true">1</span>
-                <span class="workerLinkCopy"><strong>ទីតាំងទី ១</strong><small>Branch 1 worker</small></span>
-                <span class="workerLinkArrow" aria-hidden="true">↗</span>
-              </a>
-              <a class="workerLinkRow" href="/worker.html?branch=branch-2" data-worker-branch="branch-2" target="_blank" rel="noopener">
+                <span class="workerLinkCopy"><strong>ទីតាំងទី ១</strong><small>Branch 1 worker</small></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="/worker.html?branch=branch-1">Copy link</button></div>
+              <div class="workerLinkRow" data-worker-branch="branch-2"><a class="workerLinkOpen" href="/worker.html?branch=branch-2" target="_blank" rel="noopener">
                 <span class="workerLinkIcon" aria-hidden="true">2</span>
-                <span class="workerLinkCopy"><strong>ទីតាំងទី ២</strong><small>Branch 2 worker</small></span>
-                <span class="workerLinkArrow" aria-hidden="true">↗</span>
-              </a>
-              <a class="workerLinkRow" href="/worker.html?branch=branch-3" data-worker-branch="branch-3" target="_blank" rel="noopener">
+                <span class="workerLinkCopy"><strong>ទីតាំងទី ២</strong><small>Branch 2 worker</small></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="/worker.html?branch=branch-2">Copy link</button></div>
+              <div class="workerLinkRow" data-worker-branch="branch-3"><a class="workerLinkOpen" href="/worker.html?branch=branch-3" target="_blank" rel="noopener">
                 <span class="workerLinkIcon" aria-hidden="true">3</span>
-                <span class="workerLinkCopy"><strong>ទីតាំងទី ៣</strong><small>Branch 3 worker</small></span>
-                <span class="workerLinkArrow" aria-hidden="true">↗</span>
-              </a>
+                <span class="workerLinkCopy"><strong>ទីតាំងទី ៣</strong><small>Branch 3 worker</small></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="/worker.html?branch=branch-3">Copy link</button></div>
             </div>
           </div>
         </section>
@@ -564,7 +567,15 @@
   </div>
   </div>
 
+<div class="branchStockOverlay" id="branchStockOverlay" hidden>
+  <div class="branchStockOverlayCard" role="dialog" aria-modal="true" aria-labelledby="branchStockTitle">
+    <button type="button" class="branchStockOverlayClose" id="branchStockOverlayClose" aria-label="Close">&times;</button>
+    <header class="stockHeader"><div><span class="eyebrow">L&amp;K ADMIN</span><h1 id="branchStockTitle">Branch stock</h1></div><button id="stockRefresh" type="button">Refresh</button></header>
+    <p id="stockStatus" class="stockStatus">Loading stock…</p><nav id="branchStockTabs" class="branchStockTabs" aria-label="Choose branch"></nav><section id="branchStockGrid" class="branchStockGrid" aria-live="polite"></section>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script>
+<script type="module" src="assets/js/branch-stock-dashboard.js?v=3"></script>
 <script type="module" src="assets/js/admin-dashboard.js?v=supabase-umd-1"></script>
 </body>
 </html>

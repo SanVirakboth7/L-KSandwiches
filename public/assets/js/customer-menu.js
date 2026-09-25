@@ -362,7 +362,7 @@ function addControlHTML(p, { showQuantity = false } = {}) {
     return `
       <div class="stepper" data-id="${p.id}">
         <button type="button" class="stepBtn minus" data-action="dec" aria-label="Remove one">−</button>
-        <span class="stepQty">${qty}</span>
+        <input class="stepQty" type="text" inputmode="numeric" value="${qty}" data-step-qty="${p.id}" aria-label="Quantity">
         <button type="button" class="stepBtn plus" data-action="inc" aria-label="Add one">+</button>
       </div>`;
   }
@@ -402,6 +402,18 @@ function decFromCart(id) {
   if (!cart[id]) return;
   cart[id] -= 1;
   if (cart[id] <= 0) delete cart[id];
+  saveCart();
+  refreshCardControl(id);
+  updateCartBar();
+  if (document.getElementById('cartPage')?.classList.contains('open')) renderCartModal();
+}
+function setCartQuantity(id, value) {
+  const product = allProducts.find(item => item.id === id);
+  if (!product) return;
+  const max = Number.isFinite(productDailyLimit(product)) ? productDailyLimit(product) : 9999;
+  const next = Math.max(0, Math.min(max, Number.parseInt(String(value).replace(/\D/g, ''), 10) || 0));
+  if (next === 0) delete cart[id];
+  else cart[id] = next;
   saveCart();
   refreshCardControl(id);
   updateCartBar();
@@ -566,7 +578,7 @@ function renderCartModal() {
             </div>
             <div class="stepper" data-id="${id}">
               <button class="stepBtn minus" data-action="dec" aria-label="Remove one">−</button>
-              <span class="stepQty">${qty}</span>
+              <input class="stepQty" type="text" inputmode="numeric" value="${qty}" data-step-qty="${id}" aria-label="Quantity">
               <button class="stepBtn plus" data-action="inc" aria-label="Add one">+</button>
             </div>
           </div>
@@ -1395,6 +1407,16 @@ document.addEventListener('click', (e) => {
     else decFromCart(id);
   }
 });
+document.addEventListener('input', (e) => {
+  const input = e.target.closest('[data-step-qty]');
+  if (!input) return;
+  input.value = input.value.replace(/\D/g, '');
+});
+document.addEventListener('change', (e) => {
+  const input = e.target.closest('[data-step-qty]');
+  if (!input) return;
+  setCartQuantity(input.dataset.stepQty, input.value);
+});
 
 function cardHTML(p) {
   const badge = p.badge ? `<span class="badge">${escapeHTML(p.badge)}</span>` : "";
@@ -1446,6 +1468,7 @@ async function loadProducts() {
   renderCategoryUI();
   renderAll(allProducts);
   initCardClicks();
+  syncDailyOrderModeUI();
   updateCartBar();
   if (document.getElementById('cartPage')?.classList.contains('open')) renderCartModal();
 }
@@ -1668,10 +1691,16 @@ function renderGrid(category, items) {
 function syncDailyOrderModeUI() {
   const banner = document.getElementById('dailyOrderMode');
   const branchName = document.getElementById('dailyOrderBranchName');
+  const emptyState = document.getElementById('dailyOrderEmptyState');
   const branchSelect = document.getElementById('dailyOrderBranchSelect');
   if (banner) banner.hidden = !selectedDailyBranch;
   if (branchName && selectedDailyBranch) {
     branchName.textContent = DAILY_BRANCHES[selectedDailyBranch]?.name || selectedDailyBranch;
+  }
+  if (emptyState) {
+    const branchMenu = selectedDailyBranch ? branchMenuQuantities?.[selectedDailyBranch] : null;
+    const hasMenu = branchMenu && typeof branchMenu === 'object' && Object.keys(branchMenu).length > 0;
+    emptyState.hidden = !selectedDailyBranch || hasMenu;
   }
   if (branchSelect && selectedDailyBranch) branchSelect.value = selectedDailyBranch;
   document.querySelectorAll('[data-picker-branch]').forEach(option => {
@@ -1763,10 +1792,6 @@ document.getElementById('dailyOrderBranchSelect')?.addEventListener('change', ev
   event.target.hidden = true;
   document.getElementById('dailyOrderChangeBtn')?.setAttribute('aria-expanded', 'false');
 });
-document.getElementById('eventOrderModeBtn')?.addEventListener('click', () => {
-  window.location.href = '/';
-});
-
 /* ---------- chips / section nav ---------- */
 document.getElementById('chipRow')?.addEventListener('click', event => {
   const chip = event.target.closest('.chip');
@@ -2638,6 +2663,7 @@ supabase
       await loadBranchMenuQuantities();
       renderAll(allProducts);
       initCardClicks();
+      syncDailyOrderModeUI();
     }
   })
   .subscribe();
