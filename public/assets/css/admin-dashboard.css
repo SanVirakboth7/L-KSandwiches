@@ -1375,7 +1375,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .navBtn.active img{ filter:brightness(0) invert(1); }
 .navBtn:hover::before,.navBtn:active::before{ background:rgba(138,90,63,.12); }
 .navBtn.active{ background:transparent; color:var(--brand-brown); }
-.navBtn.active::before,.navBtn.active:hover::before,.navBtn.active:active::before{ background:var(--ink); }
+.navBtn.active::before,.navBtn.active:hover::before,.navBtn.active:active::before{ background:var(--brand-brown); }
 .navBtn:active::before{ transform:translate(-50%,-50%) scale(.94); }
 
 /* ---------- add product modal ---------- */

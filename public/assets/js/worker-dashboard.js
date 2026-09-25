@@ -30,7 +30,7 @@ function renderSummary() {
   const saleInputs = [...document.querySelectorAll('[data-worker-qty]')];
   const saleCount = saleInputs.reduce((sum, input) => sum + Math.max(0, Number.parseInt(input.value, 10) || 0), 0);
   const saleTotal = saleInputs.reduce((sum, input) => sum + (Math.max(0, Number.parseInt(input.value, 10) || 0) * Number(input.dataset.workerPrice || 0)), 0);
-  $('workerOrderSummary').textContent = saleCount ? `${saleCount} កញ្ចប់` : 'មិនទាន់ជ្រើសរើស';
+  if ($('workerOrderSummary')) $('workerOrderSummary').textContent = saleCount ? `${saleCount} កញ្ចប់` : 'មិនទាន់ជ្រើសរើស';
   const rielTotal = Math.round(saleTotal * exchangeRate);
   $('workerOrderTotal').textContent = `សរុប ៛${rielTotal.toLocaleString('km-KH')} · $${saleTotal.toFixed(2)}`;
   $('workerSubmitBtn').disabled = saleCount < 1;
@@ -59,7 +59,7 @@ function renderMenu() {
       return `<div class="workerItem${remaining === 0 ? ' is-empty' : ''}">
         <img src="${esc(product.image_url || 'img/placeholder.jpg')}" alt="" loading="lazy">
         <div class="workerItemName"><strong>${esc(product.name || product.id)}</strong><small>${esc(product.id)} · $${price(product.price).toFixed(2)}</small></div>
-        <div class="workerItemStock"><strong>${remaining}</strong><span>${remaining ? 'នៅសល់' : 'អស់ហើយ'}</span><div class="workerQtyPill"><button type="button" data-worker-step="-1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បន្ថយចំនួន">−</button><input class="workerQty" type="text" inputmode="numeric" value="0" max="${remaining}" data-worker-qty="${esc(product.id)}" data-worker-price="${price(product.price)}" aria-label="ចំនួនលក់ ${esc(product.name || product.id)}" ${remaining ? '' : 'disabled'}><button type="button" data-worker-step="1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បង្កើនចំនួន">+</button></div></div>
+        <div class="workerItemStock"><strong>${remaining}</strong><span>${remaining ? 'នៅសល់' : 'អស់ហើយ'}</span><div class="workerQtyPill"><button type="button" data-worker-step="-1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បន្ថយចំនួន">−</button><input class="workerQty" type="text" readonly value="0" max="${remaining}" data-worker-qty="${esc(product.id)}" data-worker-price="${price(product.price)}" aria-label="ចំនួនលក់ ${esc(product.name || product.id)}" ${remaining ? '' : 'disabled'}><button type="button" data-worker-step="1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បង្កើនចំនួន">+</button></div></div>
       </div>`;
     }).join('')}
   `).join('') || '<p class="workerEmpty">No menu is available for this branch today.</p>';

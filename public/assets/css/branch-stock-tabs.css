@@ -4,3 +4,26 @@
 .branchStockTab.active{background:var(--brown);border-color:var(--brown);color:#fff}
 .branchStockGrid{display:block}
 .branchStockCard{max-width:760px;margin:0 auto}
+.branchStockOverlay .stockHeader{padding-right:48px}
+.branchStockOverlayCard{width:calc(100vw - 28px)!important;max-width:760px!important;margin:0!important;padding:24px 16px!important;overflow-x:hidden}
+.branchStockOverlay .stockHeader{width:100%;min-width:0;gap:10px;padding-right:52px}
+.branchStockOverlay .stockHeader{padding-right:0}
+.branchStockOverlay .stockHeader>div{min-width:0}
+.branchStockOverlay .stockHeader h1{font-size:28px;white-space:nowrap}
+.branchStockOverlay .stockHeader button{flex:0 0 auto}
+.branchStockOverlayCard{background:#fffdfb;border:1px solid rgba(114,60,16,.12);padding:26px 20px 20px!important}
+.branchStockOverlay .stockHeader{align-items:center;margin-bottom:4px}
+.branchStockOverlay .stockHeader h1{font-size:26px;line-height:1.1;letter-spacing:-.02em}
+.branchStockOverlay .eyebrow{font-size:10px;letter-spacing:.06em}
+.branchStockOverlay .stockHeader button{min-height:40px;padding:0 17px;border-radius:12px;background:#7a3f12;font-size:13px}
+.branchStockOverlayClose{position:static;width:40px;height:40px;padding:0;display:grid;place-items:center;box-shadow:0 5px 14px rgba(43,33,24,.18);font-size:0;line-height:0}
+.branchStockOverlayClose svg{width:20px;height:20px;display:block;margin:auto;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.branchStockOverlay .stockStatus{margin:8px 0 15px;font-size:10px}
+.branchStockOverlay .branchStockTabs{gap:9px;margin-bottom:18px}
+.branchStockOverlay .branchStockTab{min-height:46px;border-radius:13px;font-size:14px}
+.branchStockOverlay .branchStockCard{border-radius:20px;box-shadow:0 5px 16px rgba(43,33,24,.05)}
+.branchStockOverlay .branchStockHead{padding:17px 18px;background:#fff9f3}
+.branchStockOverlay .branchStockHead h2{font-size:20px}
+.branchStockOverlay .branchStockTotal strong{font-size:28px}
+.stockRefreshIcon{width:40px!important;min-height:40px!important;height:40px;padding:0!important;display:grid;place-items:center}.stockRefreshIcon svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.stockHeaderActions{display:flex;align-items:center;gap:16px;flex:0 0 auto}

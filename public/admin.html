@@ -569,8 +569,7 @@
 
 <div class="branchStockOverlay" id="branchStockOverlay" hidden>
   <div class="branchStockOverlayCard" role="dialog" aria-modal="true" aria-labelledby="branchStockTitle">
-    <button type="button" class="branchStockOverlayClose" id="branchStockOverlayClose" aria-label="Close">&times;</button>
-    <header class="stockHeader"><div><span class="eyebrow">L&amp;K ADMIN</span><h1 id="branchStockTitle">Branch stock</h1></div><button id="stockRefresh" type="button">Refresh</button></header>
+    <header class="stockHeader"><div><span class="eyebrow">L&amp;K ADMIN</span><h1 id="branchStockTitle">Branch stock</h1></div><div class="stockHeaderActions" style="display:flex;align-items:center;gap:16px"><button id="stockRefresh" class="stockRefreshIcon" type="button" aria-label="Refresh stock" title="Refresh stock"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3.9L3 10"/><path d="M3 5v5h5"/><path d="M4 13a8 8 0 0 0 14.9 3.9L21 14"/><path d="M21 19v-5h-5"/></svg></button><button type="button" class="branchStockOverlayClose" id="branchStockOverlayClose" aria-label="Close" style="position:static;width:40px;height:40px;padding:0;display:grid;place-items:center;font-size:0;line-height:0"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;display:block;margin:auto"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></header>
     <p id="stockStatus" class="stockStatus">Loading stock…</p><nav id="branchStockTabs" class="branchStockTabs" aria-label="Choose branch"></nav><section id="branchStockGrid" class="branchStockGrid" aria-live="polite"></section>
   </div>
 </div>
