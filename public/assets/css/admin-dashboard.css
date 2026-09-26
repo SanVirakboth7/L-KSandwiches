@@ -535,7 +535,9 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .dailySelectionBulkActions{ display:flex; align-items:center; justify-content:flex-end; gap:7px; }
 .dailySelectionToolBtn{ min-height:32px; padding:0 12px; border:1px solid rgba(43,33,24,.13); border-radius:999px; background:#fff; color:var(--ink-soft); font:750 11px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; cursor:pointer; }
 .dailySelectionApplyAll{ border-color:rgba(114,60,16,.18); background:rgba(114,60,16,.08); color:var(--brand-brown); }
+.dailySelectionUndo{ border-color:rgba(114,60,16,.22); color:var(--brand-brown); background:#fff8f1; }
 .dailySelectionSearch,.dailySelectionCategoryFilter{ width:100%; min-width:0; height:44px; padding:0 13px; border:1px solid rgba(43,33,24,.14); border-radius:12px; background:#faf8f5; color:var(--ink-dark); font:650 13px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
+.dailySelectionCategoryFilter{ font-size:15px; }
 .dailySelectionSearch{ grid-column:1; grid-row:1; }
 .dailySelectionCategoryFilter{ grid-column:2; grid-row:1; }
 .dailySelectionSummary{ grid-column:1; grid-row:2; }
@@ -728,17 +730,18 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .adminOrderHead{
   display:flex; align-items:center; justify-content:space-between; gap:12px;
   padding:14px 16px; border-bottom:1px solid rgba(43,33,24,.075);
-  background:#fcfbfa;
+  background:#fff;
 }
 .adminOrderIdentity{ min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
+.adminOrderNumberRow{ display:flex; align-items:center; flex-wrap:wrap; gap:7px; min-width:0; }
 .adminOrderSectionLabel{
   color:var(--ink-soft); font:700 8.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
   text-transform:uppercase; letter-spacing:.6px;
 }
-.adminOrderNumber{ font-size:15px; font-weight:800; color:var(--ink-dark); }
+.adminOrderNumber{ font-size:15px; font-weight:800; color:#000; }
 .adminOrderTime{ margin-top:1px; font-size:9.5px; font-weight:650; color:var(--ink-soft); }
 .adminOrderHeadMeta{
-  flex:0 0 auto; display:flex; align-items:center;
+  flex:0 0 auto; display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:6px;
 }
 .adminOrderStatus{
   min-height:21px; padding:5px 8px; border-radius:999px;
@@ -765,7 +768,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .adminOrderCustomerIcon{
   width:38px; height:38px; flex:0 0 38px; border-radius:12px;
   display:flex; align-items:center; justify-content:center;
-  background:var(--icon-bg); color:var(--brand-brown);
+  background:var(--icon-bg); color:#000;
 }
 .adminOrderCustomerIcon svg{ width:18px; height:18px; }
 .adminOrderCustomerBody{ min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
@@ -792,6 +795,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   font-size:9.5px; font-weight:750;
 }
 .adminOrderChipPrimary{ background:rgba(138,90,63,.12); color:var(--brand-brown); }
+.adminOrderChipBranch{ font-size:12px; color:var(--brand-brown); background:rgba(114,60,16,.13); }
 .adminOrderQuickFacts{
   min-width:0; padding:9px 0; border-top:1px solid rgba(43,33,24,.075); border-bottom:1px solid rgba(43,33,24,.075); border-radius:0;
   display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px;
@@ -802,9 +806,13 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .adminOrderScheduleFact strong{
   color:var(--ink-dark); font-size:13px; font-weight:800; line-height:1.35; overflow-wrap:anywhere;
 }
-.adminOrderAmountFact{ min-width:0; display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
-.adminOrderAmountFact{ align-items:flex-end; padding-left:12px; border-left:1px solid rgba(43,33,24,.09); }
+.adminOrderAmountFact{ min-width:0; display:grid; grid-template-columns:auto auto; align-items:baseline; column-gap:6px; row-gap:2px; }
+.adminOrderAmountFact .adminOrderSectionLabel{ grid-column:1; grid-row:1; }
+.adminOrderAmountFact strong{ grid-column:2; grid-row:1; }
+.adminOrderAmountFact small{ grid-column:2; grid-row:2; }
+.adminOrderAmountFact{ align-items:baseline; padding-left:12px; border-left:1px solid rgba(43,33,24,.09); }
 .adminOrderAmountFact strong{ color:var(--brand-brown); font-size:15px; font-weight:850; }
+.adminOrderAmountFact small{ color:var(--ink-soft); font:700 10px/1.2 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
 .adminOrderDetailsBtn{
   width:100%; min-height:34px; padding:8px 2px 0; border:0; border-top:1px solid rgba(43,33,24,.08);
   display:flex; align-items:center; justify-content:space-between; gap:8px;
@@ -850,29 +858,44 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .adminOrderItems[hidden]{ display:none; }
 .adminOrderItem{
-  display:grid; grid-template-columns:62px minmax(0,1fr); gap:11px; align-items:center;
+  display:grid; grid-template-columns:80px minmax(0,1fr); gap:11px; align-items:center;
   padding:9px; border:1px solid rgba(43,33,24,.10); border-radius:15px;
   background:#fff; font-size:11.5px; line-height:1.4;
 }
 .adminOrderItemImage{
-  width:62px; height:62px; border-radius:12px; overflow:hidden;
+  width:80px; height:80px; border-radius:12px; overflow:hidden;
   display:flex; align-items:center; justify-content:center; background:#f1f1f1;
 }
 .adminOrderItemImage img{ width:100%; height:100%; display:block; object-fit:cover; }
 .adminOrderItemBody{ min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
 .adminOrderItemName{
   color:var(--ink-dark); font-family:'Khmer OS Sans','Noto Sans Khmer','Inter',sans-serif;
-  font-weight:700; overflow-wrap:anywhere;
+  font-size:14px; font-weight:700; line-height:1.3; overflow-wrap:anywhere;
 }
 .adminOrderItemId{
   color:var(--ink-soft); font:650 8.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; white-space:nowrap;
 }
 .adminOrderItemMeta{
   width:100%; margin-top:2px; display:flex; align-items:center; justify-content:space-between; gap:8px;
-  color:var(--ink-soft); font:650 9.5px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+  color:var(--ink-soft); font:700 12px/1.25 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
 }
-.adminOrderItemMeta strong{ color:var(--ink-dark); font-size:11.5px; font-variant-numeric:tabular-nums; }
+.adminOrderItemMeta strong{ color:var(--ink-dark); font-size:14px; font-weight:850; font-variant-numeric:tabular-nums; }
 .adminOrderNoItems{ color:var(--ink-soft); font-size:11px; }
+.adminOrderMenuPreview{ display:flex; flex-direction:column; gap:6px; margin-top:2px; }
+.adminOrderCardBranch .adminOrderHead{ background:#fff; border-bottom-color:rgba(114,60,16,.13); }
+.adminOrderCardBranch .adminOrderNumber{ color:#000; }
+.adminOrderCardBranch .adminOrderTime,
+.adminOrderCardBranch .adminOrderDetailsBtn{ display:none; }
+.adminOrderCardBranch .adminOrderBody{ padding:8px 12px 12px; gap:7px; }
+.adminOrderCardBranch .adminOrderCustomerSection{ grid-template-columns:minmax(0,1fr) auto; }
+.adminOrderCardBranch .adminOrderCustomer{ gap:11px; }
+.adminOrderCardBranch .adminOrderQuickFacts{ padding:7px 0; }
+.adminOrderCardBranch .adminOrderChips{ margin-top:0; gap:4px; }
+.adminOrderCardBranch .adminOrderChip:not(.adminOrderChipBranch):not(.adminOrderChipPrimary){ display:none; }
+.adminOrderCardBranch .adminOrderItem{ grid-template-columns:80px minmax(0,1fr); gap:9px; padding:7px; border-radius:12px; }
+.adminOrderCardBranch .adminOrderItemImage{ width:80px; height:80px; border-radius:9px; }
+.adminOrderCardBranch .adminOrderItemId{ display:none; }
+.adminOrderCardBranch .adminOrderItemMeta{ margin-top:0; }
 .adminOrderTransaction{
   margin:0; padding:0 3px; color:var(--ink-soft); font-size:9.5px;
   line-height:1.4; overflow-wrap:anywhere;

@@ -523,7 +523,7 @@
     font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
     font-size:17px; line-height:1.2; font-weight:750; color:var(--ink);
   }
-  .orderFlowSubtitle{ margin-top:3px; color:var(--ink-soft); font-size:10.5px; line-height:1.35; }
+  .orderFlowSubtitle{ margin-top:3px; color:var(--ink-soft); font-size:12px; line-height:1.35; }
   .dailyBranchChoices{ display:grid; gap:10px; }
   .dailyBranchChoices button{
     width:100%; min-height:72px; padding:13px 14px; border:1px solid rgba(255,255,255,.09); border-radius:15px;
@@ -568,7 +568,7 @@
   .dailyOrderModeActions{ position:relative; display:flex; align-items:center; justify-content:flex-end; }
   .dailyOrderModeActions button{ padding:7px 9px; border:0; border-radius:9px; background:rgba(114,60,16,.09); color:var(--crust-500); font:700 10px 'Inter',sans-serif; cursor:pointer; }
   .dailyOrderModeActions select{ display:none; }
-  .dailyOrderEmptyState{ min-height:110px; margin:0 16px; border:1px dashed rgba(114,60,16,.18); border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--soft); background:rgba(255,255,255,.55); font:600 12px/1.3 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
+  .dailyOrderEmptyState{ min-height:150px; margin:0 16px; border:1px dashed rgba(114,60,16,.18); border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--soft); background:rgba(255,255,255,.55); font:600 12px/1.3 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
   .dailyOrderEmptyState[hidden]{ display:none; }
   .dailyOrderEmptyState svg{ width:25px; height:25px; color:var(--crust-500); opacity:.65; }
   .branchPicker{ position:absolute; z-index:15; top:calc(100% + 7px); right:0; width:190px; padding:6px; border:1px solid rgba(114,60,16,.16); border-radius:15px; background:#fff; box-shadow:0 12px 28px rgba(43,33,24,.16); }

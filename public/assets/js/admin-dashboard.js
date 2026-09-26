@@ -366,8 +366,10 @@ const dailySelectionSummary = document.getElementById('dailySelectionSummary');
 const dailySelectionSearch = document.getElementById('dailySelectionSearch');
 const dailySelectionCategoryFilter = document.getElementById('dailySelectionCategoryFilter');
 const dailySelectionClear = document.getElementById('dailySelectionClear');
+const dailySelectionUndo = document.getElementById('dailySelectionUndo');
 const dailySelectionApplyAll = document.getElementById('dailySelectionApplyAll');
 let dailySelectionBranch = 'branch-1';
+let dailySelectionUndoState = null;
 
 function hasDailySelection(quantityMap, productId) {
   return Object.prototype.hasOwnProperty.call(quantityMap || {}, productId);
@@ -477,6 +479,8 @@ dailySelectionTabs?.addEventListener('click', event => {
   const button = event.target.closest('[data-daily-selection-branch]');
   if (!button) return;
   dailySelectionBranch = button.dataset.dailySelectionBranch;
+  dailySelectionUndoState = null;
+  if (dailySelectionUndo) dailySelectionUndo.hidden = true;
   renderDailySelectionTabs();
   renderDailySelectionList();
 });
@@ -517,9 +521,22 @@ dailySelectionList?.addEventListener('change', event => {
 dailySelectionList?.addEventListener('click', event => {
 });
 dailySelectionClear?.addEventListener('click', () => {
+  dailySelectionUndoState = {
+    branch: dailySelectionBranch,
+    values: { ...(branchMenuQuantities[dailySelectionBranch] || {}) }
+  };
   branchMenuQuantities[dailySelectionBranch] = {};
+  if (dailySelectionUndo) dailySelectionUndo.hidden = false;
   renderDailySelectionList();
   if (dailySelectionStatus) dailySelectionStatus.textContent = 'Branch menu cleared — save to confirm';
+});
+dailySelectionUndo?.addEventListener('click', () => {
+  if (!dailySelectionUndoState || dailySelectionUndoState.branch !== dailySelectionBranch) return;
+  branchMenuQuantities[dailySelectionBranch] = { ...dailySelectionUndoState.values };
+  dailySelectionUndoState = null;
+  dailySelectionUndo.hidden = true;
+  renderDailySelectionList();
+  if (dailySelectionStatus) dailySelectionStatus.textContent = 'Cleared items restored — save to confirm';
 });
 dailySelectionApplyAll?.addEventListener('click', () => {
   const source = { ...(branchMenuQuantities[dailySelectionBranch] || {}) };
@@ -547,6 +564,8 @@ dailySelectionSave?.addEventListener('click', async () => {
     toast('Could not save daily quantities: ' + error.message, true);
     return;
   }
+  dailySelectionUndoState = null;
+  if (dailySelectionUndo) dailySelectionUndo.hidden = true;
   if (dailySelectionStatus) dailySelectionStatus.textContent = 'Saved';
   toast(`${DAILY_BRANCHES[dailySelectionBranch].label} daily menu saved`);
 });
@@ -854,6 +873,7 @@ function orderCardHTML(order) {
     : '';
   const { status: orderStatus, label: orderStatusLabel } = orderStatusMeta(order.status);
   const channelMeta = orderChannelMeta(order);
+  const orderCardClass = channelMeta.isDaily ? ' adminOrderCardBranch' : '';
   const contactActionsHTML = normalizedPhone
     ? `<div class="adminOrderContactActions" aria-label="Contact customer">
         <a class="adminOrderContactBtn" href="tel:${escapeAttr(phoneHref)}" aria-label="Call ${escapeAttr(String(order.customer_name || 'customer'))}" title="Call customer">
@@ -868,10 +888,13 @@ function orderCardHTML(order) {
     : '';
 
   return `
-    <article class="adminOrderCard" data-order-id="${escapeAttr(String(order.id || ''))}" data-order-label="Order #${escapeAttr(String(orderNumber))}">
+    <article class="adminOrderCard${orderCardClass}" data-order-id="${escapeAttr(String(order.id || ''))}" data-order-label="Order #${escapeAttr(String(orderNumber))}">
       <div class="adminOrderHead">
         <div class="adminOrderIdentity">
-          <span class="adminOrderNumber">Order #${escapeHTML(String(orderNumber))}</span>
+          <div class="adminOrderNumberRow">
+            <span class="adminOrderNumber">Order #${escapeHTML(String(orderNumber))}</span>
+            <span class="adminOrderChip adminOrderChipBranch">${escapeHTML(channelMeta.label)}</span>
+          </div>
           <time class="adminOrderTime">${escapeHTML(formatOrderCreatedAt(order.created_at))}</time>
         </div>
         <div class="adminOrderHeadMeta">
@@ -900,15 +923,16 @@ function orderCardHTML(order) {
           <div class="adminOrderAmountFact">
             <span class="adminOrderSectionLabel">Total</span>
             <strong>$${orderTotal.toFixed(2)}</strong>
+            <small>${escapeHTML(formatAdminRiel(orderTotal))}</small>
           </div>
         </div>
 
         <div class="adminOrderChips">
-          <span class="adminOrderChip adminOrderChipBranch">${escapeHTML(channelMeta.label)}</span>
-          <span class="adminOrderChip adminOrderChipPrimary">${order.order_type === 'delivery' ? 'Delivery' : 'Pick-up'}</span>
           <span class="adminOrderChip">${paymentState}</span>
           <span class="adminOrderChip">${Number(order.item_count) || 0} item${Number(order.item_count) === 1 ? '' : 's'}</span>
         </div>
+
+        ${channelMeta.isDaily ? `<div class="adminOrderMenuPreview" aria-label="Ordered menu items">${itemsHTML || '<p class="adminOrderNoItems">No items</p>'}</div>` : ''}
 
         <button type="button" class="adminOrderDetailsBtn" data-order-details>
           <span>View details</span>
