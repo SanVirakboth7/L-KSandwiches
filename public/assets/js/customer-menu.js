@@ -174,9 +174,9 @@ const BRANCH_QUANTITY_SETTING_KEY = 'branch_menu_quantities';
 const BRANCH_STOCK_USAGE_KEY = 'lk_branch_stock_usage';
 const ORDER_MODE_STORAGE_KEY = 'lk_order_mode';
 const DAILY_BRANCHES = {
-  'branch-1': { name: 'ទីតាំងទី ១', shortName: 'Branch 1' },
-  'branch-2': { name: 'ទីតាំងទី ២', shortName: 'Branch 2' },
-  'branch-3': { name: 'ទីតាំងទី ៣', shortName: 'Branch 3' }
+  'branch-1': { name: 'ទីតាំងទី ១', address: 'ABA Grand Phnom Penh', shortName: 'Branch 1' },
+  'branch-2': { name: 'ទីតាំងទី ២', address: 'Russey Keo (598)', shortName: 'Branch 2' },
+  'branch-3': { name: 'ទីតាំងទី ៣', address: 'AEON Mall Sen Sok', shortName: 'Branch 3' }
 };
 const DEFAULT_KHR_PER_USD = 4000;
 let acceptingOrders = true;
@@ -1430,6 +1430,7 @@ function cardHTML(p) {
     <div class="card ${outOfStock ? 'outOfStock' : ''}" data-id="${p.id}">
       <div class="cardArt">
         ${badge}
+        ${available}
         ${stockRibbon}
         <img src="${escapeAttr(p.image_url)}" alt="${escapeAttr(p.name)}">
       </div>
@@ -1438,7 +1439,6 @@ function cardHTML(p) {
           <p class="id">ID: ${p.id}</p>
           <p class="name">${escapeHTML(p.name)}</p>
           ${price}
-          ${available}
         </div>
         <div class="addWrap cardAddWrap" data-add-id="${p.id}">${addControlHTML(p, { showQuantity: Boolean(selectedDailyBranch) })}</div>
       </div>
@@ -1691,11 +1691,15 @@ function renderGrid(category, items) {
 function syncDailyOrderModeUI() {
   const banner = document.getElementById('dailyOrderMode');
   const branchName = document.getElementById('dailyOrderBranchName');
+  const branchAddress = document.getElementById('dailyOrderBranchAddress');
   const emptyState = document.getElementById('dailyOrderEmptyState');
   const branchSelect = document.getElementById('dailyOrderBranchSelect');
   if (banner) banner.hidden = !selectedDailyBranch;
   if (branchName && selectedDailyBranch) {
     branchName.textContent = DAILY_BRANCHES[selectedDailyBranch]?.name || selectedDailyBranch;
+  }
+  if (branchAddress && selectedDailyBranch) {
+    branchAddress.textContent = DAILY_BRANCHES[selectedDailyBranch]?.address || '';
   }
   if (emptyState) {
     const branchMenu = selectedDailyBranch ? branchMenuQuantities?.[selectedDailyBranch] : null;
@@ -1995,6 +1999,12 @@ const modalImg = document.getElementById('modalImg');
 function openModal(product) {
   document.getElementById('modalBadge').textContent = product.badge || '';
   document.getElementById('modalBadge').style.display = product.badge ? '' : 'none';
+  const modalAvailable = document.getElementById('modalAvailable');
+  if (modalAvailable) {
+    const hasDailyStock = Boolean(selectedDailyBranch);
+    modalAvailable.textContent = hasDailyStock ? `${Math.max(0, productDailyLimit(product))} available` : '';
+    modalAvailable.style.display = hasDailyStock ? '' : 'none';
+  }
   document.getElementById('modalId').textContent = 'ID: ' + product.id;
   document.getElementById('modalName').textContent = product.name || 'N/A';
   // Coerce to string first: Supabase numeric columns come back as JS
