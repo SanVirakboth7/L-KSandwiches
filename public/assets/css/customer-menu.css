@@ -512,13 +512,13 @@
     background:linear-gradient(145deg,#fffaf5,#f7eee5); color:var(--ink);
     box-shadow:0 8px 22px rgba(43,33,24,.07);
   }
-  .orderFlowHead{ display:flex; align-items:center; gap:11px; margin-bottom:15px; }
+  .orderFlowHead{ display:flex; align-items:center; gap:14px; margin-bottom:15px; }
   .orderFlowIcon{
-    width:40px; height:40px; flex:0 0 40px; border-radius:13px;
+    width:30px; height:30px; flex:0 0 30px; border-radius:10px;
     display:flex; align-items:center; justify-content:center;
-    background:var(--crust-500); color:#fff; box-shadow:0 5px 12px rgba(114,60,16,.18);
+    background:#fff; color:inherit; box-shadow:0 2px 7px rgba(43,33,24,.10);
   }
-  .orderFlowIcon svg{ width:19px; height:19px; }
+  .orderFlowIcon img{ width:30px; height:30px; object-fit:contain; display:block; }
   .orderFlowHead h3{
     font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
     font-size:17px; line-height:1.2; font-weight:750; color:var(--ink);
@@ -533,8 +533,9 @@
   .dailyBranchChoices button:active{ transform:scale(.985); background:#fff7ef; }
   .dailyBranchChoices button > span{
     grid-row:1 / 3; width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
-    background:rgba(114,60,16,.1); color:var(--crust-500); font:700 14px 'Inter',sans-serif;
+    background:transparent; color:var(--crust-500); font:700 14px 'Inter',sans-serif;
   }
+  .dailyBranchChoices button > span img{ width:40px; height:40px; object-fit:contain; display:block; }
   .dailyBranchChoices strong{ font:700 15px/1.3 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
   .dailyBranchChoices small{ color:var(--ink-soft); font-size:12px; line-height:1.35; }
 

@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
 <script>document.documentElement.classList.add(location.pathname.replace(/\/$/, '') === '/branch-order' ? 'branchOrderPage' : 'preOrderPage', 'orderPageEntering');</script>
-<link rel="stylesheet" href="assets/css/customer-menu.css?v=branch-chooser-size-1">
+<link rel="stylesheet" href="assets/css/customer-menu.css?v=branch-chooser-size-2">
 </head>
 <body>
 <div class="app">
@@ -82,7 +82,7 @@
       </a>
       <a class="orderModeBtn orderModeBranch" href="branch-order.html?choose=branch">
         <span class="orderModeBtnIcon" aria-hidden="true">
-          <img src="img/branch-order-icon.png?v=storefront-2" alt="">
+          <img src="img/branch-order-icon.png?v=storefront-4" alt="">
         </span>
         <span><strong>Branch order</strong><small>Today’s daily menu</small></span>
       </a>
@@ -106,7 +106,7 @@
 
   <div class="dailyOrderMode" id="dailyOrderMode" hidden>
     <span class="orderModeBtnIcon" aria-hidden="true">
-      <img src="img/branch-order-icon.png?v=storefront-2" alt="">
+      <img src="img/branch-order-icon.png?v=storefront-4" alt="">
     </span>
     <span class="dailyOrderModeCopy"><strong id="dailyOrderBranchName">ទីតាំងទី ១</strong><small id="dailyOrderBranchAddress">ABA Grand Phnom Penh</small></span>
     <div class="dailyOrderModeActions">
@@ -213,20 +213,17 @@
     <dialog class="dailyBranchOrderOverlay" id="dailyBranchOrderOverlay" aria-labelledby="orderFlowTitle">
     <section class="orderFlowCard" id="dailyBranchOrder">
       <div class="orderFlowHead">
-        <span class="orderFlowIcon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9.5 13h5"/></svg>
-        </span>
         <div>
-          <h3 id="orderFlowTitle">Order from a branch</h3>
-          <p class="orderFlowSubtitle">Choose a location to see what is available today.</p>
+          <h3 id="orderFlowTitle">កុម្ម៉ង់ទុកពីសាខា</h3>
+          <p class="orderFlowSubtitle">ជ្រើសរើសទីតាំង ដើម្បីមើលមុខម្ហូបដែលមានសម្រាប់ថ្ងៃនេះ</p>
         </div>
         <button type="button" class="orderFlowClose" id="orderFlowClose" aria-label="Close branch selection">&times;</button>
       </div>
 
       <div class="dailyBranchChoices" aria-label="Choose a branch for a daily order">
-        <button type="button" data-daily-branch="branch-1"><span>1</span><strong>ទីតាំងទី ១</strong><small>ABA Grand Phnom Penh</small></button>
-        <button type="button" data-daily-branch="branch-2"><span>2</span><strong>ទីតាំងទី ២</strong><small>Russey Keo (598)</small></button>
-        <button type="button" data-daily-branch="branch-3"><span>3</span><strong>ទីតាំងទី ៣</strong><small>AEON Mall Sen Sok</small></button>
+        <button type="button" data-daily-branch="branch-1"><span><img src="img/branch-order-icon.png?v=storefront-4" alt=""></span><strong>ទីតាំងទី ១</strong><small>ABA Grand Phnom Penh</small></button>
+        <button type="button" data-daily-branch="branch-2"><span><img src="img/branch-order-icon.png?v=storefront-4" alt=""></span><strong>ទីតាំងទី ២</strong><small>Russey Keo (598)</small></button>
+        <button type="button" data-daily-branch="branch-3"><span><img src="img/branch-order-icon.png?v=storefront-4" alt=""></span><strong>ទីតាំងទី ៣</strong><small>AEON Mall Sen Sok</small></button>
       </div>
     </section>
     </dialog>
