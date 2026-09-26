@@ -6,6 +6,7 @@ type OrderRecord = {
   order_number: number | string | null
   item_count: number | null
   total: number | string | null
+  items?: Array<{ order_channel?: string; branch_id?: string }>
 }
 
 type WebhookPayload = {
@@ -52,13 +53,20 @@ function orderNotification(order: OrderRecord) {
     : ''
   const itemCount = Math.max(0, Number(order.item_count) || 0)
   const total = Math.max(0, Number(order.total) || 0)
+  const branchItem = (order.items || []).find(item => item.order_channel === 'branch_daily' && item.branch_id)
+  const branchLabels: Record<string, string> = {
+    'branch-1': 'ទីតាំងទី ១',
+    'branch-2': 'ទីតាំងទី ២',
+    'branch-3': 'ទីតាំងទី ៣',
+  }
+  const branchLabel = branchItem?.branch_id ? branchLabels[branchItem.branch_id] : ''
   const siteOrigin = Deno.env.get('ADMIN_SITE_ORIGIN') || 'https://lnksandwiches.emenu.workers.dev'
 
   const destination = `${siteOrigin}/admin.html#orders`
   return JSON.stringify({
     web_push: 8030,
     notification: {
-      title: `New order ${orderNumber}`.trim(),
+      title: branchLabel ? `${branchLabel}${orderNumber ? ` · ${orderNumber}` : ''}` : `New order ${orderNumber}`.trim(),
       body: `${itemCount} item${itemCount === 1 ? '' : 's'} · $${total.toFixed(2)}`,
       navigate: destination,
       icon: `${siteOrigin}/img/logo.png`,

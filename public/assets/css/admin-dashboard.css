@@ -884,7 +884,6 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .adminOrderMenuPreview{ display:flex; flex-direction:column; gap:6px; margin-top:2px; }
 .adminOrderCardBranch .adminOrderHead{ background:#fff; border-bottom-color:rgba(114,60,16,.13); }
 .adminOrderCardBranch .adminOrderNumber{ color:#000; }
-.adminOrderCardBranch .adminOrderTime,
 .adminOrderCardBranch .adminOrderDetailsBtn{ display:none; }
 .adminOrderCardBranch .adminOrderBody{ padding:8px 12px 12px; gap:7px; }
 .adminOrderCardBranch .adminOrderCustomerSection{ grid-template-columns:minmax(0,1fr) auto; }
