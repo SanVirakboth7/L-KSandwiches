@@ -690,14 +690,20 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 }
 .ordersCount{ font-size:11.5px; font-weight:700; color:var(--ink-soft); white-space:nowrap; }
 .ordersBranchFilters{
-  display:flex; gap:6px; margin:0 0 12px; padding:2px; overflow-x:auto; scrollbar-width:none;
+  display:flex; gap:8px; margin:0 0 14px; padding:4px; overflow-x:auto; scrollbar-width:none;
+  border:1px solid rgba(43,33,24,.09); border-radius:16px; background:#f8f5f1;
+  scroll-snap-type:x proximity;
 }
 .ordersBranchFilters::-webkit-scrollbar{ display:none; }
 .ordersBranchFilters button{
-  flex:0 0 auto; min-height:31px; padding:7px 11px; border:1px solid rgba(43,33,24,.1); border-radius:999px;
-  background:#fff; color:var(--ink-soft); font:700 10px/1 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; cursor:pointer;
+  flex:0 0 auto; min-height:42px; padding:0 17px; border:1px solid rgba(43,33,24,.12); border-radius:12px;
+  background:#fff; color:var(--ink-soft); font:750 12px/1 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; cursor:pointer;
+  box-shadow:0 2px 5px rgba(43,33,24,.04); scroll-snap-align:start;
+  transition:background .16s ease,border-color .16s ease,color .16s ease,transform .16s ease;
 }
-.ordersBranchFilters button.active{ background:var(--brand-brown); border-color:var(--brand-brown); color:#fff; }
+.ordersBranchFilters button:hover{ border-color:rgba(114,60,16,.28); color:var(--brand-brown); }
+.ordersBranchFilters button:active{ transform:scale(.98); }
+.ordersBranchFilters button.active{ background:var(--brand-brown); border-color:var(--brand-brown); color:#fff; box-shadow:0 5px 12px rgba(114,60,16,.18); }
 .ordersRefreshBtn{
   width:36px; height:36px; border:1px solid rgba(43,33,24,.12); border-radius:11px;
   display:flex; align-items:center; justify-content:center;
@@ -1223,8 +1229,15 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .exchangeRateCard{
   width:100%; display:flex; align-items:center; gap:12px;
   border-bottom:1px solid rgba(43,33,24,.09);
+  border-top:0; border-left:0; border-right:0; cursor:pointer; text-align:left;
+  background:#fff; color:inherit;
   font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
 }
+.exchangeRateModalCard{ width:min(100%,380px); padding:20px; }
+.exchangeRateModalForm{ display:flex; align-items:end; gap:10px; padding-top:8px; }
+.exchangeRateModalForm .exchangeRateField{ flex:1; width:auto; min-height:48px; margin-top:0; flex-direction:column; align-items:flex-start; padding:8px 11px; gap:4px; }
+.exchangeRateModalForm .exchangeRateField > span{ font-size:10px; color:var(--ink-soft); }
+.exchangeRateModalForm .exchangeRateSaveBtn{ min-height:48px; }
 .exchangeRateIcon{
   flex:0 0 40px; display:flex; align-items:center; justify-content:center;
   background:var(--icon-bg); color:var(--brand-brown);
@@ -1233,7 +1246,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .exchangeRateCopy{ min-width:0; flex:1; display:flex; flex-direction:column; gap:2px; }
 .exchangeRateCopy small{ color:var(--ink-soft); font-weight:600; }
 .exchangeRateField{
-  width:112px; min-height:38px; padding:0 10px;
+  width:112px; min-height:38px; margin-top:0; padding:0 10px;
   display:flex; align-items:center; gap:6px;
   border:1px solid rgba(43,33,24,.10); border-radius:12px;
   background:rgba(43,33,24,.045); color:var(--brand-brown);
@@ -1518,7 +1531,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .menuCategoryManager .categoryManagerRow{ padding-top:0; padding-bottom:0; border-bottom:0; }
 .categoryCreateModalCard{ max-width:410px; }
 .categoryModalHeader{
-  display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:16px;
+  display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:0;
 }
 .categoryModalHeader h2{ margin-top:2px; }
 .categoryModalClose{

@@ -22,6 +22,17 @@ type PushSubscriptionRow = {
   auth: string
 }
 
+function normalizeOrderItems(value: unknown): Array<{ order_channel?: string; branch_id?: string }> {
+  if (Array.isArray(value)) return value as Array<{ order_channel?: string; branch_id?: string }>
+  if (typeof value !== 'string') return []
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed as Array<{ order_channel?: string; branch_id?: string }> : []
+  } catch {
+    return []
+  }
+}
+
 function json(data: unknown, status = 200) {
   return Response.json(data, {
     status,
@@ -47,13 +58,18 @@ function readSecretKey() {
   return secretKeys.default || Object.values(secretKeys)[0] || ''
 }
 
-function orderNotification(order: OrderRecord) {
+async function orderNotification(order: OrderRecord, supabase: ReturnType<typeof createClient>) {
   const orderNumber = order.order_number
     ? `#${String(order.order_number).padStart(3, '0')}`
     : ''
   const itemCount = Math.max(0, Number(order.item_count) || 0)
   const total = Math.max(0, Number(order.total) || 0)
-  const branchItem = (order.items || []).find(item => item.order_channel === 'branch_daily' && item.branch_id)
+  let orderItems = normalizeOrderItems(order.items)
+  if (!orderItems.length && order.id) {
+    const { data } = await supabase.from('orders').select('items').eq('id', order.id).maybeSingle()
+    orderItems = normalizeOrderItems(data?.items)
+  }
+  const branchItem = orderItems.find(item => item.order_channel === 'branch_daily' && item.branch_id)
   const branchLabels: Record<string, string> = {
     'branch-1': 'ទីតាំងទី ១',
     'branch-2': 'ទីតាំងទី ២',
@@ -115,7 +131,7 @@ export default {
       .select('endpoint,p256dh,auth')
 
     if (error) return json({ error: 'Could not load push subscriptions.' }, 500)
-    const message = orderNotification(payload.record)
+    const message = await orderNotification(payload.record, supabase)
     const expiredEndpoints: string[] = []
     let delivered = 0
     let failed = 0

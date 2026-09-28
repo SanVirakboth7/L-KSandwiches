@@ -28,11 +28,16 @@
         <h1 id="workerBranchName">Branch dashboard</h1>
       </div>
     </header>
-    <section class="workerSummary">
-      <div><strong id="workerItemCount">0</strong><span>មុខម្ហូប</span></div>
-      <div><strong id="workerPortionCount">0</strong><span>ចំនួននៅសល់</span></div>
-      <button type="button" id="workerRefreshBtn" aria-label="Refresh stock">↻</button>
-    </section>
+    <div class="workerSummaryRow">
+      <section class="workerSummary">
+        <div><strong id="workerItemCount">0</strong><span>មុខម្ហូប</span></div>
+        <div><strong id="workerPortionCount">0</strong><span>ចំនួននៅសល់</span></div>
+        <button type="button" id="workerRefreshBtn" aria-label="Refresh stock">↻</button>
+      </section>
+      <button type="button" class="workerQrBtn" id="workerQrBtn" aria-label="Show main website QR code" title="Main website QR">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2v2h-2zM18 18h2v2h-2z"/></svg>
+      </button>
+    </div>
     <section class="workerOrderPanel">
       <div class="workerPanelHead">
         <div><span class="workerEyebrow">ម៉ឺនុយថ្ងៃនេះ</span></div>
@@ -46,6 +51,14 @@
     </section>
     <p class="workerNotice" id="workerNotice" aria-live="polite"></p>
   </main>
+  <div class="workerQrOverlay" id="workerQrOverlay" hidden>
+    <div class="workerQrCard" role="dialog" aria-modal="true" aria-labelledby="workerQrTitle">
+      <button type="button" class="workerQrClose" id="workerQrClose" aria-label="Close QR popup">&times;</button>
+      <h2 id="workerQrTitle">Main website</h2>
+      <p>Scan to open the L&amp;K Sandwiches menu.</p>
+      <img id="workerQrImage" src="" alt="QR code for the main website">
+    </div>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script>
   <script type="module" src="assets/js/worker-dashboard.js?v=supabase-umd-1"></script>
 </body>

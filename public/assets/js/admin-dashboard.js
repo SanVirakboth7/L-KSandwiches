@@ -207,9 +207,28 @@ const orderAvailabilityCard = document.getElementById('orderAvailabilityCard');
 const performanceItemsCard = document.getElementById('performanceItemsCard');
 const performanceAvailabilityLabel = document.getElementById('performanceAvailabilityLabel');
 const exchangeRateForm = document.getElementById('exchangeRateForm');
+const exchangeRateCard = document.getElementById('exchangeRateCard');
+const exchangeRateModalOverlay = document.getElementById('exchangeRateModalOverlay');
+const exchangeRateModalClose = document.getElementById('exchangeRateModalClose');
 const exchangeRateInput = document.getElementById('exchangeRateInput');
 const exchangeRateSaveBtn = document.getElementById('exchangeRateSaveBtn');
 const exchangeRateStatus = document.getElementById('exchangeRateStatus');
+
+function closeExchangeRateModal() {
+  exchangeRateModalOverlay?.classList.remove('open');
+  exchangeRateModalOverlay?.setAttribute('aria-hidden', 'true');
+  exchangeRateCard?.setAttribute('aria-expanded', 'false');
+}
+exchangeRateCard?.addEventListener('click', () => {
+  exchangeRateModalOverlay?.classList.add('open');
+  exchangeRateModalOverlay?.setAttribute('aria-hidden', 'false');
+  exchangeRateCard?.setAttribute('aria-expanded', 'true');
+  exchangeRateInput?.focus();
+});
+exchangeRateModalClose?.addEventListener('click', closeExchangeRateModal);
+exchangeRateModalOverlay?.addEventListener('click', event => {
+  if (event.target === exchangeRateModalOverlay) closeExchangeRateModal();
+});
 
 function renderAcceptingOrdersSetting(isAccepting) {
   if (acceptOrdersToggle) acceptOrdersToggle.checked = isAccepting;
@@ -304,6 +323,7 @@ exchangeRateForm?.addEventListener('submit', async event => {
   } else {
     toast('Exchange rate updated');
     renderExchangeRateSetting(nextRate, 'Saved');
+    closeExchangeRateModal();
     loadTodayOrderStats();
   }
   if (exchangeRateSaveBtn) exchangeRateSaveBtn.disabled = false;
@@ -1591,7 +1611,7 @@ function setupWorkerLinks() {
     const url = `${base}?branch=${encodeURIComponent(id)}`;
     return `<div class="workerLinkRow" data-worker-branch="${escapeAttr(id)}"><a class="workerLinkOpen" href="${escapeAttr(url)}" target="_blank" rel="noopener">
       <span class="workerLinkIcon" aria-hidden="true">${label.replace('Branch ', '')}</span>
-      <span class="workerLinkCopy"><strong>${label} · ${name}</strong><small>Open branch dashboard</small></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="${escapeAttr(url)}">Copy link</button></div>`;
+      <span class="workerLinkCopy"><strong>${label} · ${name}</strong></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="${escapeAttr(url)}">Copy link</button></div>`;
   }).join('');
 }
 

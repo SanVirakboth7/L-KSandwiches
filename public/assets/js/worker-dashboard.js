@@ -100,6 +100,16 @@ async function submitWorkerOrder() {
   setNotice('Order submitted and stock updated for everyone.', 'success');
 }
 $('workerBranchName').textContent = `${branch.label} · ${branch.name}`;
+$('workerQrBtn').addEventListener('click', () => {
+  const overlay = $('workerQrOverlay');
+  const image = $('workerQrImage');
+  if (!overlay || !image) return;
+  const mainWebsiteUrl = `${window.location.origin}/`;
+  image.src = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=8&data=${encodeURIComponent(mainWebsiteUrl)}`;
+  overlay.hidden = false;
+});
+$('workerQrClose').addEventListener('click', () => { $('workerQrOverlay').hidden = true; });
+$('workerQrOverlay').addEventListener('click', event => { if (event.target.id === 'workerQrOverlay') event.currentTarget.hidden = true; });
 $('workerRefreshBtn').addEventListener('click', () => loadData().catch(error => setNotice(error.message, 'error')));
 $('workerMenuList').addEventListener('click', event => {
   const step = event.target.closest('[data-worker-step]');
