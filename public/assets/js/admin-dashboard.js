@@ -232,9 +232,7 @@ exchangeRateModalOverlay?.addEventListener('click', event => {
 
 function renderAcceptingOrdersSetting(isAccepting) {
   if (acceptOrdersToggle) acceptOrdersToggle.checked = isAccepting;
-  if (acceptOrdersStatus) acceptOrdersStatus.textContent = isAccepting
-    ? 'Customers can place orders'
-    : 'Currently closed';
+  if (acceptOrdersStatus) acceptOrdersStatus.textContent = isAccepting ? 'Open' : 'Paused';
   orderAvailabilityCard?.classList.toggle('closed', !isAccepting);
   performanceItemsCard?.classList.toggle('closed', !isAccepting);
   if (performanceAvailabilityLabel) performanceAvailabilityLabel.textContent = isAccepting ? 'Open' : 'Closed';
@@ -250,7 +248,7 @@ async function loadAcceptingOrdersSetting() {
 
   if (error) {
     console.warn('[L&K admin] Could not load order availability:', error.message);
-    if (acceptOrdersStatus) acceptOrdersStatus.textContent = 'Availability unavailable';
+    if (acceptOrdersStatus) acceptOrdersStatus.textContent = 'Unavailable';
     return;
   }
 
@@ -1326,11 +1324,11 @@ function renderPushNotificationState(state, detail = '') {
   pushNotificationBtn.setAttribute('aria-label', isEnabled ? 'Turn off new order alerts' : 'Turn on new order alerts');
 
   const states = {
-    enabled: 'Alerts will arrive even when this app is closed',
-    disabled: 'Get a sound, vibration and badge for new orders',
-    unavailable: 'Push alerts are unavailable on this device',
-    blocked: 'Allow notifications in your phone settings',
-    unsupported: 'This browser does not support Web Push',
+    enabled: 'On',
+    disabled: 'Off',
+    unavailable: 'Not available',
+    blocked: 'Blocked in settings',
+    unsupported: 'Unsupported',
     working: detail || 'Updating this device…',
     error: detail || 'Notifications could not be enabled'
   };
@@ -1602,16 +1600,16 @@ function setupWorkerLinks() {
   const list = document.getElementById('workerLinksList');
   if (!list) return;
   const branches = [
-    ['branch-1', 'Branch 1', 'ទីតាំងទី ១'],
-    ['branch-2', 'Branch 2', 'ទីតាំងទី ២'],
-    ['branch-3', 'Branch 3', 'ទីតាំងទី ៣']
+    ['branch-1', 'ទីតាំងទី ១'],
+    ['branch-2', 'ទីតាំងទី ២'],
+    ['branch-3', 'ទីតាំងទី ៣']
   ];
   const base = `${window.location.origin}/worker.html`;
-  list.innerHTML = branches.map(([id, label, name]) => {
+  list.innerHTML = branches.map(([id, name], index) => {
     const url = `${base}?branch=${encodeURIComponent(id)}`;
     return `<div class="workerLinkRow" data-worker-branch="${escapeAttr(id)}"><a class="workerLinkOpen" href="${escapeAttr(url)}" target="_blank" rel="noopener">
-      <span class="workerLinkIcon" aria-hidden="true">${label.replace('Branch ', '')}</span>
-      <span class="workerLinkCopy"><strong>${label} · ${name}</strong></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="${escapeAttr(url)}">Copy link</button></div>`;
+      <span class="workerLinkIcon" aria-hidden="true">${index + 1}</span>
+      <span class="workerLinkCopy"><strong>${name}</strong></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="${escapeAttr(url)}">Copy</button></div>`;
   }).join('');
 }
 

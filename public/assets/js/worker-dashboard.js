@@ -15,12 +15,20 @@ let products = [];
 let categories = [];
 let quantities = {};
 let exchangeRate = 4000;
+let workerSuccessToastTimer;
 
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
 const price = value => Number.parseFloat(String(value || '').replace(/[^0-9.]/g, '')) || 0;
 
 function setNotice(message, type = '') { const notice = $('workerNotice'); notice.textContent = message; notice.className = `workerNotice ${type}`; }
+function showWorkerSuccessToast() {
+  const toast = $('workerSuccessToast');
+  if (!toast) return;
+  clearTimeout(workerSuccessToastTimer);
+  toast.hidden = false;
+  workerSuccessToastTimer = setTimeout(() => { toast.hidden = true; }, 2400);
+}
 function selectedProducts() { return products.filter(product => Object.prototype.hasOwnProperty.call(quantities, product.id)); }
 function renderSummary() {
   const selected = selectedProducts();
@@ -34,6 +42,7 @@ function renderSummary() {
   const rielTotal = Math.round(saleTotal * exchangeRate);
   $('workerOrderTotal').textContent = `សរុប ៛${rielTotal.toLocaleString('km-KH')} · $${saleTotal.toFixed(2)}`;
   $('workerSubmitBtn').disabled = saleCount < 1;
+  $('workerClearBtn').disabled = saleCount < 1;
 }
 function workerInputFor(productId) {
   return [...document.querySelectorAll('[data-worker-qty]')].find(input => input.dataset.workerQty === productId);
@@ -97,7 +106,8 @@ async function submitWorkerOrder() {
   await supabase.from('orders').insert({ client_order_id: newId(), customer_name: `Walk-in · ${branch.label}`, customer_phone: '+855000000000', delivery_address: '', delivery_location_url: '', order_type: 'pickup', payment_method: 'cash', payment_status: 'cash_due', payment_transaction_id: null, scheduled_date: new Date().toISOString().slice(0, 10), scheduled_time: '', customer_notes: 'Worker stock adjustment', items: orderItems, item_count: sales.reduce((sum, item) => sum + item.quantity, 0), total: Number(orderItems.reduce((sum, item) => sum + item.line_total, 0).toFixed(2)), currency: 'USD', status: 'completed', telegram_sent: false });
   quantities = latestBranch;
   renderMenu();
-  setNotice('Order submitted and stock updated for everyone.', 'success');
+  setNotice('Stock updated for everyone.', 'success');
+  showWorkerSuccessToast();
 }
 $('workerBranchName').textContent = `${branch.label} · ${branch.name}`;
 $('workerQrBtn').addEventListener('click', () => {
@@ -133,6 +143,11 @@ $('workerMenuList').addEventListener('blur', event => {
   renderSummary();
 }, true);
 $('workerSubmitBtn').addEventListener('click', async () => { $('workerSubmitBtn').disabled = true; setNotice('Submitting…'); try { await submitWorkerOrder(); } catch (error) { setNotice(error.message || 'Could not submit order.', 'error'); renderSummary(); } });
+$('workerClearBtn')?.addEventListener('click', () => {
+  document.querySelectorAll('[data-worker-qty]').forEach(input => { input.value = '0'; });
+  renderSummary();
+  setNotice('Selection cleared.');
+});
 supabase.channel(`worker-stock-${branchId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, payload => { const key = payload.new?.key || payload.old?.key; if (key === BRANCH_QUANTITY_SETTING_KEY) loadData().catch(() => {}); }).subscribe();
 async function startWorkerDashboard() {
   const { data: { session } } = await supabase.auth.getSession();

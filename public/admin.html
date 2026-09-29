@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
 <meta name="theme-color" content="#8a5a3f">
 <link rel="manifest" href="assets/manifest/admin-app.webmanifest">
-<link rel="stylesheet" href="assets/css/admin-dashboard.css?v=mobile-fix-1">
+<link rel="stylesheet" href="assets/css/admin-dashboard.css?v=mobile-fix-2">
 </head>
 <body>
   <!-- ---------- LOGIN SCREEN ---------- -->
@@ -267,15 +267,14 @@
         <section class="settingsGroup" aria-labelledby="storeControlsTitle">
           <div class="settingsControlList">
             <header class="settingsControlHead">
-              <span class="settingsGroupEyebrow">Live controls</span>
-              <h3 id="storeControlsTitle">Store operations</h3>
+              <h3 id="storeControlsTitle">Store controls</h3>
             </header>
             <section class="orderAvailabilityCard" id="orderAvailabilityCard" aria-labelledby="orderAvailabilityTitle">
               <span class="orderAvailabilityIcon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16l-1.5-5h-13L4 10Z"/><path d="M5 10v9h14v-9M9 19v-5h6v5"/></svg>
               </span>
               <span class="orderAvailabilityCopy">
-                <strong id="orderAvailabilityTitle">Accept Orders</strong>
+                <strong id="orderAvailabilityTitle">Online orders</strong>
                 <small id="acceptOrdersStatus">Checking availability…</small>
               </span>
               <label class="availabilitySwitch" aria-label="Accept customer orders">
@@ -302,7 +301,7 @@
               <span class="settingsRowIcon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
               </span>
-              <span class="settingsRowLabel"><strong>Edit Slideshow</strong><small>Update customer menu banners</small></span>
+              <span class="settingsRowLabel"><strong>Slideshow</strong></span>
               <span class="settingsRowChevron" aria-hidden="true">›</span>
               </button>
               <button type="button" class="exchangeRateCard" id="exchangeRateCard" aria-haspopup="dialog" aria-expanded="false">
@@ -319,7 +318,7 @@
               <span class="settingsRowIcon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
               </span>
-              <span class="settingsRowLabel"><strong>Log Out</strong><small>Sign out of this admin device</small></span>
+              <span class="settingsRowLabel"><strong>Log out</strong></span>
               <span class="settingsRowChevron" aria-hidden="true">›</span>
               </button>
             </div>
@@ -329,19 +328,18 @@
         <section class="settingsMenuGroup workerLinksGroup" aria-labelledby="workerLinksTitle">
           <div class="workerLinksCard" id="workerLinksCard">
             <div class="workerLinksHead">
-              <span class="settingsGroupEyebrow">Branch tools</span>
-              <h3 id="workerLinksTitle">Worker dashboard links</h3>
+              <h3 id="workerLinksTitle">Branch links</h3>
             </div>
             <div class="workerLinksList" id="workerLinksList">
               <div class="workerLinkRow" data-worker-branch="branch-1"><a class="workerLinkOpen" href="/worker.html?branch=branch-1" target="_blank" rel="noopener">
                 <span class="workerLinkIcon" aria-hidden="true">1</span>
-                <span class="workerLinkCopy"><strong>ទីតាំងទី ១</strong><small>Branch 1 worker</small></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="/worker.html?branch=branch-1">Copy link</button></div>
+                <span class="workerLinkCopy"><strong>ទីតាំងទី ១</strong></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="/worker.html?branch=branch-1">Copy</button></div>
               <div class="workerLinkRow" data-worker-branch="branch-2"><a class="workerLinkOpen" href="/worker.html?branch=branch-2" target="_blank" rel="noopener">
                 <span class="workerLinkIcon" aria-hidden="true">2</span>
-                <span class="workerLinkCopy"><strong>ទីតាំងទី ២</strong><small>Branch 2 worker</small></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="/worker.html?branch=branch-2">Copy link</button></div>
+                <span class="workerLinkCopy"><strong>ទីតាំងទី ២</strong></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="/worker.html?branch=branch-2">Copy</button></div>
               <div class="workerLinkRow" data-worker-branch="branch-3"><a class="workerLinkOpen" href="/worker.html?branch=branch-3" target="_blank" rel="noopener">
                 <span class="workerLinkIcon" aria-hidden="true">3</span>
-                <span class="workerLinkCopy"><strong>ទីតាំងទី ៣</strong><small>Branch 3 worker</small></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="/worker.html?branch=branch-3">Copy link</button></div>
+                <span class="workerLinkCopy"><strong>ទីតាំងទី ៣</strong></span></a><button type="button" class="workerLinkCopyBtn" data-worker-copy="/worker.html?branch=branch-3">Copy</button></div>
             </div>
           </div>
         </section>
@@ -584,7 +582,7 @@
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script>
-<script type="module" src="assets/js/branch-stock-dashboard.js?v=4"></script>
-<script type="module" src="assets/js/admin-dashboard.js?v=mobile-fix-1"></script>
+<script type="module" src="assets/js/branch-stock-dashboard.js?v=5"></script>
+<script type="module" src="assets/js/admin-dashboard.js?v=mobile-fix-2"></script>
 </body>
 </html>

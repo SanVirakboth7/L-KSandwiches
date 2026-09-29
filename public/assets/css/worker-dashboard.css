@@ -16,15 +16,27 @@ button,input{font:inherit}.workerShell{width:min(100%,760px);margin:0 auto;paddi
 @media(max-width:520px){.workerItem{grid-template-columns:20px minmax(0,1fr) 96px;gap:8px;padding:10px 11px}.workerItem img{width:20px;height:20px;grid-row:auto}.workerItemStock{grid-column:auto;flex-direction:column;align-items:flex-end;justify-content:center;gap:2px}}
 .workerItem{grid-template-columns:100px minmax(0,1fr) 96px}.workerItem img{width:100px;height:100px;border-radius:14px}
 @media(max-width:520px){.workerItem{grid-template-columns:100px minmax(0,1fr) 96px;gap:8px;padding:12px 11px}.workerItem img{width:100px;height:100px}}
-.workerEyebrow,.workerCategory{letter-spacing:normal!important}
+.workerCategory{letter-spacing:normal!important}
 .workerOrderTotal{color:#000!important;font-size:22px!important}.workerSubmitBtn{font-size:16px!important}
-.workerSummaryRow{display:flex;align-items:center;gap:8px;width:min(100%,560px);margin:0 auto 12px;}
-.workerSummary{flex:1;min-width:0;width:auto;margin:0;grid-template-columns:1fr 1fr auto;}
-.workerQrBtn{width:64px;height:auto;align-self:stretch;flex:0 0 64px;border:1px solid var(--line);border-radius:13px;display:grid;place-items:center;background:#fff;color:var(--brown);box-shadow:0 3px 10px rgba(43,33,24,.08);cursor:pointer;}
-.workerQrBtn svg{width:50px;height:50px;display:block;}
+.workerSummary{width:100%;margin:0 0 12px;grid-template-columns:1fr 1fr auto;}
+.workerQrBtn{width:48px;height:48px;align-self:flex-start;flex:0 0 48px;border:1px solid var(--line);border-radius:12px;display:grid;place-items:center;background:#fff;color:var(--brown);box-shadow:0 3px 10px rgba(43,33,24,.08);cursor:pointer;}
+.workerQrBtn svg{width:34px;height:34px;display:block;}
 .workerQrOverlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:20px;background:rgba(43,33,24,.48);backdrop-filter:blur(3px)}
 .workerQrOverlay[hidden]{display:none}
 .workerQrCard{position:relative;width:min(100%,340px);padding:24px;border:1px solid var(--line);border-radius:22px;background:#fff;text-align:center;box-shadow:0 20px 60px rgba(43,33,24,.24)}
 .workerQrCard h2{font-size:20px}.workerQrCard p{margin:6px 0 16px;color:var(--soft);font-size:12px}.workerQrCard img{width:240px;height:240px;max-width:100%;display:block;margin:auto}.workerQrClose{position:absolute;top:10px;right:10px;width:32px;height:32px;border:0;border-radius:50%;background:var(--paper);color:var(--brown);font-size:22px;cursor:pointer}
-.workerCategory{color:#000!important;font-size:15px!important}
-.workerEyebrow{font-size:15px!important}
+.workerCategory{color:#000!important;font-size:20px!important}
+.workerEyebrow{font-size:20px!important}
+body,body *{letter-spacing:0!important}
+.workerSubmitActions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.workerSubmitBtn{flex:1}
+.workerClearBtn{width:42px;height:42px;flex:0 0 42px;padding:10px;border:1px solid rgba(114,60,16,.18);border-radius:11px;background:#fff;color:var(--brown);cursor:pointer}
+.workerClearBtn svg{width:100%;height:100%;display:block}
+.workerClearBtn:disabled{opacity:.38;cursor:not-allowed}
+.workerSuccessToast{position:fixed;top:50%;left:50%;z-index:30;width:150px;height:150px;display:grid;place-items:center;border:1px solid rgba(55,164,91,.2);border-radius:50%;background:#fff;box-shadow:0 8px 26px rgba(43,33,24,.16);transform:translate(-50%,-50%);animation:workerToastIn .22s cubic-bezier(.2,.9,.3,1.3)}
+.workerSuccessToast[hidden]{display:none}
+.workerSuccessCheck{width:112px;height:112px;padding:27px;overflow:visible;border-radius:50%;background:#eaf7ee;stroke:#278746;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.workerSuccessCheck path{stroke-dasharray:24;stroke-dashoffset:24;animation:workerCheckDraw .35s .12s ease-out forwards}
+@keyframes workerToastIn{from{opacity:0;scale:.65}to{opacity:1;scale:1}}
+@keyframes workerCheckDraw{to{stroke-dashoffset:0}}
+@media(max-width:520px){.workerSubmitBar{align-items:center;flex-direction:row;flex-wrap:wrap}.workerSubmitBar>div:first-child{flex:1 1 100%}.workerSubmitActions{width:100%}.workerSubmitBtn{width:auto}}

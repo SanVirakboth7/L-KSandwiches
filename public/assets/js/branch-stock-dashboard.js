@@ -1,6 +1,6 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase-client.js';
 const tabsCss=document.createElement('link');tabsCss.rel='stylesheet';tabsCss.href='assets/css/branch-stock-tabs.css?v=1';document.head.appendChild(tabsCss);
-const dashboardCss=document.createElement('link');dashboardCss.rel='stylesheet';dashboardCss.href='assets/css/branch-stock-dashboard.css?v=3';document.head.appendChild(dashboardCss);
+const dashboardCss=document.createElement('link');dashboardCss.rel='stylesheet';dashboardCss.href='assets/css/branch-stock-dashboard.css?v=4';document.head.appendChild(dashboardCss);
 const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const branches=[['branch-1','ទីតាំងទី ១','ABA Grand Phnom Penh'],['branch-2','ទីតាំងទី ២','Russey Keo (598)'],['branch-3','ទីតាំងទី ៣','AEON Mall Sen Sok']];
 let products=[];let quantities={};let activeBranch='branch-1';

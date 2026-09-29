@@ -131,7 +131,7 @@
     position:relative;
   }
   .searchIconBtn{
-    flex-shrink:0; width:34px; height:34px; border-radius:50%;
+    flex-shrink:0; width:42px; height:42px; border-radius:50%;
     background: var(--paper); border:1px solid var(--line);
     color: var(--ink-soft);
     display:flex; align-items:center; justify-content:center;
@@ -159,7 +159,9 @@
     width:28px; height:28px; flex:0 0 28px;
     display:block; object-fit:contain;
   }
-  .chipIconSandwich,.chipIconBestseller,.chipIconRice{ width:28px; height:28px; flex-basis:28px; }
+  .chipIconSandwich{ width:28px; height:28px; flex-basis:28px; }
+  .chipIconBestseller{ width:25px; height:25px; flex-basis:25px; }
+  .chipIconRice{ width:29px; height:29px; flex-basis:29px; }
   .chip.active{
     background:rgba(114,60,16,.10);
     border-color:rgba(114,60,16,.24); color:var(--ink-dark, #2b2118);
