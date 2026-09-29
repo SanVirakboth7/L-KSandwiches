@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
 <meta name="theme-color" content="#8a5a3f">
 <link rel="manifest" href="assets/manifest/admin-app.webmanifest">
-<link rel="stylesheet" href="assets/css/admin-dashboard.css?v=mobile-fix-2">
+<link rel="stylesheet" href="assets/css/admin-dashboard.css?v=dashboard-redesign-6">
 </head>
 <body>
   <!-- ---------- LOGIN SCREEN ---------- -->
@@ -111,7 +111,7 @@
 <!-- ============ DASHBOARD PAGE ============ -->
     <section class="page active" id="page-dashboard">
       <div class="dashboardSectionHead">
-        <h3 class="dashboardSectionTitle">Sales Performance</h3>
+        <h3 class="dashboardSectionTitle">Today</h3>
         <p class="greetingDate" id="greetingDate"></p>
       </div>
       <div class="salesPerformanceGrid">
@@ -124,13 +124,13 @@
           </div>
           <div class="performanceMetric">
             <strong id="statTodayItems">—</strong>
-            <span>Items sold today</span>
+            <span>Items sold</span>
           </div>
         </article>
 
         <article class="performanceCard performanceSalesCard">
           <div class="performanceCardHead performanceSalesHead">
-            <span class="performanceTitle">Today's<br>earnings</span>
+            <span class="performanceTitle">Sales</span>
           </div>
           <div class="performanceMetric performanceMoneyMetric">
             <small id="statTodaySalesRiel"></small>
@@ -140,14 +140,14 @@
         </article>
       </div>
 
-      <h3 class="sectionLabel dashboardMenuOverview">Menu Overview</h3>
+      <h3 class="sectionLabel dashboardMenuOverview">Menu</h3>
       <div class="statGrid">
         <div class="statCard">
           <div class="statIcon statIconGold">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
           </div>
           <p class="statValue" id="statTotalItems">–</p>
-          <p class="statLabel">Menu Items</p>
+          <p class="statLabel">Items</p>
         </div>
            <div class="statCard">
           <div class="statIcon statIconOlive">
@@ -162,7 +162,7 @@
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
           </div>
           <p class="statValue" id="statFeatured">–</p>
-          <p class="statLabel">Bestseller</p>
+          <p class="statLabel">Bestsellers</p>
         </div>
         <div class="statCard">
           <div class="statIcon statIconTomato">
@@ -173,15 +173,14 @@
         </div>
        </div>
 
-      <h3 class="sectionLabel">Quick Actions</h3>
+      <h3 class="sectionLabel">Manage</h3>
       <div class="quickActions">
         <button class="quickActionCard" id="quickDailySelection">
           <div class="quickActionIcon quickActionIconDaily">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16l-1.5-5h-13L4 10Z"/><path d="M5 10v9h14v-9M9 19v-5h6v5"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
           </div>
           <div class="quickActionText">
-            <span class="quickActionTitle">Daily Branch Selection</span>
-            <span class="quickActionSub">Set quantity for each branch</span>
+            <span class="quickActionTitle">Branch menu</span>
           </div>
           <span class="quickActionChevron">›</span>
         </button>
@@ -190,8 +189,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16"/><path d="m7 15 4-4 3 2 5-6"/></svg>
           </div>
           <div class="quickActionText">
-            <span class="quickActionTitle">Track Branch Stock</span>
-            <span class="quickActionSub">Open the live branch stock dashboard</span>
+            <span class="quickActionTitle">Branch stock</span>
           </div>
           <span class="quickActionChevron">›</span>
         </button>
@@ -200,8 +198,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h10M4 18h7"/><path d="M19 14v6M16 17h6"/></svg>
           </div>
           <div class="quickActionText">
-            <span class="quickActionTitle">Create New Category</span>
-            <span class="quickActionSub">Organize products into a new section</span>
+            <span class="quickActionTitle">Add category</span>
           </div>
           <span class="quickActionChevron">›</span>
         </button>
@@ -583,6 +580,6 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script>
 <script type="module" src="assets/js/branch-stock-dashboard.js?v=5"></script>
-<script type="module" src="assets/js/admin-dashboard.js?v=mobile-fix-2"></script>
+<script type="module" src="assets/js/admin-dashboard.js?v=mobile-fix-3"></script>
 </body>
 </html>

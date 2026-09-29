@@ -764,6 +764,43 @@ function orderChannelMeta(order) {
   return { channel: 'event', label: 'Event pre-order', isDaily: false };
 }
 
+async function restoreCancelledBranchOrderStock(order) {
+  const branchItems = safeOrderItems(order.items).filter(item =>
+    item.order_channel === 'branch_daily' && DAILY_BRANCHES[item.branch_id] && item.id
+  );
+  if (!branchItems.length) return;
+
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', BRANCH_QUANTITY_SETTING_KEY)
+    .maybeSingle();
+  if (error) throw error;
+
+  let shared = {};
+  try {
+    const parsed = data?.value ? JSON.parse(data.value) : {};
+    shared = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    shared = {};
+  }
+
+  branchItems.forEach(item => {
+    const branchQuantities = shared[item.branch_id] ||= {};
+    const returnedQuantity = Math.max(0, Number(item.quantity) || 0);
+    branchQuantities[item.id] = Math.max(0, Number(branchQuantities[item.id]) || 0) + returnedQuantity;
+  });
+
+  const { error: saveError } = await supabase.from('site_settings').upsert({
+    key: BRANCH_QUANTITY_SETTING_KEY,
+    value: JSON.stringify(shared)
+  }, { onConflict: 'key' });
+  if (saveError) throw saveError;
+
+  branchMenuQuantities = shared;
+  if (dailySelectionOverlay?.classList.contains('open')) renderDailySelectionList();
+}
+
 function formatAdminRiel(usdAmount) {
   const riel = Math.round(Number(usdAmount || 0) * adminKhrPerUsd);
   return `${riel.toLocaleString('en-US')} ៛`;
@@ -1047,6 +1084,7 @@ async function updateOrderStatus(orderId, nextStatus, button) {
   if (nextStatus === 'cancelled' && !confirm(`Cancel order #${orderNumber}?`)) return;
 
   const card = button.closest('.adminOrderCard');
+  const previousStatus = order.status;
   const actionButtons = card?.querySelectorAll('[data-order-status]') || [];
   actionButtons.forEach(actionButton => { actionButton.disabled = true; });
   button.classList.add('is-loading');
@@ -1055,13 +1093,33 @@ async function updateOrderStatus(orderId, nextStatus, button) {
     .from('orders')
     .update({ status: nextStatus })
     .eq('id', orderId)
+    .eq('status', previousStatus)
     .select('id,status')
-    .single();
+    .maybeSingle();
 
-  if (error) {
+  if (error || !data) {
     renderOrders();
-    toast('Could not update order: ' + error.message, true);
+    toast(error ? 'Could not update order: ' + error.message : 'This order was already updated. Refresh and try again.', true);
     return;
+  }
+
+  if (nextStatus === 'cancelled' && orderChannelMeta(order).isDaily) {
+    try {
+      await restoreCancelledBranchOrderStock(order);
+    } catch (restoreError) {
+      const { error: rollbackError } = await supabase
+        .from('orders')
+        .update({ status: previousStatus })
+        .eq('id', orderId)
+        .eq('status', 'cancelled');
+      if (rollbackError) console.error('[L&K admin] Could not reopen order after stock restore failed:', rollbackError);
+      order.status = rollbackError ? data.status : previousStatus;
+      renderOrders();
+      toast(rollbackError
+        ? 'Order cancelled, but stock could not be restored. Please check branch stock.'
+        : 'Could not restore branch stock, so the order was reopened. Try cancelling again.', true);
+      return;
+    }
   }
 
   order.status = data.status;

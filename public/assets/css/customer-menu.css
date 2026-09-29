@@ -156,11 +156,11 @@
   }
   .chip .dot{ width:6px; height:6px; border-radius:50%; background:var(--crust-500); }
   .chipIcon{
-    width:28px; height:28px; flex:0 0 28px;
+    width:23px; height:23px; flex:0 0 23px;
     display:block; object-fit:contain;
   }
   .chipIconSandwich{ width:28px; height:28px; flex-basis:28px; }
-  .chipIconBestseller{ width:25px; height:25px; flex-basis:25px; }
+  .chipIconBestseller{ width:23px; height:23px; flex-basis:23px; }
   .chipIconRice{ width:29px; height:29px; flex-basis:29px; }
   .chip.active{
     background:rgba(114,60,16,.10);

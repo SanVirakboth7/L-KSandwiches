@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=DM+Mono:wght@400;500&amp;family=Noto+Sans+Khmer:wght@500;600;700&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="assets/css/customer-menu.css?v=category-icons-9">
+<link rel="stylesheet" href="assets/css/customer-menu.css?v=category-icons-10">
 </head>
 <body>
   <main id="branchPageMount"><p style="padding:24px;text-align:center;font:600 14px Inter,sans-serif;color:#6b5f52">Loading daily menu…</p></main>
@@ -24,6 +24,10 @@
     const app = sourceDocument.querySelector('.app');
     if (!app) throw new Error('Menu shell is unavailable.');
     document.getElementById('branchPageMount').replaceWith(app);
+    for (const selector of ['#adminLoginOverlay', '#adminPortal']) {
+      const adminLayer = sourceDocument.querySelector(selector);
+      if (adminLayer) document.body.append(adminLayer);
+    }
     await import('./assets/js/customer-menu.js?v=category-icons-7');
   </script>
 </body>
