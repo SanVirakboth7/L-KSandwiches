@@ -531,7 +531,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .quickActionIconDaily{ color:var(--brand-brown); background:rgba(114,60,16,.1); }
 .quickActionIcon svg{ width:18px; height:18px; }
 .quickActionText{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
-.quickActionTitle{ font-size:14px; font-weight:750; }
+.quickActionTitle{ font-size:13px; font-weight:750; }
 .quickActionChevron{ color:var(--ink-soft); font-size:18px; opacity:.5; flex-shrink:0; }
 
 .dailySelectionCard{ max-width:520px; max-height:min(88vh,760px); padding:0; overflow:hidden; }
@@ -1321,7 +1321,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
 .workerLinkRow:last-child{ border-bottom:0; }
 .workerLinkIcon{ width:32px; height:32px; flex:0 0 32px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:rgba(114,60,16,.1); color:var(--brand-brown); font-size:11px; font-weight:850; }
 .workerLinkCopy{ min-width:0; flex:1; display:flex; flex-direction:column; gap:3px; }
-.workerLinkCopy strong{ color:var(--ink-dark); font-size:12px; }
+.workerLinkCopy strong{ color:var(--ink-dark); font-size:13px; }
 .workerLinkCopy small{ color:var(--ink-soft); font-size:10px; }
 .qrCardDetails{
   min-width:0; padding:14px; border-radius:18px;
@@ -1399,7 +1399,7 @@ button:focus-visible{ outline:2px solid var(--mustard-500); outline-offset:2px; 
   #page-dashboard .statLabel{font-size:10px}
   #page-dashboard .quickActions{gap:7px}
   #page-dashboard .quickActionCard{min-height:108px;padding:10px;border-radius:14px}
-  #page-dashboard .quickActionTitle{font-size:11.5px}
+  #page-dashboard .quickActionTitle{font-size:13px}
   #page-dashboard .quickActionChevron{top:10px;right:10px}
 }
 
