@@ -155,12 +155,17 @@
     background: var(--paper); color: var(--ink-soft);
   }
   .chip .dot{ width:6px; height:6px; border-radius:50%; background:var(--crust-500); }
-  .chip.active{
-    background: linear-gradient(135deg, var(--mustard-500), var(--mustard-600));
-    border-color: transparent; color:#fff;
-    box-shadow: 0 3px 10px rgba(217, 161, 48, 0.158);
+  .chipIcon{
+    width:28px; height:28px; flex:0 0 28px;
+    display:block; object-fit:contain;
   }
-  .chip.active .dot{ background:#fff; }
+  .chipIconSandwich,.chipIconBestseller,.chipIconRice{ width:28px; height:28px; flex-basis:28px; }
+  .chip.active{
+    background:rgba(114,60,16,.10);
+    border-color:rgba(114,60,16,.24); color:var(--ink-dark, #2b2118);
+    box-shadow:inset 0 0 0 1px rgba(114,60,16,.04);
+  }
+  .chip.active .dot{ background:var(--brand-brown, #723c10); }
 
   .searchExpandWrap{
     position:absolute; inset:0; z-index:2;

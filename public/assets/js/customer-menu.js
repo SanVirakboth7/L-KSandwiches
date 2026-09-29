@@ -1576,6 +1576,21 @@ async function loadMenuCategories() {
   menuCategories = mergeProductCategories(savedCategories);
 }
 
+const CATEGORY_CHIP_ICONS = {
+  sandwich: { src: 'img/sandwich-category-icon-v2.png', className: 'chipIconSandwich' },
+  rice: { src: 'img/rice-category-icon-v3.png', className: 'chipIconRice' },
+  dessert: { src: 'img/dessert-category-icon-v2.png', className: '' },
+  salad: { src: 'img/salad-category-icon.png', className: '' }
+};
+
+function categoryChipMarkup(slug, label) {
+  const icon = CATEGORY_CHIP_ICONS[slug];
+  const iconMarkup = icon
+    ? `<img class="chipIcon${icon.className ? ` ${icon.className}` : ''}" src="${icon.src}" alt="" aria-hidden="true">`
+    : '<span class="dot" aria-hidden="true"></span>';
+  return `${iconMarkup}${escapeHTML(label)}`;
+}
+
 function renderCategoryUI() {
   const defaultSlugs = new Set(DEFAULT_CATEGORIES.map(category => category.slug));
   Object.keys(CATEGORY_MAP).forEach(slug => {
@@ -1602,7 +1617,7 @@ function renderCategoryUI() {
     if (sectionTitle) sectionTitle.textContent = customerLabel;
     if (chip) {
       chip.style.display = isHidden ? 'none' : '';
-      chip.innerHTML = `<span class="dot"></span>${escapeHTML(customerLabel)}`;
+      chip.innerHTML = categoryChipMarkup(category.slug, customerLabel);
     }
   });
 
@@ -1617,7 +1632,7 @@ function renderCategoryUI() {
       chip.className = 'chip';
       chip.dataset.target = sectionId;
       chip.dataset.dynamicCategory = category.slug;
-      chip.innerHTML = `<span class="dot"></span>${escapeHTML(category.customerLabel || category.name)}`;
+      chip.innerHTML = categoryChipMarkup(category.slug, category.customerLabel || category.name);
       chipRow.insertBefore(chip, locationChip || null);
     }
 

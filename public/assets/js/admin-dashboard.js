@@ -215,6 +215,7 @@ const exchangeRateSaveBtn = document.getElementById('exchangeRateSaveBtn');
 const exchangeRateStatus = document.getElementById('exchangeRateStatus');
 
 function closeExchangeRateModal() {
+  exchangeRateInput?.blur();
   exchangeRateModalOverlay?.classList.remove('open');
   exchangeRateModalOverlay?.setAttribute('aria-hidden', 'true');
   exchangeRateCard?.setAttribute('aria-expanded', 'false');
@@ -223,7 +224,6 @@ exchangeRateCard?.addEventListener('click', () => {
   exchangeRateModalOverlay?.classList.add('open');
   exchangeRateModalOverlay?.setAttribute('aria-hidden', 'false');
   exchangeRateCard?.setAttribute('aria-expanded', 'true');
-  exchangeRateInput?.focus();
 });
 exchangeRateModalClose?.addEventListener('click', closeExchangeRateModal);
 exchangeRateModalOverlay?.addEventListener('click', event => {

@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="L&amp;K Sandwiches">
 <meta name="theme-color" content="#8a5a3f">
 <link rel="manifest" href="assets/manifest/admin-app.webmanifest">
-<link rel="stylesheet" href="assets/css/admin-dashboard.css?v=daily-editor-7">
+<link rel="stylesheet" href="assets/css/admin-dashboard.css?v=mobile-fix-1">
 </head>
 <body>
   <!-- ---------- LOGIN SCREEN ---------- -->
@@ -398,7 +398,7 @@
       <button type="button" class="categoryModalClose" id="exchangeRateModalClose" aria-label="Close exchange rate popup">&times;</button>
     </div>
     <form class="exchangeRateModalForm" id="exchangeRateForm">
-      <label class="exchangeRateField" for="exchangeRateInput"><span>KHR per $1</span><input type="number" id="exchangeRateInput" inputmode="numeric" min="1" step="1" placeholder="4000" aria-label="KHR exchange rate per 1 US dollar"></label>
+      <label class="exchangeRateField" for="exchangeRateInput"><span>KHR per $1</span><input type="number" id="exchangeRateInput" inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" placeholder="4000" aria-label="KHR exchange rate per 1 US dollar"></label>
       <button type="submit" class="exchangeRateSaveBtn" id="exchangeRateSaveBtn">Save</button>
     </form>
   </div>
@@ -584,7 +584,7 @@
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script>
-<script type="module" src="assets/js/branch-stock-dashboard.js?v=3"></script>
-<script type="module" src="assets/js/admin-dashboard.js?v=supabase-umd-1"></script>
+<script type="module" src="assets/js/branch-stock-dashboard.js?v=4"></script>
+<script type="module" src="assets/js/admin-dashboard.js?v=mobile-fix-1"></script>
 </body>
 </html>
