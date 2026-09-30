@@ -703,23 +703,28 @@ function buildConfirmSummaryHTML() {
   const addressRow = orderType === 'delivery'
     ? `<div class="confirmDetailRow"><span>Address</span><span>${address ? escapeHTML(address) : ''}</span></div>`
     : '';
+  const itemCount = entries.reduce((sum, [, qty]) => sum + qty, 0);
 
   return `
-    <div class="confirmDetailRow"><span>Order</span><span>${selectedDailyBranch ? 'Daily branch order' : 'Event pre-order'}</span></div>
-    ${selectedDailyBranch ? `<div class="confirmDetailRow"><span>Branch</span><span>${escapeHTML(DAILY_BRANCHES[selectedDailyBranch]?.name || selectedDailyBranch)}</span></div>` : ''}
-    <div class="confirmDetailRow"><span>Order Type</span><span>${orderType ? (orderType === 'delivery' ? 'Delivery' : 'Pickup') : '—'}</span></div>
-    <div class="confirmDetailRow"><span>Name</span><span>${escapeHTML(name || '—')}</span></div>
-    <div class="confirmDetailRow"><span>Phone</span><span>${escapeHTML(phone || '—')}</span></div>
-    ${addressRow}
-    <div class="confirmDetailRow"><span>Date</span><span>${date ? escapeHTML(formatDate(date)) : '—'}</span></div>
-    <div class="confirmDetailRow"><span>Time</span><span>${time ? escapeHTML(formatTime(time)) : '—'}</span></div>
-    <div class="confirmDetailRow"><span>Payment Method</span><span>${paymentMethodLabel(paymentMethod)}</span></div>
-    ${notes ? `<div class="confirmDetailRow"><span>Order Notes</span><span>${escapeHTML(notes)}</span></div>` : ''}
-    ${verifiedPayWayTransactionId ? `<div class="confirmDetailRow"><span>ABA Transaction</span><span>${escapeHTML(verifiedPayWayTransactionId)}</span></div>` : ''}
+    <div class="confirmSectionTitle">Order details</div>
+    <div class="confirmDetailsGroup">
+      <div class="confirmDetailRow"><span>Order</span><span>${selectedDailyBranch ? 'Daily branch order' : 'Event pre-order'}</span></div>
+      ${selectedDailyBranch ? `<div class="confirmDetailRow"><span>Branch</span><span>${escapeHTML(DAILY_BRANCHES[selectedDailyBranch]?.name || selectedDailyBranch)}</span></div>` : ''}
+      <div class="confirmDetailRow"><span>Order Type</span><span>${orderType ? (orderType === 'delivery' ? 'Delivery' : 'Pickup') : '—'}</span></div>
+      <div class="confirmDetailRow"><span>Name</span><span>${escapeHTML(name || '—')}</span></div>
+      <div class="confirmDetailRow"><span>Phone</span><span>${escapeHTML(phone || '—')}</span></div>
+      ${addressRow}
+      <div class="confirmDetailRow"><span>Date</span><span>${date ? escapeHTML(formatDate(date)) : '—'}</span></div>
+      <div class="confirmDetailRow"><span>Time</span><span>${time ? escapeHTML(formatTime(time)) : '—'}</span></div>
+      <div class="confirmDetailRow"><span>Payment</span><span>${paymentMethodLabel(paymentMethod)}</span></div>
+      ${notes ? `<div class="confirmDetailRow"><span>Order Notes</span><span>${escapeHTML(notes)}</span></div>` : ''}
+      ${verifiedPayWayTransactionId ? `<div class="confirmDetailRow"><span>ABA Transaction</span><span>${escapeHTML(verifiedPayWayTransactionId)}</span></div>` : ''}
+    </div>
     <div class="confirmDivider"></div>
-    ${itemsHTML}
+    <div class="confirmSectionTitle confirmItemsTitle"><span>Items</span><span>${itemCount} ${itemCount === 1 ? 'item' : 'items'}</span></div>
+    <div class="confirmItemsGroup">${itemsHTML}</div>
     <div class="confirmDivider"></div>
-    <div class="confirmDetailRow confirmTotalRow"><span>Total</span><span>$${cartTotal().toFixed(2)}</span></div>
+    <div class="confirmDetailRow confirmTotalRow"><span>Total</span><span class="confirmTotalValues"><strong>$${cartTotal().toFixed(2)}</strong><small>${formatRiel(cartTotal())}</small></span></div>
   `;
 }
 
@@ -1579,8 +1584,8 @@ async function loadMenuCategories() {
 const CATEGORY_CHIP_ICONS = {
   sandwich: { src: 'img/sandwich-category-icon-v2.png', className: 'chipIconSandwich' },
   rice: { src: 'img/rice-category-icon-v3.png', className: 'chipIconRice' },
-  dessert: { src: 'img/dessert-category-icon-v2.png', className: '' },
-  salad: { src: 'img/salad-category-icon.png', className: '' }
+  dessert: { src: 'img/dessert-category-icon-v2.png', className: 'chipIconDessert' },
+  salad: { src: 'img/salad-category-icon.png?v=cardbowl-2', className: 'chipIconSalad' }
 };
 
 function categoryChipMarkup(slug, label) {

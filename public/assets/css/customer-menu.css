@@ -150,18 +150,19 @@
   .chipRow::-webkit-scrollbar{ display:none; }
   .chip{
     flex-shrink:0; display:flex; align-items:center; gap:6px;
-    padding:6px 12px; border-radius:999px; font-size:14px; font-weight:600;font-family:'Khmer OS Sans','Noto Sans Khmer',sans-serif;
+    height:42px; padding:0 12px; border-radius:999px; font-size:14px; font-weight:600;font-family:'Khmer OS Sans','Noto Sans Khmer',sans-serif;
     white-space:nowrap; border:1px solid var(--line);
     background: var(--paper); color: var(--ink-soft);
   }
   .chip .dot{ width:6px; height:6px; border-radius:50%; background:var(--crust-500); }
   .chipIcon{
-    width:23px; height:23px; flex:0 0 23px;
+    width:40px; height:40px; flex:0 0 40px;
     display:block; object-fit:contain;
   }
-  .chipIconSandwich{ width:28px; height:28px; flex-basis:28px; }
-  .chipIconBestseller{ width:23px; height:23px; flex-basis:23px; }
-  .chipIconRice{ width:29px; height:29px; flex-basis:29px; }
+  .chipIconBestseller,
+  .chipIconSandwich,
+  .chipIconDessert{ width:32px; height:32px; flex-basis:32px; }
+  .chipIconBestseller{ width:29px; height:29px; flex-basis:29px; }
   .chip.active{
     background:rgba(114,60,16,.10);
     border-color:rgba(114,60,16,.24); color:var(--ink-dark, #2b2118);
@@ -1487,11 +1488,14 @@ body.adminLayerOpen{ overflow:hidden; }
   flex-shrink:0;
 }
 .confirmTotalRow{
-  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:17px; font-weight:700;
-  padding-top:8px;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:17px; font-weight:700;
+  padding-top:8px; align-items:center;
 }
 .confirmTotalRow span:first-child{ color:var(--ink); }
 .confirmTotalRow span:last-child{ color:var(--crust-500); }
+.confirmTotalValues{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; line-height:1.2; }
+.confirmTotalValues strong{ font:inherit; }
+.confirmTotalValues small{ font:600 12px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; color:var(--ink-soft); }
 .confirmActions{ display:flex; gap:10px; margin-top:20px; }
 .confirmActions .clearBtn, .confirmActions .sendOrderBtn{ flex:1; }
 
@@ -1523,11 +1527,14 @@ body.adminLayerOpen{ overflow:hidden; }
   flex-shrink:0;
 }
 .confirmTotalRow{
-  font-family:'Fraunces','Khmer OS Sans','Noto Sans Khmer',serif; font-size:17px; font-weight:700;
-  padding-top:8px;
+  font-family:'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; font-size:17px; font-weight:700;
+  padding-top:8px; align-items:center;
 }
 .confirmTotalRow span:first-child{ color:var(--ink); }
 .confirmTotalRow span:last-child{ color:var(--crust-500); }
+.confirmTotalValues{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; line-height:1.2; }
+.confirmTotalValues strong{ font:inherit; }
+.confirmTotalValues small{ font:600 12px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; color:var(--ink-soft); }
 
 /* Confirmation follows the same softer cart palette. */
 .confirmModalCard{
@@ -1558,6 +1565,60 @@ body.adminLayerOpen{ overflow:hidden; }
   background:#723c10;
   box-shadow:0 6px 16px rgba(114,60,16,.18);
 }
+
+/* Cleaner, scannable order-confirmation layout. */
+.confirmModalCard{ max-width:390px; border-radius:24px; }
+.confirmModalCard .confirmBody{ padding:22px 20px 20px; text-align:left; }
+.confirmModalCard .confirmBody h3{ font-size:22px; line-height:1.2; }
+.confirmModalCard .confirmText{ margin-top:5px; line-height:1.45; }
+.confirmModalCard .confirmSummary{
+  margin-top:16px; padding:0; border:0; border-radius:0;
+  background:transparent;
+}
+.confirmSectionTitle{
+  display:flex; justify-content:space-between; align-items:center;
+  margin:0 0 6px; color:#92735f;
+  font:700 11px/1.3 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif;
+  letter-spacing:.04em; text-transform:uppercase;
+}
+.confirmDetailsGroup{ border:1px solid #eee8e2; border-radius:12px; overflow:hidden; }
+.confirmItemsTitle span:last-child{
+  color:#857a71; font-size:12px; font-weight:600;
+  letter-spacing:0; text-transform:none;
+}
+.confirmDetailRow{
+  gap:12px; align-items:flex-start; padding:8px 0;
+  border-bottom:1px solid #eee8e2; line-height:1.35;
+}
+.confirmDetailsGroup .confirmDetailRow{
+  margin:0; padding:9px 12px 9px 15px; border:0;
+  border-bottom:1px solid #eee8e2; border-radius:0; background:#fff;
+}
+.confirmDetailsGroup .confirmDetailRow:last-child{ margin-bottom:0; border-bottom:0; }
+.confirmDetailRow span:first-child{ flex:0 0 auto; font-size:12px; }
+.confirmDetailRow span:last-child{
+  flex:1; min-width:0; max-width:70%; font-size:13px;
+  overflow-wrap:anywhere;
+}
+.confirmModalCard .confirmDivider{ margin:13px 0 11px; }
+.confirmItemsGroup .confirmItemRow{
+  gap:10px; margin:0 0 7px; padding:9px 10px;
+  border:1px solid #eee8e2; border-radius:13px; background:#fff;
+}
+.confirmItemsGroup .confirmItemQty{
+  display:flex; align-items:center; justify-content:center;
+  min-width:32px; height:27px; border-radius:9px;
+  background:#f3ece6; color:#723c10; font-size:12px; font-weight:700;
+}
+.confirmItemsGroup .confirmItemName{ font-size:13px; font-weight:600; overflow-wrap:anywhere; }
+.confirmItemsGroup .confirmItemPrice{ font:700 13px 'Inter','Khmer OS Sans','Noto Sans Khmer',sans-serif; }
+.confirmModalCard .confirmTotalRow{
+  margin-top:10px; padding:12px 13px; border-radius:14px;
+  background:#fff; border:1px solid #eee8e2; font-size:16px;
+}
+.confirmModalCard .confirmTotalValues small{ color:#82756d; }
+.confirmModalCard .confirmActions{ margin-top:14px; gap:9px; }
+.confirmModalCard .confirmActions button{ min-height:46px; border-radius:14px; }
 
 .orderSuccessCard{
   width:min(100%,340px); padding:32px 24px 24px;

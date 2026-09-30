@@ -67,8 +67,8 @@ function renderMenu() {
       const remaining = Math.max(0, Number(quantities[product.id]) || 0);
       return `<div class="workerItem${remaining === 0 ? ' is-empty' : ''}">
         <img src="${esc(product.image_url || 'img/placeholder.jpg')}" alt="" loading="lazy">
-        <div class="workerItemName"><strong>${esc(product.name || product.id)}</strong><small>${esc(product.id)} · $${price(product.price).toFixed(2)}</small></div>
-        <div class="workerItemStock"><strong>${remaining}</strong><span>${remaining ? 'នៅសល់' : 'អស់ហើយ'}</span><div class="workerQtyPill"><button type="button" data-worker-step="-1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បន្ថយចំនួន">−</button><input class="workerQty" type="text" readonly value="0" max="${remaining}" data-worker-qty="${esc(product.id)}" data-worker-price="${price(product.price)}" aria-label="ចំនួនលក់ ${esc(product.name || product.id)}" ${remaining ? '' : 'disabled'}><button type="button" data-worker-step="1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បង្កើនចំនួន">+</button></div></div>
+        <div class="workerItemName"><strong>${esc(product.name || product.id)}</strong><small>${esc(product.id)} · $${price(product.price).toFixed(2)}</small><div class="workerQtyPill"><button type="button" data-worker-step="-1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បន្ថយចំនួន">−</button><input class="workerQty" type="text" readonly value="0" max="${remaining}" data-worker-qty="${esc(product.id)}" data-worker-price="${price(product.price)}" aria-label="ចំនួនលក់ ${esc(product.name || product.id)}" ${remaining ? '' : 'disabled'}><button type="button" data-worker-step="1" data-worker-id="${esc(product.id)}" ${remaining ? '' : 'disabled'} aria-label="បង្កើនចំនួន">+</button></div></div>
+        <div class="workerItemStock"><strong>${remaining}</strong><span>${remaining ? 'នៅសល់' : 'អស់ហើយ'}</span></div>
       </div>`;
     }).join('')}
   `).join('') || '<p class="workerEmpty">No menu is available for this branch today.</p>';
